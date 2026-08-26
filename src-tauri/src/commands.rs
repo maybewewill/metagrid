@@ -77,15 +77,3 @@ pub fn set_autostart(
 pub fn get_portrait_dir(data: State<DataDir>) -> String {
     data.0.join("portraits").to_string_lossy().into_owned()
 }
-
-/// Refresh-then-launch: runs a full refresh cycle so the grid is guaranteed
-/// fresh right before Dota starts, then launches Dota via Steam. A refresh
-/// failure is logged but does not block the launch — the user asked to play,
-/// not to wait on the meta scrape.
-#[tauri::command]
-pub async fn launch_dota(app: AppHandle) -> Result<(), String> {
-    if let Err(e) = scheduler::run_refresh(&app).await {
-        tracing::warn!("launch_dota: refresh failed, launching anyway: {e}");
-    }
-    open::that("steam://rungameid/570").map_err(|e| e.to_string())
-}

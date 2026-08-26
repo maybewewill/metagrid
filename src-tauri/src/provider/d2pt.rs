@@ -39,15 +39,23 @@ impl D2ptProvider {
     /// deliberate, proven workaround — do not swap back to reqwest for this
     /// provider.
     pub async fn fetch_raw(&self) -> Result<String, ProviderError> {
-        let output = Command::new("curl.exe")
-            .arg("-s")
+        let mut cmd = Command::new("curl.exe");
+        cmd.arg("-s")
             .arg("-H")
             .arg(format!("User-Agent: {USER_AGENT}"))
             .arg("-H")
             .arg(format!("Accept: {ACCEPT}"))
             .arg("-H")
             .arg(format!("Accept-Language: {ACCEPT_LANGUAGE}"))
-            .arg(D2PT_URL)
+            .arg(D2PT_URL);
+
+        // Suppress the console window curl.exe would otherwise flash on every
+        // fetch: CREATE_NO_WINDOW (0x0800_0000). Without this a black cmd
+        // window pops up each refresh — the app runs windowless in the tray.
+        #[cfg(windows)]
+        cmd.creation_flags(0x0800_0000);
+
+        let output = cmd
             .output()
             .await
             .map_err(|e| {

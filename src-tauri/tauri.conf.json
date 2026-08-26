@@ -14,10 +14,10 @@
       {
         "label": "main",
         "title": "MetaGrid",
-        "width": 1000,
-        "height": 660,
-        "minWidth": 900,
-        "minHeight": 560,
+        "width": 1200,
+        "height": 760,
+        "minWidth": 1040,
+        "minHeight": 640,
         "decorations": false,
         "visible": false,
         "resizable": true,
@@ -25,8 +25,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; img-src 'self' asset: http://asset.localhost data:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; script-src 'self'",
-      "assetProtocol": { "enable": true, "scope": ["$APPDATA/com.metagrid.app/portraits/*"] }
+      "csp": "default-src 'self'; img-src 'self' https://cdn.cloudflare.steamstatic.com data:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; script-src 'self'"
     }
   },
   "bundle": {

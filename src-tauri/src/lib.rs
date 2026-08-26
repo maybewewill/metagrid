@@ -36,8 +36,7 @@ pub fn run() {
             commands::refresh_now,
             commands::get_autostart,
             commands::set_autostart,
-            commands::get_portrait_dir,
-            commands::launch_dota
+            commands::get_portrait_dir
         ])
         .setup(|app| {
             // Resolve the data dir via Tauri (not the `directories` crate)
