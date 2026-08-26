@@ -19,6 +19,7 @@ use tauri_plugin_autostart::ManagerExt;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    #[allow(unused_mut)]
     let mut builder = tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_autostart::init(
@@ -68,6 +69,8 @@ pub fn run() {
                 let _ = mgr.disable();
             }
 
+            let is_minimized = std::env::args().any(|arg| arg == "--minimized");
+
             if let Some(w) = app.get_webview_window("main") {
                 let w2 = w.clone();
                 w.on_window_event(move |e| {
@@ -76,6 +79,9 @@ pub fn run() {
                         let _ = w2.hide();
                     }
                 });
+                if !is_minimized {
+                    let _ = w.show();
+                }
             }
             scheduler::spawn(app.handle().clone());
             dota_watch::spawn(app.handle().clone());

@@ -56,12 +56,12 @@ pub fn set_state(app: &tauri::AppHandle, status: &crate::state::Status) {
     let Some(tray) = app.tray_by_id("main") else {
         return;
     };
-    let icon = match status {
-        crate::state::Status::Idle | crate::state::Status::Ok | crate::state::Status::Stale => {
-            app.default_window_icon().cloned()
-        }
-        crate::state::Status::Refreshing => app.default_window_icon().cloned(),
-        crate::state::Status::Error(_) => app.default_window_icon().cloned(),
+    let tooltip = match status {
+        crate::state::Status::Idle => "MetaGrid: Ready".to_string(),
+        crate::state::Status::Ok => "MetaGrid: Updated".to_string(),
+        crate::state::Status::Stale => "MetaGrid: Stale".to_string(),
+        crate::state::Status::Refreshing => "MetaGrid: Fetching meta...".to_string(),
+        crate::state::Status::Error(err) => format!("MetaGrid: Error ({err})"),
     };
-    let _ = tray.set_icon(icon);
+    let _ = tray.set_tooltip(Some(tooltip));
 }

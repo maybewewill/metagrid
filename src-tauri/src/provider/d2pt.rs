@@ -30,6 +30,10 @@ impl D2ptProvider {
     async fn run_curl(&self, url: &str) -> Result<String, ProviderError> {
         let mut cmd = Command::new("curl.exe");
         cmd.arg("-s")
+            .arg("--connect-timeout")
+            .arg("10")
+            .arg("--max-time")
+            .arg("20")
             .arg("-H")
             .arg(format!("User-Agent: {USER_AGENT}"))
             .arg("-H")

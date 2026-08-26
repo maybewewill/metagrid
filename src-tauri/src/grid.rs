@@ -169,18 +169,18 @@ mod tests {
     fn multi_layout_makes_five_named_configs() {
         let cfgs = build_grid_multi(&sample_snapshot(), "named");
         assert_eq!(cfgs.len(), 5);
-        assert!(cfgs.iter().any(|c| c.config_name == "Carry"));
-        assert!(cfgs.iter().any(|c| c.config_name == "Mid"));
-        assert!(cfgs.iter().any(|c| c.config_name == "Offlane"));
-        assert!(cfgs.iter().any(|c| c.config_name == "Support"));
-        assert!(cfgs.iter().any(|c| c.config_name == "Hard Support"));
+        assert!(cfgs.iter().any(|c| c.config_name == "⚡ Carry"));
+        assert!(cfgs.iter().any(|c| c.config_name == "⚡ Mid"));
+        assert!(cfgs.iter().any(|c| c.config_name == "⚡ Offlane"));
+        assert!(cfgs.iter().any(|c| c.config_name == "⚡ Support"));
+        assert!(cfgs.iter().any(|c| c.config_name == "⚡ Hard Support"));
         for c in &cfgs {
             assert!(c.categories.len() >= 2);
             assert!(c.categories[0].category_name.contains("TOP"));
         }
 
         let pos_cfgs = build_grid_multi(&sample_snapshot(), "pos");
-        assert!(pos_cfgs.iter().any(|c| c.config_name == "POS 1"));
+        assert!(pos_cfgs.iter().any(|c| c.config_name == "⚡ POS 1"));
         assert!(pos_cfgs[0].categories[0].category_name.contains("POS 1"));
     }
 }

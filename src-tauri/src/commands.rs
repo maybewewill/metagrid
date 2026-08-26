@@ -61,9 +61,9 @@ pub fn set_autostart(
 ) -> Result<(), String> {
     let mgr = app.autolaunch();
     if enabled {
-        let _ = mgr.enable();
+        mgr.enable().map_err(|e| e.to_string())?;
     } else {
-        let _ = mgr.disable();
+        mgr.disable().map_err(|e| e.to_string())?;
     }
 
     let mut settings = state.get_settings();

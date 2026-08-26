@@ -105,7 +105,7 @@ mod tests {
 
         for account in steam.accounts() {
             let written = std::fs::read_to_string(&account.grid_path).unwrap();
-            assert!(written.contains("Carry"));
+            assert!(written.contains("⚡ Carry"));
         }
     }
 
@@ -131,7 +131,7 @@ mod tests {
             .filter_map(|c| c["config_name"].as_str().map(|s| s.to_string()))
             .collect();
 
-        for role_name in ["Carry", "Mid", "Offlane", "Support", "Hard Support"] {
+        for role_name in ["⚡ Carry", "⚡ Mid", "⚡ Offlane", "⚡ Support", "⚡ Hard Support"] {
             assert!(
                 names.contains(&role_name.to_string()),
                 "missing {role_name}, got {names:?}"
@@ -201,7 +201,7 @@ mod tests {
                 "original config {name:?} must survive the write"
             );
         }
-        for role_name in ["Carry", "Mid", "Offlane", "Support", "Hard Support"] {
+        for role_name in ["⚡ Carry", "⚡ Mid", "⚡ Offlane", "⚡ Support", "⚡ Hard Support"] {
             assert!(
                 after_names.contains(&role_name.to_string()),
                 "missing config {role_name}"

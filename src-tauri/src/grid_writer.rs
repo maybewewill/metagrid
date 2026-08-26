@@ -18,16 +18,7 @@ pub enum GridError {
 
 pub fn is_metagrid_config(name: &str) -> bool {
     let n = name.trim();
-    if n == "MetaGrid" || n.starts_with("MetaGrid") {
-        return true;
-    }
-    let known = [
-        "POS 1", "POS 2", "POS 3", "POS 4", "POS 5",
-        "ПОЗ 1", "ПОЗ 2", "ПОЗ 3", "ПОЗ 4", "ПОЗ 5",
-        "Carry", "Mid", "Offlane", "Support", "Hard Support",
-        "Керри", "Мид", "Оффлейн", "Саппорт", "Полная поддержка",
-    ];
-    known.iter().any(|&k| n.eq_ignore_ascii_case(k) || n == k)
+    n == "MetaGrid" || n.starts_with("MetaGrid") || n.starts_with('⚡') || n.starts_with("⚡ ")
 }
 
 pub fn upsert_configs(existing_json: &str, our_grids: &[GridConfig]) -> Result<String, GridError> {
@@ -182,17 +173,14 @@ mod tests {
     }
 
     #[test]
-    fn upsert_configs_replaces_old_metagrid_modes_without_accumulation() {
+    fn upsert_configs_preserves_user_configs_named_after_roles() {
         let existing = r#"{"version":3,"configs":[
             {"config_name":"Main Layout","categories":[]},
-            {"config_name":"POS 1","categories":[]},
-            {"config_name":"POS 2","categories":[]},
-            {"config_name":"POS 3","categories":[]},
-            {"config_name":"POS 4","categories":[]},
-            {"config_name":"POS 5","categories":[]}
+            {"config_name":"Carry","categories":[]},
+            {"config_name":"⚡ Old Carry","categories":[]}
         ]}"#;
 
-        let named_grids: Vec<GridConfig> = ["Carry", "Mid", "Offlane", "Support", "Hard Support"]
+        let named_grids: Vec<GridConfig> = ["⚡ Carry", "⚡ Mid", "⚡ Offlane", "⚡ Support", "⚡ Hard Support"]
             .iter()
             .map(|&name| GridConfig {
                 config_name: name.to_string(),
@@ -204,24 +192,21 @@ mod tests {
         let v: serde_json::Value = serde_json::from_str(&out).unwrap();
         let configs = v["configs"].as_array().unwrap();
 
-        // Must have 1 user config + 5 named configs = 6 configs total (NOT 1 + 5 + 5 = 11)
-        assert_eq!(configs.len(), 6);
+        assert_eq!(configs.len(), 7);
         let names: Vec<String> = configs
             .iter()
             .map(|c| c["config_name"].as_str().unwrap().to_string())
             .collect();
         assert!(names.contains(&"Main Layout".to_string()));
-        for name in &["Carry", "Mid", "Offlane", "Support", "Hard Support"] {
+        assert!(names.contains(&"Carry".to_string()));
+        assert!(!names.contains(&"⚡ Old Carry".to_string()));
+        for name in &["⚡ Carry", "⚡ Mid", "⚡ Offlane", "⚡ Support", "⚡ Hard Support"] {
             assert!(names.contains(&name.to_string()));
         }
-        for old_name in &["POS 1", "POS 2", "POS 3", "POS 4", "POS 5"] {
-            assert!(!names.contains(&old_name.to_string()));
-        }
 
-        // Running again must still produce exactly 6 configs
         let out2 = upsert_configs(&out, &named_grids).unwrap();
         let v2: serde_json::Value = serde_json::from_str(&out2).unwrap();
         let configs2 = v2["configs"].as_array().unwrap();
-        assert_eq!(configs2.len(), 6);
+        assert_eq!(configs2.len(), 7);
     }
 }

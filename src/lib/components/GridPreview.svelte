@@ -8,7 +8,7 @@
 
   let { roles }: { roles: RoleMeta[] } = $props();
 
-  let selectedPos = $state<string>("pos1");
+  let selectedPos = $state<string>("Pos1");
 
   const currentRole = $derived(
     roles.find((r) => r.position === selectedPos) || roles[0]
@@ -58,7 +58,6 @@
     {@const otherHeroes = currentRole.heroes.filter((h) => !topHeroIds.has(h.hero_id))}
 
     <div class="flex flex-col gap-6">
-      <!-- TOP HEROES CATEGORY -->
       <section class="flex flex-col gap-3">
         <h3 class="font-sans text-[13px] font-bold uppercase tracking-[0.14em] text-[#8e9aa8]">
           {$_("grid.top", { values: { role: roleUpper } })}
@@ -67,7 +66,6 @@
         <div class="flex flex-wrap items-start gap-x-3 gap-y-4">
           {#each topHeroes as h (h.hero_id)}
             <div class="group flex w-[68px] flex-col items-center select-none" title="{h.name} • {pct2(h.winrate)} WR • {pct2(h.pickrate)} Pick">
-              <!-- Stats Header: Winrate & Pickrate (Exact 2 decimals) -->
               <div class="flex w-full flex-col items-center pb-1">
                 <span class="font-sans text-[13px] font-bold tracking-tight text-[#e2e8f0] tabular-nums leading-tight">
                   {pct2(h.winrate)}
@@ -77,7 +75,6 @@
                 </span>
               </div>
 
-              <!-- Hero Portrait Card (No Level / Facet Badge) -->
               <div
                 class="relative h-[104px] w-[68px] overflow-hidden rounded-sm border border-[#2b3542] bg-[#10141a] shadow-[0_3px_10px_rgba(0,0,0,0.8)] transition-all group-hover:border-[#60a5fa] group-hover:shadow-[0_0_10px_rgba(96,165,250,0.3)]"
               >
@@ -94,7 +91,6 @@
         </div>
       </section>
 
-      <!-- OTHER HEROES CATEGORY -->
       {#if otherHeroes.length > 0}
         <section class="flex flex-col gap-3">
           <h3 class="font-sans text-[13px] font-bold uppercase tracking-[0.14em] text-[#8e9aa8]">
@@ -104,7 +100,6 @@
           <div class="flex flex-wrap items-start gap-x-3 gap-y-4">
             {#each otherHeroes as h (h.hero_id)}
               <div class="group flex w-[68px] flex-col items-center select-none" title="{h.name} • {pct2(h.winrate)} WR • {pct2(h.pickrate)} Pick">
-                <!-- Stats Header: Winrate & Pickrate (Exact 2 decimals) -->
                 <div class="flex w-full flex-col items-center pb-1">
                   <span class="font-sans text-[13px] font-bold tracking-tight text-[#e2e8f0] tabular-nums leading-tight">
                     {pct2(h.winrate)}
@@ -114,7 +109,6 @@
                   </span>
                 </div>
 
-                <!-- Hero Portrait Card (No Level / Facet Badge) -->
                 <div
                   class="relative h-[104px] w-[68px] overflow-hidden rounded-sm border border-[#2b3542] bg-[#10141a] shadow-[0_3px_10px_rgba(0,0,0,0.8)] transition-all group-hover:border-[#60a5fa] group-hover:shadow-[0_0_10px_rgba(96,165,250,0.3)]"
                 >

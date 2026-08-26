@@ -34,8 +34,9 @@ pub fn is_dota_running(sys: &sysinfo::System) -> bool {
 pub fn spawn(app: AppHandle) {
     tauri::async_runtime::spawn(async move {
         let mut watch = DotaWatch::new();
+        let mut sys = sysinfo::System::new();
         loop {
-            let sys = sysinfo::System::new_all();
+            sys.refresh_processes(sysinfo::ProcessesToUpdate::All);
             let running = is_dota_running(&sys);
             if watch.observe(running) {
                 let _ = crate::scheduler::trigger(&app);
