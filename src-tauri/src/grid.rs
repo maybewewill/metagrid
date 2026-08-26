@@ -126,14 +126,22 @@ pub fn build_grid_multi(snap: &MetaSnapshot, role_labels: &str) -> Vec<GridConfi
 }
 
 pub fn build_meta_categories(snap: &MetaSnapshot, role_labels: &str, top_n: usize) -> Vec<Category> {
-    const CATEGORY_W: f64 = 280.0;
-    const CATEGORY_H: f64 = 96.0;
-    const SECTION_GAP: f64 = 10.0;
+    const CATEGORY_W: f64 = 490.0;
+    const CATEGORY_H: f64 = 136.0;
+    const SECTION_GAP: f64 = 18.0;
 
     let mut cats = Vec::new();
     let mut cursor_y = 0.0_f64;
     for role in &snap.roles {
-        let hero_ids: Vec<u32> = role.heroes.iter().take(top_n).map(|h| h.hero_id).collect();
+        let top_heroes: Vec<_> = role.heroes.iter().filter(|h| h.is_top).cloned().collect();
+        let top_slice = if top_heroes.is_empty() {
+            let count = std::cmp::min(top_n.min(7), role.heroes.len());
+            &role.heroes[..count]
+        } else {
+            let count = std::cmp::min(top_n, top_heroes.len());
+            &top_heroes[..count]
+        };
+        let hero_ids: Vec<u32> = top_slice.iter().map(|h| h.hero_id).collect();
         if hero_ids.is_empty() {
             continue;
         }
@@ -216,7 +224,9 @@ mod tests {
         assert!(cats.iter().all(|c| c.category_name.starts_with("META ")));
         assert!(cats.iter().any(|c| c.category_name == "META CARRY"));
         assert!(cats.iter().all(|c| c.x_position == 0.0));
-        assert!(cats.iter().all(|c| c.width == 280.0));
-        assert!(cats.iter().all(|c| c.height == 96.0));
+        assert!(cats.iter().all(|c| c.width == 490.0));
+        assert!(cats.iter().all(|c| c.height == 136.0));
+        let last = &cats[cats.len() - 1];
+        assert!(last.y_position + last.height <= 820.0);
     }
 }

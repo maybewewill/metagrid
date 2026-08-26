@@ -4,6 +4,8 @@ use std::path::Path;
 use thiserror::Error;
 
 const MERGE_GAP: f64 = 20.0;
+const MAX_CANVAS_X: f64 = 1610.0;
+const MAX_CANVAS_Y: f64 = 820.0;
 
 #[derive(Debug, Error)]
 pub enum GridError {
@@ -175,6 +177,58 @@ pub fn merge_meta_into(
             for c in cats.iter_mut() {
                 if let Some(x) = c.get("x_position").and_then(|v| v.as_f64()) {
                     c["x_position"] = serde_json::json!(x + delta);
+                }
+            }
+        }
+
+        let user_max_x = cats
+            .iter()
+            .filter_map(|c| {
+                let x = c.get("x_position").and_then(|v| v.as_f64())?;
+                let w = c.get("width").and_then(|v| v.as_f64())?;
+                Some(x + w)
+            })
+            .fold(0.0_f64, f64::max);
+
+        if user_max_x > MAX_CANVAS_X && user_max_x > user_left_target {
+            let avail_w = MAX_CANVAS_X - user_left_target;
+            let span_w = user_max_x - user_left_target;
+            let scale_x = avail_w / span_w;
+            for c in cats.iter_mut() {
+                if let Some(x) = c.get("x_position").and_then(|v| v.as_f64()) {
+                    let rel_x = x - user_left_target;
+                    c["x_position"] = serde_json::json!(user_left_target + rel_x * scale_x);
+                }
+                if let Some(w) = c.get("width").and_then(|v| v.as_f64()) {
+                    c["width"] = serde_json::json!(w * scale_x);
+                }
+            }
+        }
+
+        let user_min_y = cats
+            .iter()
+            .filter_map(|c| c.get("y_position").and_then(|v| v.as_f64()))
+            .fold(0.0_f64, f64::min);
+        let user_max_y = cats
+            .iter()
+            .filter_map(|c| {
+                let y = c.get("y_position").and_then(|v| v.as_f64())?;
+                let h = c.get("height").and_then(|v| v.as_f64())?;
+                Some(y + h)
+            })
+            .fold(0.0_f64, f64::max);
+
+        if user_max_y > MAX_CANVAS_Y && user_max_y > user_min_y {
+            let avail_h = MAX_CANVAS_Y - user_min_y;
+            let span_h = user_max_y - user_min_y;
+            let scale_y = avail_h / span_h;
+            for c in cats.iter_mut() {
+                if let Some(y) = c.get("y_position").and_then(|v| v.as_f64()) {
+                    let rel_y = y - user_min_y;
+                    c["y_position"] = serde_json::json!(user_min_y + rel_y * scale_y);
+                }
+                if let Some(h) = c.get("height").and_then(|v| v.as_f64()) {
+                    c["height"] = serde_json::json!(h * scale_y);
                 }
             }
         }
@@ -376,7 +430,7 @@ mod tests {
             .iter()
             .find(|c| c["category_name"] == "2pos")
             .unwrap();
-        assert_eq!(user["x_position"].as_f64().unwrap(), 300.0);
+        assert_eq!(user["x_position"].as_f64().unwrap(), 510.0);
     }
 
     #[test]
@@ -403,8 +457,29 @@ mod tests {
 
         let user1 = c1.iter().find(|c| c["category_name"] == "2pos").unwrap();
         let user2 = c2.iter().find(|c| c["category_name"] == "2pos").unwrap();
-        assert_eq!(user1["x_position"].as_f64().unwrap(), 300.0);
-        assert_eq!(user2["x_position"].as_f64().unwrap(), 300.0);
+        assert_eq!(user1["x_position"].as_f64().unwrap(), 510.0);
+        assert_eq!(user2["x_position"].as_f64().unwrap(), 510.0);
+    }
+
+    #[test]
+    fn merge_scales_oversized_user_categories_within_canvas_bounds() {
+        let existing = r#"{"version":3,"configs":[
+            {"config_name":"Main Layout","categories":[
+                {"category_name":"Gigantic","x_position":0.0,"y_position":0.0,"width":1800.0,"height":1000.0,"hero_ids":[34]}
+            ]}
+        ]}"#;
+        let cats = meta_cats_fixture();
+        let out = merge_meta_into(existing, &cats, "Main Layout").unwrap().unwrap();
+        let v: serde_json::Value = serde_json::from_str(&out).unwrap();
+        let target_cats = v["configs"][0]["categories"].as_array().unwrap();
+        let user = target_cats.iter().find(|c| c["category_name"] == "Gigantic").unwrap();
+        let x = user["x_position"].as_f64().unwrap();
+        let w = user["width"].as_f64().unwrap();
+        let y = user["y_position"].as_f64().unwrap();
+        let h = user["height"].as_f64().unwrap();
+        assert_eq!(x, 510.0);
+        assert!(x + w <= 1610.0 + 1e-6);
+        assert!(y + h <= 820.0 + 1e-6);
     }
 
     #[test]
