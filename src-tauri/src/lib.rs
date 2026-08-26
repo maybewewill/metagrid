@@ -26,7 +26,6 @@ pub fn run() {
             Some(vec!["--minimized"]),
         ))
         .plugin(tauri_plugin_notification::init())
-        .plugin(tauri_plugin_mcp_bridge::init())
         .invoke_handler(tauri::generate_handler![
             commands::get_snapshot,
             commands::get_status,

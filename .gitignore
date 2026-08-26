@@ -21,10 +21,11 @@ vite.config.ts.timestamp-*
 src-tauri/icons/android/
 src-tauri/icons/ios/
 
-# dotfiles / agent dirs / IDE
-.agents/
-.antigravity/
+# IDE & local
+.idea/
 .vscode/
-.gemini/
-.claude/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
 
