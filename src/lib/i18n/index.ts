@@ -49,6 +49,8 @@ export const en = {
     role_labels: "Role labels",
     role_named: "Carry, Mid...",
     role_pos: "POS 1, POS 2...",
+    role_named_subtext: "Carry, Mid, Offlane...",
+    role_pos_subtext: "POS 1, POS 2, POS 3...",
     interval: "Refresh interval",
     interval_hours: "{n} h",
     account: "Steam Account",
@@ -126,6 +128,8 @@ export const ru = {
     role_labels: "Подписи ролей",
     role_named: "Керри, Мид...",
     role_pos: "ПОЗ 1, ПОЗ 2...",
+    role_named_subtext: "Керри, Мид, Оффлейн...",
+    role_pos_subtext: "ПОЗ 1, ПОЗ 2, ПОЗ 3...",
     interval: "Интервал обновления",
     interval_hours: "{n} ч",
     account: "Аккаунт Steam",
@@ -161,9 +165,7 @@ addMessages("en", en);
 addMessages("ru", ru);
 
 export function getInitialLang(): Lang {
-  const navigatorLocale = getLocaleFromNavigator() ?? "en";
-  const reduced = navigatorLocale.slice(0, 2).toLowerCase();
-  return reduced === "ru" ? "ru" : "en";
+  return "en";
 }
 
 export function setupI18n(initialLocale: Lang = getInitialLang()) {

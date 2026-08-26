@@ -36,9 +36,11 @@
     saving = true;
     try {
       await store.saveSettings(local);
-      // Autostart is an OS-level toggle — persisting the flag isn't enough,
-      // we have to actually (de)register it.
-      await ipc.setAutostart(local.autostart);
+      try {
+        await ipc.setAutostart(local.autostart);
+      } catch (err) {
+        console.warn("autostart toggle non-fatal:", err);
+      }
       toast.success($_("settings.saved"));
       store.go("dashboard");
     } catch (e) {
@@ -97,7 +99,7 @@
         <div class="flex min-w-0 flex-col">
           <span class="text-sm font-semibold">{$_("settings.role_labels")}</span>
           <span class="text-xs text-muted-foreground">
-            {local.role_labels === "named" ? (local.lang === "ru" ? "Керри, Мид, Оффлейн..." : "Carry, Mid, Offlane...") : (local.lang === "ru" ? "ПОЗ 1, ПОЗ 2, ПОЗ 3..." : "POS 1, POS 2, POS 3...")}
+            {local.role_labels === "named" ? $_("settings.role_named_subtext") : $_("settings.role_pos_subtext")}
           </span>
         </div>
         <div class="inline-flex rounded-sm bg-zinc-900 p-0.5 border border-border">
@@ -127,10 +129,10 @@
           value={String(local.interval_hours)}
           onValueChange={(v) => (local.interval_hours = Number(v))}
         >
-          <SelectTrigger class="w-32 rounded-sm text-xs">{local.interval_hours} {local.lang === 'ru' ? 'ч' : 'h'}</SelectTrigger>
+          <SelectTrigger class="w-32 rounded-sm text-xs">{$_("settings.interval_hours", { values: { n: local.interval_hours } })}</SelectTrigger>
           <SelectContent class="rounded-sm">
             {#each intervalOptions as h (h)}
-              <SelectItem value={String(h)} class="rounded-sm text-xs">{h} {local.lang === 'ru' ? 'ч' : 'h'}</SelectItem>
+              <SelectItem value={String(h)} class="rounded-sm text-xs">{$_("settings.interval_hours", { values: { n: h } })}</SelectItem>
             {/each}
           </SelectContent>
         </Select>

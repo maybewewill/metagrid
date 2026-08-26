@@ -15,9 +15,9 @@
       {
         "label": "main",
         "title": "MetaGrid",
-        "width": 1180,
+        "width": 1220,
         "height": 700,
-        "minWidth": 1180,
+        "minWidth": 1220,
         "minHeight": 700,
         "decorations": false,
         "visible": false,

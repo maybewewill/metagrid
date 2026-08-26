@@ -43,14 +43,14 @@
 <div
   use:hoverLift
   role="group"
-  class="flex items-center gap-2.5 rounded-sm px-2 py-2 transition-colors hover:bg-accent"
+  class="flex items-center gap-2 rounded-sm border border-white/[0.04] bg-zinc-900/40 px-2 py-1.5 transition-all duration-150 hover:border-white/[0.12] hover:bg-zinc-800/80"
 >
-  <span class="w-3.5 shrink-0 text-right font-mono text-[12px] font-medium tabular-nums text-muted-foreground/60">
+  <span class="w-3.5 shrink-0 text-center font-mono text-[11px] font-semibold tabular-nums text-zinc-500">
     {rank}
   </span>
 
   <div
-    class="relative h-[50px] w-[36px] shrink-0 overflow-hidden rounded-sm bg-muted ring-1 ring-border shadow-sm"
+    class="relative h-[44px] w-[32px] shrink-0 overflow-hidden rounded-sm bg-zinc-900 ring-1 ring-white/10 shadow-sm"
   >
     {#if !broken}
       <img
@@ -67,18 +67,22 @@
     {/if}
   </div>
 
-  <div class="min-w-0 flex-1">
-    <div class="truncate text-[12.5px] font-semibold leading-tight text-zinc-100">{hero.name}</div>
-    <div class="mt-0.5 flex items-center gap-1 text-[11px] leading-tight text-muted-foreground">
-      <span>{pct(hero.pickrate)} pick</span>
+  <div class="min-w-0 flex-1 flex flex-col justify-center gap-0.5">
+    <div class="truncate text-[12.5px] font-bold leading-tight text-zinc-100">{hero.name}</div>
+    <div class="flex items-center gap-1.5 text-[10.5px] font-mono leading-none text-zinc-400 whitespace-nowrap overflow-hidden">
+      <span>{pct(hero.pickrate)}</span>
       {#if hero.d2pt_rating && hero.d2pt_rating > 0}
-        <span class="text-white/20">•</span>
-        <span class="font-mono text-zinc-300 font-medium" title="D2PT Rating">{hero.d2pt_rating}</span>
+        <span class="text-zinc-600">·</span>
+        <span class="font-medium text-zinc-300" title="D2PT Rating">{hero.d2pt_rating}</span>
       {/if}
     </div>
   </div>
 
-  <span class="shrink-0 text-[12.5px] font-bold tabular-nums" style:color={wrColor}>
+  <span
+    class="shrink-0 rounded px-1.5 py-0.5 font-mono text-[11.5px] font-bold tabular-nums"
+    style:color={wrColor}
+    style:background="rgba(255, 255, 255, 0.04)"
+  >
     {pct(hero.winrate)}
   </span>
 </div>

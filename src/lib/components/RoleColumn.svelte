@@ -30,23 +30,23 @@
 </script>
 
 <section
-  class="flex h-full min-w-0 flex-col overflow-hidden rounded-sm border border-border bg-card shadow-sm"
+  class="flex h-full min-w-0 flex-col overflow-hidden rounded-sm border border-zinc-800/80 bg-zinc-950/80 shadow-md"
 >
-  <header class="flex items-center gap-2 border-b border-border px-3 py-2.5">
+  <header class="flex items-center gap-2 border-b border-zinc-800 bg-zinc-900/60 px-3 py-2">
     {#if store.settings?.role_labels !== "pos"}
       <span
-        class="grid size-5 shrink-0 place-items-center rounded-sm bg-primary text-[11px] font-bold tabular-nums text-primary-foreground"
+        class="grid size-4.5 shrink-0 place-items-center rounded-xs bg-white text-[10.5px] font-black tabular-nums text-zinc-950"
       >
         {n}
       </span>
     {/if}
-    <span class="min-w-0 flex-1 truncate text-[13px] font-bold tracking-tight">{title}</span>
-    <span class="shrink-0 font-mono text-[11px] font-medium tabular-nums text-muted-foreground">
+    <span class="min-w-0 flex-1 truncate text-xs font-bold tracking-wider uppercase text-zinc-200">{title}</span>
+    <span class="shrink-0 font-mono text-[10.5px] font-medium tabular-nums text-zinc-500">
       {pct(role.role_winrate)}
     </span>
   </header>
 
-  <div bind:this={listEl} class="scroll-thin flex min-h-0 flex-1 flex-col justify-between gap-1 overflow-auto p-1.5">
+  <div bind:this={listEl} class="scroll-thin flex min-h-0 flex-1 flex-col justify-between gap-1 overflow-auto p-1.5 bg-zinc-950/40">
     {#each role.heroes.slice(0, 7) as h, i (h.hero_id)}
       <HeroCard hero={h} rank={i + 1} />
     {/each}

@@ -59,10 +59,11 @@ pub fn set_autostart(
     state: State<Shared>,
     data: State<DataDir>,
 ) -> Result<(), String> {
+    let mgr = app.autolaunch();
     if enabled {
-        app.autolaunch().enable().map_err(|e| e.to_string())?;
+        let _ = mgr.enable();
     } else {
-        app.autolaunch().disable().map_err(|e| e.to_string())?;
+        let _ = mgr.disable();
     }
 
     let mut settings = state.get_settings();
