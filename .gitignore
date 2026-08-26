@@ -20,3 +20,11 @@ vite.config.ts.timestamp-*
 # tauri icon mobile output (unused)
 src-tauri/icons/android/
 src-tauri/icons/ios/
+
+# dotfiles / agent dirs / IDE
+.agents/
+.antigravity/
+.vscode/
+.gemini/
+.claude/
+
