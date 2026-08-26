@@ -43,6 +43,15 @@ pub fn run() {
                 tokio::sync::Notify::new(),
             )));
             tray::build(app)?;
+            if let Some(w) = app.get_webview_window("main") {
+                let w2 = w.clone();
+                w.on_window_event(move |e| {
+                    if let tauri::WindowEvent::CloseRequested { api, .. } = e {
+                        api.prevent_close();
+                        let _ = w2.hide();
+                    }
+                });
+            }
             scheduler::spawn(app.handle().clone());
             Ok(())
         })

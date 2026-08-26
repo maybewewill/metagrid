@@ -12,9 +12,13 @@
   "app": {
     "windows": [
       {
-        "title": "metagrid",
-        "width": 800,
-        "height": 600
+        "title": "MetaGrid",
+        "width": 1000,
+        "height": 660,
+        "minWidth": 900,
+        "minHeight": 560,
+        "decorations": false,
+        "visible": false
       }
     ],
     "security": {
