@@ -4,8 +4,8 @@ use std::path::Path;
 use thiserror::Error;
 
 const MERGE_GAP: f64 = 20.0;
-const MAX_CANVAS_X: f64 = 1610.0;
-const MAX_CANVAS_Y: f64 = 820.0;
+const MAX_CANVAS_X: f64 = 1300.0;
+const MAX_CANVAS_Y: f64 = 550.0;
 
 #[derive(Debug, Error)]
 pub enum GridError {
@@ -430,7 +430,7 @@ mod tests {
             .iter()
             .find(|c| c["category_name"] == "2pos")
             .unwrap();
-        assert_eq!(user["x_position"].as_f64().unwrap(), 510.0);
+        assert_eq!(user["x_position"].as_f64().unwrap(), 380.0);
     }
 
     #[test]
@@ -457,8 +457,8 @@ mod tests {
 
         let user1 = c1.iter().find(|c| c["category_name"] == "2pos").unwrap();
         let user2 = c2.iter().find(|c| c["category_name"] == "2pos").unwrap();
-        assert_eq!(user1["x_position"].as_f64().unwrap(), 510.0);
-        assert_eq!(user2["x_position"].as_f64().unwrap(), 510.0);
+        assert_eq!(user1["x_position"].as_f64().unwrap(), 380.0);
+        assert_eq!(user2["x_position"].as_f64().unwrap(), 380.0);
     }
 
     #[test]
@@ -477,9 +477,9 @@ mod tests {
         let w = user["width"].as_f64().unwrap();
         let y = user["y_position"].as_f64().unwrap();
         let h = user["height"].as_f64().unwrap();
-        assert_eq!(x, 510.0);
-        assert!(x + w <= 1610.0 + 1e-6);
-        assert!(y + h <= 820.0 + 1e-6);
+        assert_eq!(x, 380.0);
+        assert!(x + w <= 1300.0 + 1e-6);
+        assert!(y + h <= 550.0 + 1e-6);
     }
 
     #[test]
