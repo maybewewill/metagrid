@@ -13,6 +13,7 @@ vi.mock("$lib/ipc", () => ({
   getSnapshot: vi.fn(async () => ({ patch: "7.41e", fetched_at: "t", source: "d2pt", roles: [] })),
   getStatus: vi.fn(async () => ({ kind: "Ok" })),
   listAccounts: vi.fn(async () => [{ id: "111" }]),
+  getPortraitDir: vi.fn(async () => "C:/data/portraits"),
   refreshNow: vi.fn(async () => ({ patch: "7.42", fetched_at: "t2", source: "d2pt", roles: [] })),
   onRefreshDone: vi.fn(() => () => {}),
   onRefreshError: vi.fn(() => () => {}),
@@ -30,6 +31,7 @@ describe("store", () => {
     await store.init();
     expect(store.settings?.top_n).toBe(10);
     expect(store.view).toBe("dashboard");
+    expect(store.portraitDir).toBe("C:/data/portraits");
   });
 
   it("refresh updates snapshot", async () => {

@@ -10,6 +10,8 @@ class Store {
   accounts = $state<Account[]>([]);
   view = $state<View>("onboarding");
   loading = $state(false);
+  /** Absolute dir holding cached `<slug>.png` hero portraits; null until `init()` resolves it. */
+  portraitDir = $state<string | null>(null);
 
   isFresh = $derived.by(() => {
     if (this.status.kind !== "Ok" || !this.snapshot || !this.settings) return false;
@@ -22,16 +24,18 @@ class Store {
   async init(): Promise<void> {
     this.loading = true;
     try {
-      const [settings, snapshot, status, accounts] = await Promise.all([
+      const [settings, snapshot, status, accounts, portraitDir] = await Promise.all([
         ipc.getSettings(),
         ipc.getSnapshot(),
         ipc.getStatus(),
         ipc.listAccounts(),
+        ipc.getPortraitDir(),
       ]);
       this.settings = settings;
       this.snapshot = snapshot;
       this.status = status;
       this.accounts = accounts;
+      this.portraitDir = portraitDir;
       this.view = settings.onboarded ? "dashboard" : "onboarding";
 
       await ipc.onRefreshDone((snap) => {

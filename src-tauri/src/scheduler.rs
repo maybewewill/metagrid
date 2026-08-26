@@ -15,7 +15,8 @@ use crate::events;
 use crate::grid::GridOptions;
 use crate::model::MetaSnapshot;
 use crate::pipeline;
-use crate::services::Services;
+use crate::portraits;
+use crate::services::{DataDir, Services};
 use crate::state::{Shared, Status};
 use crate::steam::SteamLocator;
 
@@ -60,6 +61,18 @@ pub async fn run_refresh(app: &AppHandle) -> Result<MetaSnapshot, String> {
             state.set_status(Status::Ok);
             crate::tray::set_state(app, &Status::Ok);
             let _ = app.emit(events::REFRESH_DONE, snap.clone());
+
+            // Best-effort portrait caching: a hero image failing to download
+            // must never fail the refresh itself.
+            let slugs: Vec<String> = snap
+                .roles
+                .iter()
+                .flat_map(|r| r.heroes.iter().map(|h| h.slug.clone()))
+                .collect();
+            let data_dir = app.state::<DataDir>().0.clone();
+            let client = reqwest::Client::new();
+            let _ = portraits::ensure(&data_dir, &client, portraits::DEFAULT_BASE_URL, &slugs).await;
+
             Ok(snap)
         }
         Err(err) => {

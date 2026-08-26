@@ -31,13 +31,6 @@ impl Default for Settings {
     }
 }
 
-/// The on-disk directory where settings (and other MetaGrid app data) live.
-pub fn data_dir() -> PathBuf {
-    directories::ProjectDirs::from("com", "MetaGrid", "MetaGrid")
-        .map(|dirs| dirs.data_dir().to_path_buf())
-        .unwrap_or_else(|| PathBuf::from("."))
-}
-
 fn settings_path(dir: &Path) -> PathBuf {
     dir.join("settings.json")
 }

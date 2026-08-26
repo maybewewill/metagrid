@@ -27,10 +27,6 @@ pub fn run() {
             Some(vec!["--minimized"]),
         ))
         .plugin(tauri_plugin_notification::init())
-        .manage::<state::Shared>(std::sync::Arc::new(state::AppState::new(
-            settings::load_from(&settings::data_dir()),
-        )))
-        .manage(services::Services::new())
         .invoke_handler(tauri::generate_handler![
             commands::get_snapshot,
             commands::get_status,
@@ -39,15 +35,28 @@ pub fn run() {
             commands::list_accounts,
             commands::refresh_now,
             commands::get_autostart,
-            commands::set_autostart
+            commands::set_autostart,
+            commands::get_portrait_dir
         ])
         .setup(|app| {
+            // Resolve the data dir via Tauri (not the `directories` crate)
+            // so it matches the `assetProtocol` scope in tauri.conf.json:
+            // `$APPDATA/com.metagrid.app`.
+            let data = app.path().app_data_dir()?;
+            std::fs::create_dir_all(&data).ok();
+
+            let settings = settings::load_from(&data);
+            let state: state::Shared = std::sync::Arc::new(state::AppState::new(settings));
+            app.manage(state.clone());
+            app.manage(services::Services::new());
+            app.manage(services::DataDir(data));
+
             app.manage(scheduler::Trigger(std::sync::Arc::new(
                 tokio::sync::Notify::new(),
             )));
             tray::build(app)?;
 
-            let want = app.state::<state::Shared>().get_settings().autostart;
+            let want = state.get_settings().autostart;
             let mgr = app.autolaunch();
             if want && !mgr.is_enabled().unwrap_or(false) {
                 let _ = mgr.enable();

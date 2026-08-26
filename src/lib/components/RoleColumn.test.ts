@@ -3,7 +3,12 @@ import { describe, it, expect, vi } from "vitest";
 vi.mock("@tauri-apps/api/core", () => ({ convertFileSrc: (p: string) => p }));
 vi.mock("motion", () => ({ animate: vi.fn() }));
 import RoleColumn from "$lib/components/RoleColumn.svelte";
+import { store } from "$lib/store.svelte";
 import type { RoleMeta } from "$lib/types";
+
+// HeroCard reads store.portraitDir to build its portrait src; without it set
+// it falls back to initials and renders no <img>, so set it explicitly here.
+store.portraitDir = "C:/data/portraits";
 const role: RoleMeta = {
   position: "Pos1",
   role_winrate: 0.52,

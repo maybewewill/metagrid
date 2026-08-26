@@ -42,6 +42,10 @@ export function setAutostart(enabled: boolean): Promise<void> {
   return invoke("set_autostart", { enabled });
 }
 
+export function getPortraitDir(): Promise<string> {
+  return invoke("get_portrait_dir");
+}
+
 // Not yet implemented on the backend (arrives in Task 6.3) — the command
 // name is wired up ahead of time so callers can be written against it now.
 export function launchDota(): Promise<void> {

@@ -6,6 +6,7 @@ vi.mock("$lib/store.svelte", () => ({
   store: {
     loading: false,
     status: { kind: "Ok" },
+    portraitDir: "C:/data/portraits",
     refresh: vi.fn(),
     go: vi.fn(),
     snapshot: {

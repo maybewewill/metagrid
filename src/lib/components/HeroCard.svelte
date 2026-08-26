@@ -3,12 +3,17 @@
   import { hoverLift } from "$lib/motion";
   import type { HeroMeta } from "$lib/types";
   import { pct } from "$lib/format";
+  import { store } from "$lib/store.svelte";
 
   let { hero, rank }: { hero: HeroMeta; rank: number } = $props();
 
   let broken = $state(false);
 
-  const src = $derived(convertFileSrc(`portraits/${hero.slug}.png`));
+  // No portrait dir known yet (or backend not wired) -> fall back straight
+  // to initials instead of attempting to load a non-existent image.
+  const src = $derived(
+    store.portraitDir ? convertFileSrc(`${store.portraitDir}/${hero.slug}.png`) : null
+  );
   const initials = $derived(
     hero.name
       .split(/\s+/)
@@ -26,7 +31,7 @@
   class="flex items-center gap-2 rounded-lg border border-border bg-card/40 p-1.5"
 >
   <div class="relative size-9 shrink-0 overflow-hidden rounded-md bg-muted">
-    {#if !broken}
+    {#if src && !broken}
       <img
         {src}
         alt={hero.name}

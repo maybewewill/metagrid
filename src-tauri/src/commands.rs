@@ -3,8 +3,8 @@ use tauri_plugin_autostart::ManagerExt;
 
 use crate::model::MetaSnapshot;
 use crate::scheduler;
-use crate::services::{account_dtos, AccountDto};
-use crate::settings::{data_dir, save_to, Settings};
+use crate::services::{account_dtos, AccountDto, DataDir};
+use crate::settings::{save_to, Settings};
 use crate::state::{Shared, Status};
 use crate::steam::SteamLocator;
 
@@ -24,8 +24,12 @@ pub fn get_settings(state: State<Shared>) -> Settings {
 }
 
 #[tauri::command]
-pub fn save_settings(new: Settings, state: State<Shared>) -> Result<(), String> {
-    save_to(&data_dir(), &new).map_err(|e| e.to_string())?;
+pub fn save_settings(
+    new: Settings,
+    state: State<Shared>,
+    data: State<DataDir>,
+) -> Result<(), String> {
+    save_to(&data.0, &new).map_err(|e| e.to_string())?;
     state.set_settings(new);
     Ok(())
 }
@@ -49,7 +53,12 @@ pub fn get_autostart(app: AppHandle) -> Result<bool, String> {
 }
 
 #[tauri::command]
-pub fn set_autostart(app: AppHandle, enabled: bool, state: State<Shared>) -> Result<(), String> {
+pub fn set_autostart(
+    app: AppHandle,
+    enabled: bool,
+    state: State<Shared>,
+    data: State<DataDir>,
+) -> Result<(), String> {
     if enabled {
         app.autolaunch().enable().map_err(|e| e.to_string())?;
     } else {
@@ -58,8 +67,13 @@ pub fn set_autostart(app: AppHandle, enabled: bool, state: State<Shared>) -> Res
 
     let mut settings = state.get_settings();
     settings.autostart = enabled;
-    save_to(&data_dir(), &settings).map_err(|e| e.to_string())?;
+    save_to(&data.0, &settings).map_err(|e| e.to_string())?;
     state.set_settings(settings);
 
     Ok(())
+}
+
+#[tauri::command]
+pub fn get_portrait_dir(data: State<DataDir>) -> String {
+    data.0.join("portraits").to_string_lossy().into_owned()
 }

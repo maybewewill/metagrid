@@ -1,3 +1,4 @@
+use std::path::PathBuf;
 use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
@@ -33,6 +34,11 @@ impl Default for Services {
         Self::new()
     }
 }
+
+/// The Tauri-resolved app data directory (`$APPDATA/com.metagrid.app`),
+/// managed so commands and the scheduler can read/write settings and
+/// portraits from the same place the `assetProtocol` scope points at.
+pub struct DataDir(pub PathBuf);
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct AccountDto {
