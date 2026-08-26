@@ -45,11 +45,6 @@ Grids are written directly to Dota's `hero_grid_config.json`. Existing user-crea
 
 <div align="center">
 
-### In-Game Dota 2 Grid
-<img src="docs/images/in-game-grid.png" alt="MetaGrid In-Game Dota 2 Grid" width="850" />
-
-<br/><br/>
-
 ### Meta Dashboard (List View)
 <img src="docs/images/dashboard.png" alt="MetaGrid Dashboard List View" width="850" />
 
@@ -57,6 +52,11 @@ Grids are written directly to Dota's `hero_grid_config.json`. Existing user-crea
 
 ### In-Game Grid Preview
 <img src="docs/images/grid-preview.png" alt="MetaGrid In-Game Grid Preview" width="850" />
+
+<br/><br/>
+
+### In-Game Dota 2 Grid
+<img src="docs/images/in-game-grid.png" alt="MetaGrid In-Game Dota 2 Grid" width="850" />
 
 <br/><br/>
 
