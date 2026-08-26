@@ -1,13 +1,12 @@
 <script lang="ts">
   import { convertFileSrc } from "@tauri-apps/api/core";
-  import { animate } from "motion";
+  import { hoverLift } from "$lib/motion";
   import type { HeroMeta } from "$lib/types";
   import { pct } from "$lib/format";
 
   let { hero, rank }: { hero: HeroMeta; rank: number } = $props();
 
   let broken = $state(false);
-  let el = $state<HTMLDivElement | undefined>(undefined);
 
   const src = $derived(convertFileSrc(`portraits/${hero.slug}.png`));
   const initials = $derived(
@@ -19,17 +18,12 @@
       .slice(0, 2)
       .toUpperCase()
   );
-
-  function onmouseenter() {
-    if (el) animate(el, { scale: 1.04 }, { duration: 0.15 });
-  }
 </script>
 
 <div
-  bind:this={el}
+  use:hoverLift
   role="group"
   class="flex items-center gap-2 rounded-lg border border-border bg-card/40 p-1.5"
-  {onmouseenter}
 >
   <div class="relative size-9 shrink-0 overflow-hidden rounded-md bg-muted">
     {#if !broken}
