@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use crate::grid::{build_grid, GridOptions};
+use crate::grid::{build_grid, build_grid_multi, GridOptions};
 use crate::grid_writer::{write_to, GridError, METAGRID_NAME};
 use crate::hero_map::HeroMap;
 use crate::model::MetaSnapshot;
@@ -93,7 +93,20 @@ pub async fn refresh_all(
     account_filter: Option<&str>,
 ) -> Result<MetaSnapshot, PipelineError> {
     let snap: MetaSnapshot = provider.fetch(map, top_n).await?;
-    let grid = build_grid(&snap, opts);
+
+    // `layout_columns == true` keeps the single "MetaGrid" config (5 columns,
+    // one per role). `layout_columns == false` switches to one config per
+    // role ("MetaGrid POS 1".."MetaGrid POS 5") — `write_to` upserts by
+    // `config_name` and preserves every foreign config, so looping it once
+    // per grid, per account is safe. Switching modes back and forth may
+    // leave both the single "MetaGrid" config and the per-role configs
+    // sitting side by side; that's acceptable — we never delete configs we
+    // didn't just write.
+    let grids: Vec<crate::grid::GridConfig> = if opts.layout_columns {
+        vec![build_grid(&snap, opts)]
+    } else {
+        build_grid_multi(&snap)
+    };
 
     for account in steam.accounts() {
         if let Some(filter_id) = account_filter {
@@ -101,7 +114,9 @@ pub async fn refresh_all(
                 continue;
             }
         }
-        write_to(&account.grid_path, &grid)?;
+        for grid in &grids {
+            write_to(&account.grid_path, grid)?;
+        }
     }
 
     Ok(snap)
@@ -210,6 +225,45 @@ mod tests {
             let written = std::fs::read_to_string(&account.grid_path).unwrap();
             assert!(written.contains("MetaGrid"));
         }
+    }
+
+    #[tokio::test]
+    async fn refresh_all_multi_mode_writes_five_named_configs() {
+        use crate::steam::SteamLocator;
+
+        let tmp = tempfile::tempdir().unwrap();
+        let root = tmp.path().to_path_buf();
+        std::fs::create_dir_all(root.join("userdata/111/570/remote/cfg")).unwrap();
+
+        let steam = SteamLocator::with_root(root);
+
+        let opts = GridOptions {
+            sort: SortMetric::Pickrate,
+            layout_columns: false,
+        };
+
+        refresh_all(&FakeProvider, &HeroMap::bundled(), &steam, &opts, 10, None)
+            .await
+            .unwrap();
+
+        let account = steam.accounts().into_iter().next().unwrap();
+        let written = std::fs::read_to_string(&account.grid_path).unwrap();
+        let v: serde_json::Value = serde_json::from_str(&written).unwrap();
+        let names: Vec<String> = v["configs"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter_map(|c| c["config_name"].as_str().map(|s| s.to_string()))
+            .collect();
+
+        for n in 1..=5 {
+            assert!(
+                names.contains(&format!("MetaGrid POS {n}")),
+                "missing MetaGrid POS {n}, got {names:?}"
+            );
+        }
+        // Single-config "MetaGrid" must NOT be written in multi mode.
+        assert!(!names.contains(&"MetaGrid".to_string()));
     }
 
     /// Live end-to-end proof: fetches the REAL d2pt site and writes a REAL
