@@ -28,6 +28,7 @@ pub async fn run_refresh(app: &AppHandle) -> Result<MetaSnapshot, String> {
     let services = app.state::<Services>();
 
     state.set_status(Status::Refreshing);
+    crate::tray::set_state(app, &Status::Refreshing);
     let _ = app.emit(events::REFRESH_STARTED, ());
 
     let settings = state.get_settings();
@@ -39,6 +40,7 @@ pub async fn run_refresh(app: &AppHandle) -> Result<MetaSnapshot, String> {
     let Some(steam) = SteamLocator::detect() else {
         let msg = "could not detect a Steam installation".to_string();
         state.set_status(Status::Error(msg.clone()));
+        crate::tray::set_state(app, &Status::Error(msg.clone()));
         let _ = app.emit(events::REFRESH_ERROR, msg.clone());
         return Err(msg);
     };
@@ -56,12 +58,14 @@ pub async fn run_refresh(app: &AppHandle) -> Result<MetaSnapshot, String> {
         Ok(snap) => {
             state.set_snapshot(snap.clone());
             state.set_status(Status::Ok);
+            crate::tray::set_state(app, &Status::Ok);
             let _ = app.emit(events::REFRESH_DONE, snap.clone());
             Ok(snap)
         }
         Err(err) => {
             let msg = err.to_string();
             state.set_status(Status::Error(msg.clone()));
+            crate::tray::set_state(app, &Status::Error(msg.clone()));
             let _ = app.emit(events::REFRESH_ERROR, msg.clone());
             Err(msg)
         }
