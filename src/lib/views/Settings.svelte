@@ -79,8 +79,8 @@
         </div>
         <Slider
           type="single"
-          min={5}
-          max={15}
+          min={3}
+          max={20}
           step={1}
           value={local.top_n}
           onValueChange={(v) => (local.top_n = v)}

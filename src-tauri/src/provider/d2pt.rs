@@ -6,6 +6,7 @@ use crate::model::{HeroMeta, MetaSnapshot, Position, RoleMeta};
 use crate::provider::{MetaProvider, ProviderError};
 
 const D2PT_URL: &str = "https://dota2protracker.com/";
+const D2PT_META_URL: &str = "https://dota2protracker.com/meta?position=pos%20";
 const USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 const ACCEPT: &str =
     "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8";
@@ -13,8 +14,10 @@ const ACCEPT_LANGUAGE: &str = "en-US,en;q=0.9";
 
 /// Provider for https://dota2protracker.com/ meta stats.
 ///
-/// `fetch_raw` shells out to `curl.exe` (see `MetaProvider` impl), so this is
-/// a unit struct with no reqwest client to hold.
+/// Shells out to `curl.exe` (Windows' built-in Schannel-backed curl)
+/// rather than using `reqwest`: dota2protracker.com sits behind
+/// Cloudflare and rejects reqwest/rustls TLS handshakes with a 403,
+/// while curl.exe's native Windows TLS stack passes cleanly.
 pub struct D2ptProvider;
 
 impl D2ptProvider {
@@ -30,15 +33,7 @@ impl Default for D2ptProvider {
 }
 
 impl D2ptProvider {
-    /// Fetch the raw d2pt homepage payload.
-    ///
-    /// Shells out to `curl.exe` (Windows' built-in Schannel-backed curl)
-    /// rather than using `reqwest`: dota2protracker.com sits behind
-    /// Cloudflare and rejects reqwest/rustls TLS handshakes with a 403,
-    /// while curl.exe's native Windows TLS stack passes cleanly. This is a
-    /// deliberate, proven workaround — do not swap back to reqwest for this
-    /// provider.
-    pub async fn fetch_raw(&self) -> Result<String, ProviderError> {
+    async fn run_curl(&self, url: &str) -> Result<String, ProviderError> {
         let mut cmd = Command::new("curl.exe");
         cmd.arg("-s")
             .arg("-H")
@@ -47,11 +42,10 @@ impl D2ptProvider {
             .arg(format!("Accept: {ACCEPT}"))
             .arg("-H")
             .arg(format!("Accept-Language: {ACCEPT_LANGUAGE}"))
-            .arg(D2PT_URL);
+            .arg(url);
 
         // Suppress the console window curl.exe would otherwise flash on every
-        // fetch: CREATE_NO_WINDOW (0x0800_0000). Without this a black cmd
-        // window pops up each refresh — the app runs windowless in the tray.
+        // fetch: CREATE_NO_WINDOW (0x0800_0000).
         #[cfg(windows)]
         cmd.creation_flags(0x0800_0000);
 
@@ -66,8 +60,6 @@ impl D2ptProvider {
                 ProviderError::Blocked
             })?;
 
-        // A non-zero exit (e.g. TLS/connection failure) is treated the same
-        // as a blocked request rather than a distinct failure mode.
         if !output.status.success() {
             tracing::warn!(status = ?output.status, "d2pt: curl.exe exited non-zero");
             return Err(ProviderError::Blocked);
@@ -75,12 +67,65 @@ impl D2ptProvider {
 
         let body = String::from_utf8_lossy(&output.stdout).into_owned();
 
-        if body.is_empty() || body.contains("Just a moment") || !body.contains("roles:[") {
-            tracing::warn!("d2pt: response looked blocked (empty/challenge/no roles marker)");
+        if body.is_empty() || body.contains("Just a moment") {
+            tracing::warn!("d2pt: response looked blocked (empty or Cloudflare challenge)");
             return Err(ProviderError::Blocked);
         }
 
         Ok(body)
+    }
+
+    /// Fetch the raw d2pt homepage payload.
+    pub async fn fetch_raw(&self) -> Result<String, ProviderError> {
+        let body = self.run_curl(D2PT_URL).await?;
+        if !body.contains("roles:[") {
+            tracing::warn!("d2pt: homepage response missing 'roles:[' marker");
+            return Err(ProviderError::Blocked);
+        }
+        Ok(body)
+    }
+
+    /// Fetch raw payload for a specific role position from `/meta?position=pos {p}`.
+    pub async fn fetch_pos_raw(&self, pos: u8) -> Result<String, ProviderError> {
+        let url = format!("{D2PT_META_URL}{pos}");
+        self.run_curl(&url).await
+    }
+
+    /// Fetches full meta for all 5 positions in parallel from `/meta?position=pos {1..5}`.
+    pub async fn fetch_meta_all(&self, map: &HeroMap, top_n: usize) -> Result<MetaSnapshot, ProviderError> {
+        let (p1, p2, p3, p4, p5) = tokio::join!(
+            self.fetch_pos_raw(1),
+            self.fetch_pos_raw(2),
+            self.fetch_pos_raw(3),
+            self.fetch_pos_raw(4),
+            self.fetch_pos_raw(5),
+        );
+
+        let bodies = [
+            (Position::Pos1, p1?),
+            (Position::Pos2, p2?),
+            (Position::Pos3, p3?),
+            (Position::Pos4, p4?),
+            (Position::Pos5, p5?),
+        ];
+
+        let mut roles = Vec::with_capacity(5);
+        let mut patch = "unknown".to_string();
+
+        for (pos, body) in bodies {
+            if patch == "unknown" {
+                patch = extract_patch(&body);
+            }
+            let role_meta = parse_pos_meta(&body, pos, map, top_n)?;
+            roles.push(role_meta);
+        }
+
+        Ok(MetaSnapshot {
+            patch,
+            fetched_at: chrono::Utc::now().to_rfc3339(),
+            source: "d2pt".to_string(),
+            roles,
+        })
     }
 }
 
@@ -91,35 +136,32 @@ impl MetaProvider for D2ptProvider {
     }
 
     async fn fetch(&self, map: &HeroMap, top_n: usize) -> Result<MetaSnapshot, ProviderError> {
-        let raw = self.fetch_raw().await?;
-        parse_meta(&raw, map, top_n)
+        // Try the rich /meta endpoint first (supports full hero pool per role).
+        match self.fetch_meta_all(map, top_n).await {
+            Ok(snap) => Ok(snap),
+            Err(e) => {
+                tracing::warn!(error = %e, "d2pt: /meta fetch failed, falling back to homepage");
+                let raw = self.fetch_raw().await?;
+                parse_meta(&raw, map, top_n)
+            }
+        }
     }
 }
 
-/// A hero entry as pulled straight out of the `roles:[...]` blob, before
-/// mapping into the domain `HeroMeta`.
+/// A hero entry as pulled straight out of the data payload.
 struct RawHero {
     hero_id: u32,
     hero_name: String,
+    npc: Option<String>,
     matches: u32,
     win_rate: f32,
 }
 
-/// Locate the `roles:[...]` array in the raw HTML/JS payload and return the
-/// slice spanning from its opening `[` to the matching closing `]`,
-/// inclusive. Balanced-bracket, string-aware (honors `\"` escapes) so that
-/// brackets appearing inside quoted strings don't confuse the depth count.
-///
-/// Ported from the proven reference parser
-/// (`~/.gemini/antigravity/scratch/d2pt_rust/src/main.rs::parse_d2pt_roles`),
-/// but tracks byte offsets via `char_indices` instead of a `Vec<char>` index
-/// so it stays correct if the payload ever contains multi-byte characters
-/// inside the array.
+/// Locate the `roles:[...]` array in the raw homepage HTML/JS payload.
 fn extract_roles_array(html: &str) -> Result<&str, ProviderError> {
     let start = html
         .find("roles:[")
         .ok_or_else(|| ProviderError::Parse("missing 'roles:[' marker in response".into()))?;
-    // "roles:" is 6 bytes (all ASCII); this lands exactly on the '['.
     let slice_start = start + "roles:".len();
     let rest = &html[slice_start..];
 
@@ -154,8 +196,7 @@ fn extract_roles_array(html: &str) -> Result<&str, ProviderError> {
     Ok(&rest[..end_byte])
 }
 
-/// Parse the fixed-point winrate D2PT emits (e.g. `.5321`, which JS/JSON
-/// serializes without the leading zero) into a normal `0.0..1.0` f32.
+/// Parse the fixed-point winrate D2PT emits (e.g. `.5321`).
 fn parse_win_rate(raw: &str) -> Option<f32> {
     let normalized = if let Some(rest) = raw.strip_prefix('.') {
         format!("0.{rest}")
@@ -165,8 +206,7 @@ fn parse_win_rate(raw: &str) -> Option<f32> {
     normalized.parse::<f32>().ok()
 }
 
-/// Normalize a hero display name into a slug the same way d2pt/OpenDota
-/// hero keys look: lowercase, spaces/hyphens/apostrophes stripped.
+/// Normalize a hero display name into a slug the same way d2pt hero keys look.
 fn derive_slug(hero_name: &str) -> String {
     hero_name
         .chars()
@@ -187,11 +227,13 @@ fn position_from_d2pt(raw: &str) -> Option<Position> {
 }
 
 /// Best-effort extraction of the current patch string (e.g. `"7.41e"`) from
-/// the page payload. Tries the most specific markers first.
+/// the page payload.
 fn extract_patch(html: &str) -> String {
     let markers = [
         r#"patchVersion:\s*"([^"]+)""#,
         r#"patch:\s*\{\s*version:\s*"([^"]+)""#,
+        r#"meta_explorer:\s*\{\s*version:\s*"([^"]+)""#,
+        r#"version:\s*"([^"]+)""#,
     ];
     for pattern in markers {
         if let Ok(re) = Regex::new(pattern) {
@@ -203,11 +245,101 @@ fn extract_patch(html: &str) -> String {
     "unknown".to_string()
 }
 
-/// Parse a d2pt homepage payload (raw HTML containing an embedded
-/// `roles:[...]` JS array) into a `MetaSnapshot`.
-///
-/// Fails closed: if fewer than all 5 positions parse successfully, returns
-/// `ProviderError::Parse` rather than a partial snapshot.
+/// Parse a single position's payload from `https://dota2protracker.com/meta?position=pos%20{N}`.
+pub fn parse_pos_meta(
+    raw: &str,
+    target_pos: Position,
+    map: &HeroMap,
+    top_n: usize,
+) -> Result<RoleMeta, ProviderError> {
+    let hero_re = Regex::new(
+        r#"\{hero_id:(\d+),hero_name:"([^"]+)",npc:"([^"]+)",position:"([^"]+)"[\s\S]*?matches:(\d+),wins:(\d+),win_rate:(\.?\d+(?:\.\d+)?)"#,
+    )
+    .map_err(|e| ProviderError::Parse(format!("bad /meta hero regex: {e}")))?;
+
+    let mut raw_heroes: Vec<RawHero> = Vec::new();
+    let expected_pos_str = match target_pos {
+        Position::Pos1 => "pos 1",
+        Position::Pos2 => "pos 2",
+        Position::Pos3 => "pos 3",
+        Position::Pos4 => "pos 4",
+        Position::Pos5 => "pos 5",
+    };
+
+    for cap in hero_re.captures_iter(raw) {
+        let pos_str = &cap[4];
+        if pos_str != expected_pos_str {
+            continue;
+        }
+
+        let Ok(hero_id) = cap[1].parse::<u32>() else { continue; };
+        if hero_id == 0 { continue; }
+        let hero_name = cap[2].to_string();
+        let npc = Some(cap[3].to_string());
+        let Ok(matches) = cap[5].parse::<u32>() else { continue; };
+        let Some(win_rate) = parse_win_rate(&cap[7]) else { continue; };
+
+        raw_heroes.push(RawHero {
+            hero_id,
+            hero_name,
+            npc,
+            matches,
+            win_rate,
+        });
+    }
+
+    if raw_heroes.is_empty() {
+        return Err(ProviderError::Parse(format!(
+            "no heroes parsed for {expected_pos_str}"
+        )));
+    }
+
+    let total_matches: u64 = raw_heroes.iter().map(|h| h.matches as u64).sum();
+
+    let mut heroes: Vec<HeroMeta> = raw_heroes
+        .into_iter()
+        .map(|h| {
+            let slug = h
+                .npc
+                .or_else(|| map.slug_for(h.hero_id).map(|s| s.to_string()))
+                .unwrap_or_else(|| derive_slug(&h.hero_name));
+            let pickrate = if total_matches > 0 {
+                h.matches as f32 / total_matches as f32
+            } else {
+                0.0
+            };
+            HeroMeta {
+                hero_id: h.hero_id,
+                name: h.hero_name,
+                slug,
+                winrate: h.win_rate,
+                pickrate,
+                matches: h.matches,
+            }
+        })
+        .collect();
+
+    heroes.sort_by(|a, b| {
+        b.pickrate
+            .partial_cmp(&a.pickrate)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
+    heroes.truncate(top_n);
+
+    let role_winrate = if heroes.is_empty() {
+        0.0
+    } else {
+        heroes.iter().map(|h| h.winrate).sum::<f32>() / heroes.len() as f32
+    };
+
+    Ok(RoleMeta {
+        position: target_pos,
+        role_winrate,
+        heroes,
+    })
+}
+
+/// Parse a d2pt homepage payload into a `MetaSnapshot`.
 pub fn parse_meta(raw: &str, map: &HeroMap, top_n: usize) -> Result<MetaSnapshot, ProviderError> {
     let roles_blob = extract_roles_array(raw)?;
 
@@ -252,6 +384,7 @@ pub fn parse_meta(raw: &str, map: &HeroMap, top_n: usize) -> Result<MetaSnapshot
             raw_heroes.push(RawHero {
                 hero_id,
                 hero_name,
+                npc: None,
                 matches,
                 win_rate,
             });
@@ -327,27 +460,41 @@ mod tests {
     use super::*;
     use crate::hero_map::HeroMap;
 
-    const FIXTURE: &str = include_str!("../../tests/fixtures/d2pt_home.html");
+    const FIXTURE_HOME: &str = include_str!("../../tests/fixtures/d2pt_home.html");
+    const FIXTURE_POS1: &str = include_str!("../../tests/fixtures/d2pt_pos1.html");
 
     #[test]
     fn parses_five_roles_top_n_sorted() {
         let map = HeroMap::bundled();
-        let snap = parse_meta(FIXTURE, &map, 10).unwrap();
+        let snap = parse_meta(FIXTURE_HOME, &map, 10).unwrap();
         assert_eq!(snap.roles.len(), 5); // POS 1..5
         for r in &snap.roles {
             assert!(r.heroes.len() <= 10);
             assert!(r.heroes.iter().all(|h| h.hero_id != 0)); // every name resolved
-                                                                // default sort = pickrate desc
             assert!(r.heroes.windows(2).all(|w| w[0].pickrate >= w[1].pickrate));
         }
         assert!(!snap.patch.is_empty());
+    }
+
+    #[test]
+    fn parses_pos1_meta_fixture_up_to_15_heroes() {
+        let map = HeroMap::bundled();
+        let role = parse_pos_meta(FIXTURE_POS1, Position::Pos1, &map, 15).unwrap();
+        assert_eq!(role.position, Position::Pos1);
+        assert_eq!(role.heroes.len(), 15);
+        assert!(role.heroes.iter().all(|h| h.hero_id != 0));
+        assert!(role.heroes.windows(2).all(|w| w[0].pickrate >= w[1].pickrate));
+        assert!(role.role_winrate > 0.0);
     }
 
     #[tokio::test]
     #[ignore] // run: cargo test --manifest-path src-tauri/Cargo.toml -- --ignored d2pt_live
     async fn d2pt_live_fetch() {
         let p = D2ptProvider::new();
-        let snap = p.fetch(&HeroMap::bundled(), 10).await.unwrap();
+        let snap = p.fetch(&HeroMap::bundled(), 15).await.unwrap();
         assert_eq!(snap.roles.len(), 5);
+        for r in &snap.roles {
+            assert_eq!(r.heroes.len(), 15);
+        }
     }
 }

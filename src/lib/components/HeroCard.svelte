@@ -7,10 +7,21 @@
 
   let broken = $state(false);
 
-  // Tall vertical portraits — the same art Dota's in-client hero grid uses.
-  const src = $derived(
-    `https://cdn.cloudflare.steamstatic.com/apps/dota2/images/heroes/${hero.slug}_vert.jpg`,
-  );
+  let currentSrc = $state("");
+  
+  $effect(() => {
+    currentSrc = `https://dota2protracker.com/static/heroes/${hero.slug}_vert.jpg`;
+    broken = false;
+  });
+
+  function handleError() {
+    if (currentSrc.includes("dota2protracker.com")) {
+      currentSrc = `https://cdn.cloudflare.steamstatic.com/apps/dota2/images/heroes/${hero.slug}_vert.jpg`;
+    } else {
+      broken = true;
+    }
+  }
+
   const initials = $derived(
     hero.name
       .split(/\s+/)
@@ -43,11 +54,11 @@
   >
     {#if !broken}
       <img
-        {src}
+        src={currentSrc}
         alt={hero.name}
         loading="lazy"
         class="size-full object-cover object-top"
-        onerror={() => (broken = true)}
+        onerror={handleError}
       />
     {:else}
       <div class="grid size-full place-items-center text-[10px] font-semibold text-muted-foreground">
