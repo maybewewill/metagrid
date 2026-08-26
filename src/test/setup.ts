@@ -27,3 +27,23 @@ if (typeof globalThis.ResizeObserver === "undefined") {
     disconnect() {}
   };
 }
+
+// jsdom also doesn't implement matchMedia, but svelte-sonner's Toaster reads
+// it unconditionally to track the OS color scheme, and $lib/motion reads it
+// for the reduced-motion guard. Default to "no match" (motion allowed, light
+// scheme); tests that need a specific match stub it themselves with
+// vi.stubGlobal("matchMedia", ...).
+if (typeof globalThis.matchMedia === "undefined") {
+  globalThis.matchMedia = ((query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener() {},
+    removeListener() {},
+    addEventListener() {},
+    removeEventListener() {},
+    dispatchEvent() {
+      return false;
+    },
+  })) as unknown as typeof globalThis.matchMedia;
+}
