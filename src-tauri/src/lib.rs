@@ -53,7 +53,7 @@ pub fn run() {
             std::fs::create_dir_all(&data).ok();
 
             let settings = settings::load_from(&data);
-            let state: state::Shared = std::sync::Arc::new(state::AppState::new(settings));
+            let state: state::Shared = std::sync::Arc::new(state::AppState::new(settings, data.clone()));
             app.manage(state.clone());
             app.manage(services::Services::new());
             app.manage(services::DataDir(data));

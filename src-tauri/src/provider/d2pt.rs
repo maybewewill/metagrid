@@ -342,7 +342,9 @@ pub fn parse_pos_meta(
             if b.d2pt_rating != a.d2pt_rating {
                 b.d2pt_rating.cmp(&a.d2pt_rating)
             } else {
-                b.winrate.partial_cmp(&a.winrate).unwrap_or(std::cmp::Ordering::Equal)
+                let score_b = (b.matches as f32) * b.winrate;
+                let score_a = (a.matches as f32) * a.winrate;
+                score_b.partial_cmp(&score_a).unwrap_or(std::cmp::Ordering::Equal)
             }
         });
         top_heroes = sorted.into_iter().take(7).map(|mut h| { h.is_top = true; h }).collect();
@@ -461,6 +463,11 @@ pub fn parse_meta(raw: &str, map: &HeroMap, top_n: usize) -> Result<MetaSnapshot
                 .partial_cmp(&a.pickrate)
                 .unwrap_or(std::cmp::Ordering::Equal)
         });
+        for (i, h) in heroes.iter_mut().enumerate() {
+            if i < 7 {
+                h.is_top = true;
+            }
+        }
         heroes.truncate(top_n);
 
         let role_winrate = if heroes.is_empty() {

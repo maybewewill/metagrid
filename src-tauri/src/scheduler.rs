@@ -86,14 +86,6 @@ const MIN_INTERVAL_SECS: u64 = 60 * 30;
 const DEBOUNCE_FLOOR: Duration = Duration::from_secs(30);
 
 pub fn spawn(app: AppHandle) {
-    let app_init = app.clone();
-    tauri::async_runtime::spawn(async move {
-        tokio::time::sleep(Duration::from_millis(500)).await;
-        if app_init.state::<Shared>().get_snapshot().is_none() {
-            let _ = run_refresh(&app_init).await;
-        }
-    });
-
     tauri::async_runtime::spawn(async move {
         let mut last = Instant::now();
 
