@@ -29,9 +29,20 @@
   );
 
   const wrColor = $derived.by(() => {
-    const t = Math.max(0, Math.min(1, (hero.winrate - 0.48) / 0.08));
-    const hue = 20 + t * 130;
-    return `oklch(0.82 0.15 ${hue})`;
+    const wr = hero.winrate;
+    if (wr >= 0.54) {
+      return "oklch(0.86 0.19 142)";
+    }
+    if (wr >= 0.50) {
+      const t = (wr - 0.50) / 0.04;
+      const chroma = 0.09 + t * 0.08;
+      const hue = 135 + t * 7;
+      return `oklch(0.83 ${chroma.toFixed(3)} ${hue.toFixed(1)})`;
+    }
+    if (wr >= 0.485) {
+      return "oklch(0.78 0.04 80)";
+    }
+    return "oklch(0.75 0.12 35)";
   });
 </script>
 
