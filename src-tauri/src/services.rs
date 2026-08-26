@@ -8,6 +8,21 @@ use crate::provider::d2pt::D2ptProvider;
 use crate::provider::MetaProvider;
 use crate::steam::SteamLocator;
 
+/// The set of `MetaProvider` implementations that can be selected without
+/// touching any call site — adding a new source (e.g. `Stratz`,
+/// `OpenDota`) means adding a new arm here plus a new file under
+/// `provider/`, nothing else.
+pub enum ProviderKind {
+    D2pt,
+}
+
+/// Constructs the `MetaProvider` for a given `ProviderKind`.
+pub fn make_provider(kind: ProviderKind) -> Arc<dyn MetaProvider> {
+    match kind {
+        ProviderKind::D2pt => Arc::new(D2ptProvider::new()),
+    }
+}
+
 /// Shared, expensive-to-construct dependencies handed to Tauri commands via
 /// `.manage(...)`. Built once at app startup.
 pub struct Services {
@@ -18,7 +33,7 @@ pub struct Services {
 impl Services {
     pub fn new() -> Self {
         Services {
-            provider: Arc::new(D2ptProvider::new()),
+            provider: make_provider(ProviderKind::D2pt),
             map: HeroMap::bundled(),
         }
     }
@@ -62,5 +77,11 @@ mod tests {
         let loc = crate::steam::SteamLocator::with_root(tmp.path().to_path_buf());
         let dtos = account_dtos(&loc);
         assert_eq!(dtos, vec![AccountDto { id: "111".into() }]);
+    }
+
+    #[test]
+    fn factory_returns_d2pt() {
+        let p = make_provider(ProviderKind::D2pt);
+        assert_eq!(p.id(), "d2pt");
     }
 }
