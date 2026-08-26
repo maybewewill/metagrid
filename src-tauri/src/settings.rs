@@ -63,9 +63,11 @@ mod tests {
     fn missing_gives_default_then_roundtrips() {
         let tmp = tempfile::tempdir().unwrap();
         assert_eq!(load_from(tmp.path()), Settings::default());
-        let mut s = Settings::default();
-        s.top_n = 7;
-        s.interval_hours = 3;
+        let s = Settings {
+            top_n: 7,
+            interval_hours: 3,
+            ..Default::default()
+        };
         save_to(tmp.path(), &s).unwrap();
         assert_eq!(load_from(tmp.path()), s);
     }

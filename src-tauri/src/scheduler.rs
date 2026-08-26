@@ -62,7 +62,7 @@ pub async fn run_refresh(app: &AppHandle) -> Result<MetaSnapshot, String> {
                 .notification()
                 .builder()
                 .title("MetaGrid: Update Failed")
-                .body(format!("{}", msg))
+                .body(msg.clone())
                 .show();
             Err(msg)
         }
