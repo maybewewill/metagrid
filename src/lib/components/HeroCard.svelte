@@ -43,14 +43,14 @@
 <div
   use:hoverLift
   role="group"
-  class="flex items-center gap-2.5 rounded-md px-1.5 py-1 transition-colors hover:bg-accent"
+  class="flex items-center gap-2.5 rounded-sm px-1.5 py-1.5 transition-colors hover:bg-accent"
 >
   <span class="w-3 shrink-0 text-right font-mono text-[11px] tabular-nums text-muted-foreground/60">
     {rank}
   </span>
 
   <div
-    class="relative h-11 w-9 shrink-0 overflow-hidden rounded-[5px] bg-muted ring-1 ring-border"
+    class="relative h-11 w-9 shrink-0 overflow-hidden rounded-sm bg-muted ring-1 ring-border"
   >
     {#if !broken}
       <img

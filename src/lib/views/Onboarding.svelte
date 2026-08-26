@@ -36,7 +36,7 @@
 <div class="scroll-thin h-full overflow-auto">
   <div class="mx-auto flex min-h-full max-w-sm flex-col justify-center gap-7 px-6 py-10">
     <div class="flex flex-col items-center gap-3 text-center">
-      <span class="grid size-11 place-items-center rounded-xl bg-foreground text-background">
+      <span class="grid size-11 place-items-center rounded-sm bg-foreground text-background">
         <span class="text-lg font-bold leading-none">M</span>
       </span>
       <div class="flex flex-col gap-1">

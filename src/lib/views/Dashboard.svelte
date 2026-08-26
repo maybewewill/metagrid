@@ -17,12 +17,12 @@
 
   <div class="scroll-thin min-h-0 flex-1 overflow-auto p-3">
     {#if store.loading && !store.snapshot}
-      <div class="grid h-full grid-cols-5 grid-rows-[minmax(0,1fr)] gap-3">
+      <div class="grid grid-cols-5 gap-3">
         {#each skeletonSlots as slot (slot)}
-          <div class="flex flex-col gap-2 rounded-xl border border-border bg-card p-2">
-            <Skeleton class="h-5 w-full" />
+          <div class="flex flex-col gap-2 rounded-sm border border-border bg-card p-2">
+            <Skeleton class="h-5 w-full rounded-sm" />
             {#each [0, 1, 2, 3, 4, 5, 6] as row (row)}
-              <Skeleton class="h-11 w-full" />
+              <Skeleton class="h-11 w-full rounded-sm" />
             {/each}
           </div>
         {/each}
@@ -42,7 +42,7 @@
     {:else}
       <div class="grid h-full place-items-center">
         <div class="flex max-w-xs flex-col items-center gap-4 text-center">
-          <span class="grid size-12 place-items-center rounded-xl border border-border bg-card">
+          <span class="grid size-12 place-items-center rounded-sm border border-border bg-card">
             <LayoutGrid size={22} class="text-muted-foreground" />
           </span>
           <div class="flex flex-col gap-1">

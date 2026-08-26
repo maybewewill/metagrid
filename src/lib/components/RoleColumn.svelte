@@ -12,7 +12,9 @@
   const n = $derived(Number(role.position.slice(3)));
 
   const title = $derived.by(() => {
-    if (store.settings?.role_labels === "pos") return `POS ${n}`;
+    if (store.settings?.role_labels === "pos") {
+      return `${$_("pos_prefix")} ${n}`;
+    }
     // named: strip the "POS 1 — " / "ПОЗ 1 — " prefix, keep just the role name.
     return $_(roleLabel(role.position)).replace(/^POS\s*\d+\s*—\s*|^ПОЗ\s*\d+\s*—\s*/u, "");
   });
@@ -28,11 +30,11 @@
 </script>
 
 <section
-  class="flex min-w-0 flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm"
+  class="flex min-w-0 flex-col overflow-hidden rounded-sm border border-border bg-card shadow-sm"
 >
-  <header class="flex items-center gap-2 border-b border-border px-2.5 py-2">
+  <header class="flex items-center gap-2 border-b border-border px-3 py-2">
     <span
-      class="grid size-5 shrink-0 place-items-center rounded-[5px] bg-primary text-[11px] font-bold tabular-nums text-primary-foreground"
+      class="grid size-5 shrink-0 place-items-center rounded-sm bg-primary text-[11px] font-bold tabular-nums text-primary-foreground"
     >
       {n}
     </span>

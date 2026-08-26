@@ -12,7 +12,7 @@
    class is kept only as an escape hatch. */
 :root {
   color-scheme: dark;
-  --radius: 0.7rem;
+  --radius: 0.2rem;
 
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);

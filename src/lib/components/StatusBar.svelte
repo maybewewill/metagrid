@@ -54,19 +54,21 @@
   </div>
 
   <div class="flex items-center gap-1.5">
-    <div class="flex items-center rounded-md border border-border p-0.5">
+    <div class="flex items-center rounded-sm border border-border p-0.5">
       <button
         type="button"
-        aria-label="List"
-        class={`grid size-6 place-items-center rounded-[5px] transition-colors ${store.dashMode === "list" ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+        aria-label={$_("status.list")}
+        title={$_("status.list")}
+        class={`grid size-6 place-items-center rounded-sm transition-colors ${store.dashMode === "list" ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground"}`}
         onclick={() => (store.dashMode = "list")}
       >
         <List size={14} />
       </button>
       <button
         type="button"
-        aria-label="Preview"
-        class={`grid size-6 place-items-center rounded-[5px] transition-colors ${store.dashMode === "preview" ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+        aria-label={$_("status.grid")}
+        title={$_("status.grid")}
+        class={`grid size-6 place-items-center rounded-sm transition-colors ${store.dashMode === "preview" ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground"}`}
         onclick={() => (store.dashMode = "preview")}
       >
         <LayoutGrid size={14} />
@@ -75,7 +77,7 @@
     <Button
       variant="outline"
       size="sm"
-      class="h-7 gap-1.5 px-2.5 text-xs"
+      class="h-7 gap-1.5 rounded-sm px-2.5 text-xs"
       disabled={refreshing}
       onclick={() => store.refresh()}
     >
@@ -85,8 +87,9 @@
     <Button
       variant="ghost"
       size="icon-sm"
-      class="size-7"
+      class="size-7 rounded-sm"
       aria-label={$_("settings.title")}
+      title={$_("settings.title")}
       onclick={() => store.go("settings")}
     >
       <Settings2 size={15} />
