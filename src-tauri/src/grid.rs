@@ -126,8 +126,8 @@ pub fn build_grid_multi(snap: &MetaSnapshot, role_labels: &str) -> Vec<GridConfi
 }
 
 pub fn build_meta_categories(snap: &MetaSnapshot, role_labels: &str, top_n: usize) -> Vec<Category> {
-    const CATEGORY_W: f64 = 360.0;
-    const CATEGORY_H: f64 = 100.0;
+    const CATEGORY_W: f64 = 350.0;
+    const CATEGORY_H: f64 = 92.0;
     const SECTION_GAP: f64 = 8.0;
 
     let mut cats = Vec::new();
@@ -224,8 +224,8 @@ mod tests {
         assert!(cats.iter().all(|c| c.category_name.starts_with("META ")));
         assert!(cats.iter().any(|c| c.category_name == "META CARRY"));
         assert!(cats.iter().all(|c| c.x_position == 0.0));
-        assert!(cats.iter().all(|c| c.width == 360.0));
-        assert!(cats.iter().all(|c| c.height == 100.0));
+        assert!(cats.iter().all(|c| c.width == 350.0));
+        assert!(cats.iter().all(|c| c.height == 92.0));
         let last = &cats[cats.len() - 1];
         assert!(last.y_position + last.height <= 550.0);
     }

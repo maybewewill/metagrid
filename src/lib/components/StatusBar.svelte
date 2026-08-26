@@ -6,9 +6,12 @@
   import { RefreshCw, Settings2, List, LayoutGrid } from "@lucide/svelte";
 
   const kind = $derived(store.status.kind);
-  const refreshing = $derived(kind === "Refreshing");
+  const refreshing = $derived(kind === "Refreshing" || store.loading);
 
   const dot = $derived.by(() => {
+    if (refreshing) {
+      return "bg-primary animate-pulse";
+    }
     switch (kind) {
       case "Ok":
         return "bg-success";
@@ -16,14 +19,15 @@
         return "bg-warning";
       case "Error":
         return "bg-destructive";
-      case "Refreshing":
-        return "bg-foreground animate-pulse";
       default:
         return "bg-muted-foreground/50";
     }
   });
 
   const label = $derived.by(() => {
+    if (refreshing) {
+      return $_("status.refreshing");
+    }
     switch (kind) {
       case "Ok":
         return $_("status.fresh");
@@ -31,8 +35,6 @@
         return $_("status.stale");
       case "Error":
         return $_("status.error");
-      case "Refreshing":
-        return $_("status.refreshing");
       default:
         return "";
     }
@@ -89,7 +91,7 @@
       disabled={refreshing}
       onclick={() => store.refresh()}
     >
-      <RefreshCw size={14} class={refreshing ? "animate-spin" : ""} />
+      <RefreshCw size={14} class={`transition-transform duration-500 ${refreshing ? "animate-spin text-primary" : ""}`} />
       {$_("status.refresh")}
     </Button>
     <Button
