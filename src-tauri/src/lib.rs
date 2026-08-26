@@ -1,3 +1,4 @@
+mod events;
 mod grid;
 mod grid_writer;
 mod hero_map;
