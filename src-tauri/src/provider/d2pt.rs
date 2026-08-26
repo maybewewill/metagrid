@@ -245,7 +245,7 @@ pub fn parse_pos_meta(
     raw: &str,
     target_pos: Position,
     map: &HeroMap,
-    top_n: usize,
+    _top_n: usize,
 ) -> Result<RoleMeta, ProviderError> {
     // 1. Extract Top Heroes from the HTML Top Heroes container
     let mut top_hero_names = Vec::new();
@@ -343,7 +343,6 @@ pub fn parse_pos_meta(
             .partial_cmp(&a.pickrate)
             .unwrap_or(std::cmp::Ordering::Equal)
     });
-    heroes.truncate(top_n);
 
     let role_winrate = if heroes.is_empty() {
         0.0
@@ -499,11 +498,11 @@ mod tests {
     }
 
     #[test]
-    fn parses_pos1_meta_fixture_up_to_15_heroes() {
+    fn parses_pos1_meta_fixture_full_hero_pool() {
         let map = HeroMap::bundled();
         let role = parse_pos_meta(FIXTURE_POS1, Position::Pos1, &map, 15).unwrap();
         assert_eq!(role.position, Position::Pos1);
-        assert_eq!(role.heroes.len(), 15);
+        assert_eq!(role.heroes.len(), 66);
         assert!(role.heroes.iter().all(|h| h.hero_id != 0));
         assert!(role.heroes.windows(2).all(|w| w[0].pickrate >= w[1].pickrate));
         assert!(role.role_winrate > 0.0);

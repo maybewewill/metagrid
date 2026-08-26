@@ -71,8 +71,8 @@
   <div class="flex flex-col gap-8">
     {#each displayedRoles as role (role.position)}
       {@const roleName = getRoleName(role.position)}
-      {@const topHeroes = role.heroes.slice(0, 7)}
-      {@const otherHeroes = role.heroes.slice(7)}
+      {@const topHeroes = role.heroes.filter((h) => h.is_top).length > 0 ? role.heroes.filter((h) => h.is_top) : role.heroes.slice(0, 7)}
+      {@const otherHeroes = role.heroes.filter((h) => !topHeroes.some((th) => th.hero_id === h.hero_id))}
 
       <div class="flex flex-col gap-6">
         <!-- TOP HEROES CATEGORY -->

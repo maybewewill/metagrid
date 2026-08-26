@@ -15,6 +15,8 @@ export interface HeroMeta {
   winrate: number;
   pickrate: number;
   matches: number;
+  d2pt_rating?: number;
+  is_top?: boolean;
 }
 
 export interface RoleMeta {
