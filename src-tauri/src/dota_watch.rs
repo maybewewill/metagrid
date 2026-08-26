@@ -3,6 +3,13 @@ use tauri_plugin_notification::NotificationExt;
 
 const POLL_INTERVAL: std::time::Duration = std::time::Duration::from_secs(5);
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DotaEvent {
+    None,
+    Started,
+    Closed,
+}
+
 pub struct DotaWatch {
     was_running: bool,
 }
@@ -12,10 +19,14 @@ impl DotaWatch {
         DotaWatch { was_running: false }
     }
 
-    pub fn observe(&mut self, running: bool) -> bool {
-        let rising_edge = running && !self.was_running;
+    pub fn observe(&mut self, running: bool) -> DotaEvent {
+        let event = match (self.was_running, running) {
+            (false, true) => DotaEvent::Started,
+            (true, false) => DotaEvent::Closed,
+            _ => DotaEvent::None,
+        };
         self.was_running = running;
-        rising_edge
+        event
     }
 }
 
@@ -38,14 +49,27 @@ pub fn spawn(app: AppHandle) {
         loop {
             sys.refresh_processes(sysinfo::ProcessesToUpdate::All);
             let running = is_dota_running(&sys);
-            if watch.observe(running) {
-                let _ = crate::scheduler::trigger(&app);
-                let _ = app
-                    .notification()
-                    .builder()
-                    .title("MetaGrid")
-                    .body("Meta refreshed for next game")
-                    .show();
+            match watch.observe(running) {
+                DotaEvent::Started => {
+                    let _ = crate::scheduler::trigger(&app);
+                    let _ = app
+                        .notification()
+                        .builder()
+                        .title("MetaGrid")
+                        .body("Meta refreshed for current game")
+                        .show();
+                }
+                DotaEvent::Closed => {
+                    tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+                    let _ = crate::scheduler::trigger(&app);
+                    let _ = app
+                        .notification()
+                        .builder()
+                        .title("MetaGrid")
+                        .body("Dota 2 closed — Meta refreshed for your next session")
+                        .show();
+                }
+                DotaEvent::None => {}
             }
             tokio::time::sleep(POLL_INTERVAL).await;
         }
@@ -56,12 +80,13 @@ pub fn spawn(app: AppHandle) {
 mod tests {
     use super::*;
     #[test]
-    fn fires_only_on_rising_edge() {
+    fn fires_started_and_closed_events_correctly() {
         let mut w = DotaWatch::new();
-        assert!(!w.observe(false));
-        assert!(w.observe(true));
-        assert!(!w.observe(true));
-        assert!(!w.observe(false));
-        assert!(w.observe(true));
+        assert_eq!(w.observe(false), DotaEvent::None);
+        assert_eq!(w.observe(true), DotaEvent::Started);
+        assert_eq!(w.observe(true), DotaEvent::None);
+        assert_eq!(w.observe(false), DotaEvent::Closed);
+        assert_eq!(w.observe(false), DotaEvent::None);
+        assert_eq!(w.observe(true), DotaEvent::Started);
     }
 }

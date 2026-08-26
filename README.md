@@ -121,7 +121,7 @@ cargo install --git https://github.com/maybewewill/metagrid
 | **Grid Mode** | `Separate` / `Merge` | Choose between 5 standalone role grids or injecting a live META block into an existing grid. |
 | **Target Grid** | Custom grid name | Select which existing hero layout to inject the META block into (when Merge mode is active). |
 | **Role Labels** | `Named` / `POS 1-5` | Toggle role naming convention across the UI and in-game grid tabs. |
-| **Refresh Interval** | `30m`, `1h`, `3h`, `6h`, `12h`, `24h` | Background scheduler sync interval. |
+| **Refresh Interval** | `15m`, `30m`, `1h`, `3h`, `6h`, `12h`, `24h` | Background scheduler sync interval. |
 | **Steam Account** | `All accounts` or specific Steam ID | Target account selection. |
 | **Start with Windows** | `Enabled` / `Disabled` | Launch minimized on system startup. |
 | **Language** | `English` / `Russian` | UI language and grid category names. |

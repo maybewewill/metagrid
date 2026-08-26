@@ -13,7 +13,7 @@ fn default_sort() -> SortMetric {
 }
 
 fn default_interval_hours() -> f64 {
-    6.0
+    0.25
 }
 
 fn default_autostart() -> bool {
@@ -129,7 +129,7 @@ mod tests {
         std::fs::write(tmp.path().join("settings.json"), br#"{"top_n": 5}"#).unwrap();
         let s = load_from(tmp.path());
         assert_eq!(s.top_n, 5);
-        assert_eq!(s.interval_hours, 6.0);
+        assert_eq!(s.interval_hours, 0.25);
         assert_eq!(s.role_labels, "named");
         assert!(s.autostart);
     }

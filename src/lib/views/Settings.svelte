@@ -15,6 +15,7 @@
   import type { Settings as SettingsShape, UpdateInfo } from "$lib/types";
 
   const intervalOptions = [
+    { value: 0.25, label: () => $_("settings.interval_15m") },
     { value: 0.5, label: () => $_("settings.interval_30m") },
     { value: 1, label: () => $_("settings.interval_hours", { values: { n: 1 } }) },
     { value: 3, label: () => $_("settings.interval_hours", { values: { n: 3 } }) },
@@ -26,7 +27,7 @@
   const DEFAULTS: SettingsShape = {
     top_n: 10,
     sort: "Pickrate",
-    interval_hours: 6,
+    interval_hours: 0.25,
     account_id: null,
     autostart: true,
     layout_columns: true,
@@ -234,7 +235,9 @@
           onValueChange={(v) => (local.interval_hours = Number(v))}
         >
           <SelectTrigger class="w-32 rounded-sm text-xs">
-            {local.interval_hours === 0.5
+            {local.interval_hours === 0.25
+              ? $_("settings.interval_15m")
+              : local.interval_hours === 0.5
               ? $_("settings.interval_30m")
               : $_("settings.interval_hours", { values: { n: local.interval_hours } })}
           </SelectTrigger>
