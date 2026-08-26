@@ -1,3 +1,4 @@
+mod grid;
 mod hero_map;
 mod model;
 mod provider;
