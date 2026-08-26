@@ -1,3 +1,5 @@
+pub mod d2pt;
+
 use crate::hero_map::HeroMap;
 use crate::model::MetaSnapshot;
 
