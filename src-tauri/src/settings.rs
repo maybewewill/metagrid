@@ -36,6 +36,10 @@ fn default_role_labels() -> String {
     "named".into()
 }
 
+fn default_grid_mode() -> String {
+    "separate".into()
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Settings {
     #[serde(default = "default_top_n")]
@@ -56,6 +60,10 @@ pub struct Settings {
     pub onboarded: bool,
     #[serde(default = "default_role_labels")]
     pub role_labels: String,
+    #[serde(default = "default_grid_mode")]
+    pub grid_mode: String,
+    #[serde(default)]
+    pub merge_target: Option<String>,
 }
 
 impl Default for Settings {
@@ -70,6 +78,8 @@ impl Default for Settings {
             lang: default_lang(),
             onboarded: default_onboarded(),
             role_labels: default_role_labels(),
+            grid_mode: default_grid_mode(),
+            merge_target: None,
         }
     }
 }

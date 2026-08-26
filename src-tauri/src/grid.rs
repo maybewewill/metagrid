@@ -125,6 +125,36 @@ pub fn build_grid_multi(snap: &MetaSnapshot, role_labels: &str) -> Vec<GridConfi
         .collect()
 }
 
+pub fn build_meta_categories(snap: &MetaSnapshot, role_labels: &str, top_n: usize) -> Vec<Category> {
+    const PER_ROW: usize = 7;
+    const STEP_X: f64 = 76.0;
+    const STEP_Y: f64 = 98.0;
+    const HEADER_H: f64 = 34.0;
+    const SECTION_GAP: f64 = 18.0;
+    let block_w = PER_ROW as f64 * STEP_X;
+
+    let mut cats = Vec::new();
+    let mut cursor_y = 0.0_f64;
+    for role in &snap.roles {
+        let hero_ids: Vec<u32> = role.heroes.iter().take(top_n).map(|h| h.hero_id).collect();
+        if hero_ids.is_empty() {
+            continue;
+        }
+        let rows = ((hero_ids.len() + PER_ROW - 1) / PER_ROW) as f64;
+        let section_h = HEADER_H + rows * STEP_Y;
+        cats.push(Category {
+            category_name: format!("META {}", role.position.role_upper(role_labels)),
+            x_position: 0.0,
+            y_position: cursor_y,
+            width: block_w,
+            height: section_h,
+            hero_ids,
+        });
+        cursor_y += section_h + SECTION_GAP;
+    }
+    cats
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -182,5 +212,16 @@ mod tests {
         let pos_cfgs = build_grid_multi(&sample_snapshot(), "pos");
         assert!(pos_cfgs.iter().any(|c| c.config_name == "⚡ POS 1"));
         assert!(pos_cfgs[0].categories[0].category_name.contains("POS 1"));
+    }
+
+    #[test]
+    fn meta_categories_are_namespaced_and_stacked() {
+        let cats = build_meta_categories(&sample_snapshot(), "named", 10);
+        assert_eq!(cats.len(), 5);
+        assert!(cats.iter().all(|c| c.category_name.starts_with("META ")));
+        assert!(cats.iter().any(|c| c.category_name == "META CARRY"));
+        assert!(cats.iter().all(|c| c.x_position == 0.0));
+        assert!(cats.windows(2).all(|w| w[1].y_position > w[0].y_position));
+        assert!(cats.iter().all(|c| c.width == 532.0));
     }
 }

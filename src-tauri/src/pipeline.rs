@@ -1,5 +1,5 @@
-use crate::grid::build_grid_multi;
-use crate::grid_writer::{write_configs_to, GridError};
+use crate::grid::{build_grid_multi, build_meta_categories};
+use crate::grid_writer::{write_configs_to, write_merge_to, GridError};
 use crate::hero_map::HeroMap;
 use crate::model::MetaSnapshot;
 use crate::provider::{MetaProvider, ProviderError};
@@ -13,6 +13,7 @@ pub enum PipelineError {
     Grid(#[from] GridError),
 }
 
+#[allow(clippy::too_many_arguments)]
 pub async fn refresh_all(
     provider: &dyn MetaProvider,
     map: &HeroMap,
@@ -20,10 +21,14 @@ pub async fn refresh_all(
     top_n: usize,
     account_filter: Option<&str>,
     role_labels: &str,
+    grid_mode: &str,
+    merge_target: Option<&str>,
 ) -> Result<MetaSnapshot, PipelineError> {
     let snap: MetaSnapshot = provider.fetch(map, top_n).await?;
 
-    let grids = build_grid_multi(&snap, role_labels);
+    let merge = grid_mode == "merge" && merge_target.is_some();
+    let grids = if merge { Vec::new() } else { build_grid_multi(&snap, role_labels) };
+    let meta_cats = if merge { build_meta_categories(&snap, role_labels, top_n) } else { Vec::new() };
 
     for account in steam.accounts() {
         if let Some(filter_id) = account_filter {
@@ -31,7 +36,11 @@ pub async fn refresh_all(
                 continue;
             }
         }
-        write_configs_to(&account.grid_path, &grids)?;
+        if merge {
+            write_merge_to(&account.grid_path, &meta_cats, merge_target.unwrap())?;
+        } else {
+            write_configs_to(&account.grid_path, &grids)?;
+        }
     }
 
     Ok(snap)
@@ -97,7 +106,7 @@ mod tests {
 
         let steam = SteamLocator::with_root(root);
 
-        let snap = refresh_all(&FakeProvider, &HeroMap::bundled(), &steam, 10, None, "named")
+        let snap = refresh_all(&FakeProvider, &HeroMap::bundled(), &steam, 10, None, "named", "separate", None)
             .await
             .unwrap();
 
@@ -117,7 +126,7 @@ mod tests {
 
         let steam = SteamLocator::with_root(root);
 
-        refresh_all(&FakeProvider, &HeroMap::bundled(), &steam, 10, None, "named")
+        refresh_all(&FakeProvider, &HeroMap::bundled(), &steam, 10, None, "named", "separate", None)
             .await
             .unwrap();
 
@@ -138,6 +147,49 @@ mod tests {
             );
         }
         assert!(!names.contains(&"MetaGrid".to_string()));
+    }
+
+    #[tokio::test]
+    async fn refresh_all_merge_injects_meta_and_preserves_user_config() {
+        let tmp = tempfile::tempdir().unwrap();
+        let root = tmp.path().to_path_buf();
+        let cfg = root.join("userdata/111/570/remote/cfg");
+        std::fs::create_dir_all(&cfg).unwrap();
+        let grid_path = cfg.join("hero_grid_config.json");
+        std::fs::write(
+            &grid_path,
+            r#"{"version":3,"configs":[
+                {"config_name":"Main Layout","categories":[
+                    {"category_name":"2pos","x_position":0.0,"y_position":0.0,"width":687.0,"height":293.0,"hero_ids":[1,2]}
+                ]}
+            ]}"#,
+        )
+        .unwrap();
+
+        let steam = SteamLocator::with_root(root);
+        refresh_all(&FakeProvider, &HeroMap::bundled(), &steam, 10, None, "named", "merge", Some("Main Layout"))
+            .await
+            .unwrap();
+
+        let written = std::fs::read_to_string(&grid_path).unwrap();
+        let v: serde_json::Value = serde_json::from_str(&written).unwrap();
+        let cfg0 = &v["configs"][0];
+        assert_eq!(cfg0["config_name"], "Main Layout");
+        let names: Vec<String> = cfg0["categories"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|c| c["category_name"].as_str().unwrap().to_string())
+            .collect();
+        assert!(names.iter().any(|n| n == "META CARRY"));
+        assert!(names.iter().any(|n| n == "2pos"));
+        let user = cfg0["categories"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|c| c["category_name"] == "2pos")
+            .unwrap();
+        assert_eq!(user["x_position"].as_f64().unwrap(), 572.0);
     }
 
     #[tokio::test]

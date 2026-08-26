@@ -38,6 +38,8 @@ export interface Settings {
   lang: "en" | "ru";
   onboarded: boolean;
   role_labels: RoleLabelStyle;
+  grid_mode: "separate" | "merge";
+  merge_target: string | null;
 }
 
 export interface Account {

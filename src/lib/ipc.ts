@@ -49,6 +49,10 @@ export function checkUpdate(): Promise<import("$lib/types").UpdateInfo> {
   return invoke("check_update");
 }
 
+export function listGridConfigs(): Promise<string[]> {
+  return invoke("list_grid_configs");
+}
+
 export function onRefreshDone(cb: (payload: MetaSnapshot) => void): Promise<UnlistenFn> {
   return listen<MetaSnapshot>(EVENTS.REFRESH_DONE, (e) => cb(e.payload));
 }

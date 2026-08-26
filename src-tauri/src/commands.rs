@@ -83,3 +83,34 @@ pub fn get_portrait_dir(data: State<DataDir>) -> String {
 pub async fn check_update() -> Result<crate::updater::UpdateInfo, String> {
     crate::updater::check_for_updates().await
 }
+
+#[tauri::command]
+pub fn list_grid_configs(state: State<Shared>) -> Vec<String> {
+    let settings = state.get_settings();
+    let Some(loc) = SteamLocator::detect() else {
+        return Vec::new();
+    };
+    let accounts = loc.accounts();
+    let account = match settings.account_id.as_deref() {
+        Some(id) => accounts.iter().find(|a| a.id == id),
+        None => accounts.first(),
+    };
+    let Some(account) = account else {
+        return Vec::new();
+    };
+    let Ok(contents) = std::fs::read_to_string(&account.grid_path) else {
+        return Vec::new();
+    };
+    let Ok(value) = serde_json::from_str::<serde_json::Value>(&contents) else {
+        return Vec::new();
+    };
+    value
+        .get("configs")
+        .and_then(|c| c.as_array())
+        .map(|arr| {
+            arr.iter()
+                .filter_map(|c| c.get("config_name").and_then(|n| n.as_str()).map(String::from))
+                .collect()
+        })
+        .unwrap_or_default()
+}

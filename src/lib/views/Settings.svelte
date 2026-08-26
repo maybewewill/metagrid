@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   import { _ } from "svelte-i18n";
   import { toast } from "svelte-sonner";
   import { store } from "$lib/store.svelte";
@@ -32,12 +33,23 @@
     lang: "en",
     onboarded: true,
     role_labels: "named",
+    grid_mode: "separate",
+    merge_target: null,
   };
 
   let local = $state<SettingsShape>({ ...DEFAULTS, ...(store.settings ?? {}) });
   let saving = $state(false);
   let checkingUpdate = $state(false);
   let updateInfo = $state<UpdateInfo | null>(null);
+  let gridConfigs = $state<string[]>([]);
+
+  onMount(async () => {
+    try {
+      gridConfigs = await ipc.listGridConfigs();
+    } catch {
+      gridConfigs = [];
+    }
+  });
 
   const accountLabel = $derived(local.account_id ?? $_("settings.all_accounts"));
 
@@ -149,6 +161,59 @@
           </button>
         </div>
       </div>
+      <Separator />
+
+      <div class="flex items-center justify-between gap-4 py-3.5">
+        <div class="flex min-w-0 flex-col">
+          <span class="text-sm font-semibold">{$_("settings.grid_mode")}</span>
+          <span class="text-xs text-muted-foreground">
+            {local.grid_mode === "merge" ? $_("settings.grid_mode_merge_hint") : $_("settings.grid_mode_separate_hint")}
+          </span>
+        </div>
+        <div class="inline-flex rounded-sm bg-zinc-900 p-0.5 border border-border">
+          <button
+            type="button"
+            class="rounded-sm px-3 py-1.5 text-xs font-semibold transition-all {local.grid_mode === 'separate' ? 'bg-white text-zinc-950 font-bold shadow-sm' : 'text-zinc-400 hover:text-white'}"
+            onclick={() => (local.grid_mode = 'separate')}
+          >
+            {$_("settings.grid_mode_separate")}
+          </button>
+          <button
+            type="button"
+            class="rounded-sm px-3 py-1.5 text-xs font-semibold transition-all {local.grid_mode === 'merge' ? 'bg-white text-zinc-950 font-bold shadow-sm' : 'text-zinc-400 hover:text-white'}"
+            onclick={() => (local.grid_mode = 'merge')}
+          >
+            {$_("settings.grid_mode_merge")}
+          </button>
+        </div>
+      </div>
+
+      {#if local.grid_mode === "merge"}
+        <div class="flex items-center justify-between gap-4 py-3.5">
+          <div class="flex min-w-0 flex-col">
+            <span class="text-sm font-medium">{$_("settings.merge_target")}</span>
+            <span class="text-xs text-muted-foreground">{$_("settings.merge_target_hint")}</span>
+          </div>
+          {#if gridConfigs.length === 0}
+            <span class="text-xs text-muted-foreground">{$_("settings.merge_target_empty")}</span>
+          {:else}
+            <Select
+              type="single"
+              value={local.merge_target ?? ""}
+              onValueChange={(v) => (local.merge_target = v || null)}
+            >
+              <SelectTrigger class="w-48 truncate rounded-sm text-xs">
+                {local.merge_target ?? $_("settings.merge_target_placeholder")}
+              </SelectTrigger>
+              <SelectContent class="rounded-sm">
+                {#each gridConfigs as name (name)}
+                  <SelectItem value={name} class="rounded-sm text-xs">{name}</SelectItem>
+                {/each}
+              </SelectContent>
+            </Select>
+          {/if}
+        </div>
+      {/if}
       <Separator />
 
       <div class="flex items-center justify-between gap-4 py-3.5">

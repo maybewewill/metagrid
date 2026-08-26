@@ -45,7 +45,8 @@ pub fn run() {
             commands::get_autostart,
             commands::set_autostart,
             commands::get_portrait_dir,
-            commands::check_update
+            commands::check_update,
+            commands::list_grid_configs
         ])
         .setup(|app| {
             let data = app.path().app_data_dir()?;

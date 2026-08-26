@@ -22,7 +22,11 @@ vi.mock("$lib/store.svelte", () => ({
     go,
   },
 }));
-vi.mock("$lib/ipc", () => ({ setAutostart, checkUpdate: vi.fn().mockResolvedValue({ available: false, current_version: "v0.1.1", latest_version: "v0.1.1", release_url: "" }) }));
+vi.mock("$lib/ipc", () => ({
+  setAutostart,
+  checkUpdate: vi.fn().mockResolvedValue({ available: false, current_version: "v0.1.1", latest_version: "v0.1.1", release_url: "" }),
+  listGridConfigs: vi.fn().mockResolvedValue(["Main Layout", "2pos"]),
+}));
 vi.mock("@tauri-apps/plugin-opener", () => ({ openUrl: vi.fn() }));
 import Settings from "$lib/views/Settings.svelte";
 describe("Settings", () =>

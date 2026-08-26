@@ -37,6 +37,8 @@ pub async fn run_refresh(app: &AppHandle) -> Result<MetaSnapshot, String> {
         settings.top_n,
         settings.account_id.as_deref(),
         &settings.role_labels,
+        &settings.grid_mode,
+        settings.merge_target.as_deref(),
     )
     .await
     {
