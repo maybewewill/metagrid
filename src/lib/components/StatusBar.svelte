@@ -42,9 +42,9 @@
 </script>
 
 <div
-  class="flex h-10 shrink-0 items-center justify-between gap-3 border-b border-border bg-background px-3"
+  class="flex h-11 shrink-0 items-center justify-between gap-3 border-b border-border bg-background px-3.5"
 >
-  <div class="flex min-w-0 items-center gap-2 text-xs">
+  <div class="flex min-w-0 items-center gap-2 text-[13px]">
     <span class={`size-2 shrink-0 rounded-full ${dot}`}></span>
     {#if errorDetail}
       <span class="font-medium text-destructive truncate max-w-xs" title={errorDetail}>
@@ -61,46 +61,46 @@
     {/if}
   </div>
 
-  <div class="flex items-center gap-1.5">
+  <div class="flex items-center gap-2">
     <div class="flex items-center rounded-sm border border-border p-0.5">
       <button
         type="button"
         aria-label={$_("status.list")}
         title={$_("status.list")}
-        class={`grid size-6 place-items-center rounded-sm transition-colors ${store.dashMode === "list" ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+        class={`grid size-7 place-items-center rounded-sm transition-colors ${store.dashMode === "list" ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground"}`}
         onclick={() => (store.dashMode = "list")}
       >
-        <List size={14} />
+        <List size={16} />
       </button>
       <button
         type="button"
         aria-label={$_("status.grid")}
         title={$_("status.grid")}
-        class={`grid size-6 place-items-center rounded-sm transition-colors ${store.dashMode === "preview" ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+        class={`grid size-7 place-items-center rounded-sm transition-colors ${store.dashMode === "preview" ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground"}`}
         onclick={() => (store.dashMode = "preview")}
       >
-        <LayoutGrid size={14} />
+        <LayoutGrid size={16} />
       </button>
     </div>
     <Button
       variant="outline"
       size="sm"
-      class="h-7 gap-1.5 rounded-sm px-2.5 text-xs"
+      class="h-8 gap-2 rounded-sm px-3 text-xs font-semibold"
       disabled={refreshing}
       onclick={() => store.refresh()}
     >
-      <RefreshCw size={13} class={refreshing ? "animate-spin" : ""} />
+      <RefreshCw size={14} class={refreshing ? "animate-spin" : ""} />
       {$_("status.refresh")}
     </Button>
     <Button
       variant="ghost"
       size="icon-sm"
-      class="size-7 rounded-sm"
+      class="size-8 rounded-sm"
       aria-label={$_("settings.title")}
       title={$_("settings.title")}
       onclick={() => store.go("settings")}
     >
-      <Settings2 size={15} />
+      <Settings2 size={16} />
     </Button>
   </div>
 </div>

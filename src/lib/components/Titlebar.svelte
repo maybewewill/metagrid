@@ -7,16 +7,16 @@
 </script>
 
 <header
-  class="flex h-9 shrink-0 items-center justify-between border-b border-border bg-background select-none"
+  class="flex h-10 shrink-0 items-center justify-between border-b border-border bg-background select-none"
 >
-  <div data-tauri-drag-region class="flex h-full flex-1 items-center gap-2.5 pl-3">
-    <span class="grid size-4 place-items-center rounded-sm bg-foreground text-background">
-      <span class="text-[10px] font-bold leading-none">M</span>
+  <div data-tauri-drag-region class="flex h-full flex-1 items-center gap-2.5 pl-3.5">
+    <span class="grid size-5 place-items-center rounded-sm bg-foreground text-background">
+      <span class="text-[11px] font-black leading-none">M</span>
     </span>
-    <span class="text-[13px] font-semibold tracking-tight">MetaGrid</span>
+    <span class="text-[14px] font-bold tracking-tight">MetaGrid</span>
     {#if patch}
       <span
-        class="rounded-sm border border-border px-1.5 py-px font-mono text-[10px] leading-tight text-muted-foreground"
+        class="rounded-sm border border-border px-2 py-0.5 font-mono text-[11px] font-semibold leading-tight text-muted-foreground"
       >
         {patch}
       </span>

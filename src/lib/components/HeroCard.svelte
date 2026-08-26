@@ -43,11 +43,11 @@
 <div
   use:hoverLift
   role="group"
-  class="group flex h-[66px] items-center overflow-hidden rounded-sm border border-zinc-800/60 bg-zinc-900/40 transition-all duration-150 hover:border-zinc-700 hover:bg-zinc-800/80"
+  class="group flex flex-1 min-h-0 items-center overflow-hidden rounded-sm border border-zinc-800/60 bg-zinc-900/40 transition-all duration-150 hover:border-zinc-700 hover:bg-zinc-800/80"
 >
   <!-- Hero Portrait flush to the left -->
   <div
-    class="relative h-full w-[48px] shrink-0 overflow-hidden bg-zinc-950 border-r border-zinc-800/80"
+    class="relative h-full w-[52px] shrink-0 overflow-hidden bg-zinc-950 border-r border-zinc-800/80"
   >
     {#if !broken}
       <img
@@ -58,18 +58,18 @@
         onerror={handleError}
       />
     {:else}
-      <div class="grid size-full place-items-center text-[10px] font-semibold text-muted-foreground">
+      <div class="grid size-full place-items-center text-xs font-semibold text-muted-foreground">
         {initials}
       </div>
     {/if}
   </div>
 
   <!-- Hero Details -->
-  <div class="flex min-w-0 flex-1 flex-col justify-center px-3 py-1 gap-0.5">
-    <div class="truncate text-[13px] font-extrabold uppercase tracking-wide text-zinc-100 group-hover:text-white">
+  <div class="flex min-w-0 flex-1 flex-col justify-center px-3.5 py-1 gap-1">
+    <div class="truncate text-[13.5px] font-extrabold uppercase tracking-wide text-zinc-100 group-hover:text-white">
       {hero.name}
     </div>
-    <div class="flex items-center gap-1.5 text-[11.5px] font-mono leading-none text-zinc-400 whitespace-nowrap overflow-hidden">
+    <div class="flex items-center gap-2 text-[12px] font-mono leading-none text-zinc-400 whitespace-nowrap overflow-hidden">
       <span>{pct(hero.pickrate)} Pick</span>
       {#if hero.d2pt_rating && hero.d2pt_rating > 0}
         <span class="text-zinc-600">·</span>
@@ -79,9 +79,9 @@
   </div>
 
   <!-- Winrate -->
-  <div class="shrink-0 pr-3 flex flex-col items-end justify-center">
+  <div class="shrink-0 pr-3.5 flex flex-col items-end justify-center">
     <span
-      class="font-mono text-[13.5px] font-black tracking-tight tabular-nums"
+      class="font-mono text-[14px] font-black tracking-tight tabular-nums"
       style:color={wrColor}
     >
       {pct(hero.winrate)}
