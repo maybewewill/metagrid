@@ -1,6 +1,7 @@
 <script lang="ts">
   import { _ } from "svelte-i18n";
   import HeroCard from "$lib/components/HeroCard.svelte";
+  import RoleIcon from "$lib/components/RoleIcon.svelte";
   import { pct, roleLabel } from "$lib/format";
   import { prefersReducedMotion } from "$lib/motion";
   import { animate } from "motion";
@@ -31,14 +32,8 @@
 <section
   class="flex h-full min-w-0 flex-col overflow-hidden rounded-sm border border-zinc-800/80 bg-zinc-950/80 shadow-md"
 >
-  <header class="flex items-center gap-2 border-b border-zinc-800 bg-zinc-900/60 px-3.5 py-2.5">
-    {#if store.settings?.role_labels !== "pos"}
-      <span
-        class="grid size-5 shrink-0 place-items-center rounded-xs bg-white text-[11px] font-black tabular-nums text-zinc-950"
-      >
-        {n}
-      </span>
-    {/if}
+  <header class="flex items-center gap-2 border-b border-zinc-800 bg-zinc-900/60 px-3 py-2.5">
+    <RoleIcon position={role.position} class="size-4 text-zinc-300 shrink-0" />
     <span class="min-w-0 flex-1 truncate text-[13px] font-bold tracking-wider uppercase text-zinc-200">{title}</span>
     <span class="shrink-0 font-mono text-[11.5px] font-semibold tabular-nums text-zinc-400">
       {pct(role.role_winrate)}

@@ -2,6 +2,7 @@
   import { _ } from "svelte-i18n";
   import { pct2 } from "$lib/format";
   import { store } from "$lib/store.svelte";
+  import RoleIcon from "$lib/components/RoleIcon.svelte";
   import type { RoleMeta } from "$lib/types";
   import { getHeroPortraitUrl, getFallbackPortraitUrl } from "$lib/utils";
 
@@ -21,7 +22,7 @@
     if (store.settings?.role_labels === "pos") {
       return `${$_("pos_prefix")} ${n(r.position)}`;
     }
-    return `${$_("pos_prefix")} ${n(r.position)} — ${$_(`role_upper.${r.position.toLowerCase()}`)}`;
+    return $_(`role_upper.${r.position.toLowerCase()}`);
   }
 
   function sectionRole(r: RoleMeta) {
@@ -43,10 +44,11 @@
   <div class="flex flex-wrap items-center gap-2 border-b border-white/10 pb-3">
     {#each roles as r (r.position)}
       <button
-        class="rounded-sm px-4 py-2 text-xs font-bold uppercase tracking-wider transition-all {selectedPos === r.position ? 'bg-zinc-200 text-zinc-950 shadow-sm' : 'bg-zinc-900/80 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'}"
+        class="inline-flex items-center gap-2 rounded-sm px-3.5 py-2 text-xs font-bold uppercase tracking-wider transition-all {selectedPos === r.position ? 'bg-zinc-200 text-zinc-950 shadow-sm' : 'bg-zinc-900/80 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'}"
         onclick={() => (selectedPos = r.position)}
       >
-        {tabLabel(r)}
+        <RoleIcon position={r.position} class="size-3.5" />
+        <span>{tabLabel(r)}</span>
       </button>
     {/each}
   </div>
