@@ -9,8 +9,8 @@ class Store {
   settings = $state<Settings | null>(null);
   accounts = $state<Account[]>([]);
   view = $state<View>("onboarding");
-  /** Dashboard sub-mode: the meta list vs the in-Dota grid preview vs interactive editor. */
-  dashMode = $state<"list" | "preview" | "editor">("list");
+  /** Dashboard sub-mode: the meta list vs the in-Dota grid preview. */
+  dashMode = $state<"list" | "preview">("list");
   loading = $state(false);
   /** Absolute dir holding cached `<slug>.png` hero portraits; null until `init()` resolves it. */
   portraitDir = $state<string | null>(null);

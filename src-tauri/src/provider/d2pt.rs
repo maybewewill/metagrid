@@ -155,6 +155,7 @@ struct RawHero {
     npc: Option<String>,
     matches: u32,
     win_rate: f32,
+    d2pt_rating: u32,
 }
 
 /// Locate the `roles:[...]` array in the raw homepage HTML/JS payload.
@@ -253,7 +254,7 @@ pub fn parse_pos_meta(
     top_n: usize,
 ) -> Result<RoleMeta, ProviderError> {
     let hero_re = Regex::new(
-        r#"\{hero_id:(\d+),hero_name:"([^"]+)",npc:"([^"]+)",position:"([^"]+)"[\s\S]*?matches:(\d+),wins:(\d+),win_rate:(\.?\d+(?:\.\d+)?)"#,
+        r#"\{hero_id:(\d+),hero_name:"([^"]+)",npc:"([^"]+)",position:"([^"]+)"[\s\S]*?matches:(\d+),wins:(\d+),win_rate:(\.?\d+(?:\.\d+)?)[\s\S]*?d2pt_rating:(\d+)"#,
     )
     .map_err(|e| ProviderError::Parse(format!("bad /meta hero regex: {e}")))?;
 
@@ -278,6 +279,7 @@ pub fn parse_pos_meta(
         let npc = Some(cap[3].to_string());
         let Ok(matches) = cap[5].parse::<u32>() else { continue; };
         let Some(win_rate) = parse_win_rate(&cap[7]) else { continue; };
+        let d2pt_rating = cap.get(8).and_then(|m| m.as_str().parse::<u32>().ok()).unwrap_or(0);
 
         raw_heroes.push(RawHero {
             hero_id,
@@ -285,6 +287,7 @@ pub fn parse_pos_meta(
             npc,
             matches,
             win_rate,
+            d2pt_rating,
         });
     }
 
@@ -315,6 +318,7 @@ pub fn parse_pos_meta(
                 winrate: h.win_rate,
                 pickrate,
                 matches: h.matches,
+                d2pt_rating: h.d2pt_rating,
             }
         })
         .collect();
@@ -387,6 +391,7 @@ pub fn parse_meta(raw: &str, map: &HeroMap, top_n: usize) -> Result<MetaSnapshot
                 npc: None,
                 matches,
                 win_rate,
+                d2pt_rating: 0,
             });
         }
 
@@ -411,6 +416,7 @@ pub fn parse_meta(raw: &str, map: &HeroMap, top_n: usize) -> Result<MetaSnapshot
                     winrate: h.win_rate,
                     pickrate,
                     matches: h.matches,
+                    d2pt_rating: 0,
                 }
             })
             .collect();

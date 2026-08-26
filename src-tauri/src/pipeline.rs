@@ -151,6 +151,7 @@ mod tests {
                             winrate: 0.55,
                             pickrate: 0.20,
                             matches: 100,
+                            d2pt_rating: 3200,
                         },
                         HeroMeta {
                             hero_id: (i as u32) * 10 + 2,
@@ -159,6 +160,7 @@ mod tests {
                             winrate: 0.45,
                             pickrate: 0.10,
                             matches: 50,
+                            d2pt_rating: 2900,
                         },
                     ],
                 })
@@ -256,10 +258,10 @@ mod tests {
             .filter_map(|c| c["config_name"].as_str().map(|s| s.to_string()))
             .collect();
 
-        for n in 1..=5 {
+        for role_name in ["Carry", "Mid", "Offlane", "Support", "Hard Support"] {
             assert!(
-                names.contains(&format!("MetaGrid POS {n}")),
-                "missing MetaGrid POS {n}, got {names:?}"
+                names.contains(&role_name.to_string()),
+                "missing {role_name}, got {names:?}"
             );
         }
         // Single-config "MetaGrid" must NOT be written in multi mode.

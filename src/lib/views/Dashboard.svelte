@@ -4,7 +4,6 @@
   import StatusBar from "$lib/components/StatusBar.svelte";
   import RoleColumn from "$lib/components/RoleColumn.svelte";
   import GridPreview from "$lib/components/GridPreview.svelte";
-  import GridEditor from "$lib/views/GridEditor.svelte";
   import { Skeleton } from "$lib/components/ui/skeleton";
   import { Button } from "$lib/components/ui/button";
   import { RefreshCw, LayoutGrid } from "@lucide/svelte";
@@ -29,9 +28,7 @@
         {/each}
       </div>
     {:else if store.snapshot}
-      {#if store.dashMode === "editor"}
-        <GridEditor roles={store.snapshot.roles} />
-      {:else if store.dashMode === "preview"}
+      {#if store.dashMode === "preview"}
         <GridPreview roles={store.snapshot.roles} />
       {:else}
         <div class="grid h-full grid-cols-5 grid-rows-[minmax(0,1fr)] gap-3">

@@ -30,6 +30,26 @@ impl Position {
         }
     }
 
+    pub fn config_name(&self) -> &'static str {
+        match self {
+            Position::Pos1 => "Carry",
+            Position::Pos2 => "Mid",
+            Position::Pos3 => "Offlane",
+            Position::Pos4 => "Support",
+            Position::Pos5 => "Hard Support",
+        }
+    }
+
+    pub fn role_upper(&self) -> &'static str {
+        match self {
+            Position::Pos1 => "CARRY",
+            Position::Pos2 => "MID",
+            Position::Pos3 => "OFFLANE",
+            Position::Pos4 => "SUPPORT",
+            Position::Pos5 => "HARD SUPPORT",
+        }
+    }
+
     pub fn all() -> [Position; 5] {
         [
             Position::Pos1,
@@ -55,6 +75,8 @@ pub struct HeroMeta {
     pub winrate: f32,
     pub pickrate: f32,
     pub matches: u32,
+    #[serde(default)]
+    pub d2pt_rating: u32,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -83,7 +105,7 @@ mod tests {
             patch: "7.41e".into(), fetched_at: "2026-08-26T10:00:00Z".into(),
             source: "d2pt".into(),
             roles: vec![RoleMeta { position: Position::Pos1, role_winrate: 0.52,
-                heroes: vec![HeroMeta{hero_id:1,name:"Anti-Mage".into(),slug:"antimage".into(),winrate:0.53,pickrate:0.12,matches:900}] }],
+                heroes: vec![HeroMeta{hero_id:1,name:"Anti-Mage".into(),slug:"antimage".into(),winrate:0.53,pickrate:0.12,matches:900,d2pt_rating:3000}] }],
         };
         let json = serde_json::to_string(&snap).unwrap();
         let back: MetaSnapshot = serde_json::from_str(&json).unwrap();

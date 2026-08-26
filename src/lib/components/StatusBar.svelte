@@ -3,7 +3,7 @@
   import { store } from "$lib/store.svelte";
   import { relTime } from "$lib/format";
   import { Button } from "$lib/components/ui/button";
-  import { RefreshCw, Settings2, List, LayoutGrid, Pencil } from "@lucide/svelte";
+  import { RefreshCw, Settings2, List, LayoutGrid } from "@lucide/svelte";
 
   const kind = $derived(store.status.kind);
   const refreshing = $derived(kind === "Refreshing");
@@ -70,14 +70,6 @@
         onclick={() => (store.dashMode = "preview")}
       >
         <LayoutGrid size={14} />
-      </button>
-      <button
-        type="button"
-        aria-label="Editor"
-        class={`grid size-6 place-items-center rounded-[5px] transition-colors ${store.dashMode === "editor" ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground"}`}
-        onclick={() => (store.dashMode = "editor")}
-      >
-        <Pencil size={13} />
       </button>
     </div>
     <Button

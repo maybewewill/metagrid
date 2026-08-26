@@ -95,19 +95,64 @@ pub fn build_grid(snap: &MetaSnapshot, opts: &GridOptions) -> GridConfig {
     }
 }
 
-/// Per-role layout mode: instead of one "MetaGrid" config with 5 columns,
-/// produces one `GridConfig` per role — `"MetaGrid POS 1"` .. `"MetaGrid POS 5"`
-/// — each containing that role's heroes as a single category. Used when
-/// `GridOptions.layout_columns == false`; the writer upserts each by its own
-/// `config_name`, so looping `write_to` over these is safe and idempotent.
+/// Per-role layout mode: produces one `GridConfig` per role — `"Carry"`, `"Mid"`, `"Offlane"`,
+/// `"Support"`, `"Hard Support"` — each containing two categories:
+/// 1. "TOP {ROLE} HEROES - ORDERED BY D2PT ELO" (top rating heroes)
+/// 2. "OTHER {ROLE} HEROES - ORDERED BY PICK RATE" (remaining heroes)
 pub fn build_grid_multi(snap: &MetaSnapshot) -> Vec<GridConfig> {
     snap.roles
         .iter()
         .map(|role| {
-            let category = build_category(role, SortMetric::Pickrate, 0.0);
+            let role_upper = role.position.role_upper();
+            
+            // Top heroes sorted by d2pt_rating desc (or winrate if rating is 0)
+            let mut by_rating = role.heroes.clone();
+            by_rating.sort_by(|a, b| {
+                if b.d2pt_rating != a.d2pt_rating {
+                    b.d2pt_rating.cmp(&a.d2pt_rating)
+                } else {
+                    b.winrate.partial_cmp(&a.winrate).unwrap_or(std::cmp::Ordering::Equal)
+                }
+            });
+
+            let top_count = std::cmp::min(7, by_rating.len());
+            let top_heroes = &by_rating[..top_count];
+            let top_ids: std::collections::HashSet<u32> = top_heroes.iter().map(|h| h.hero_id).collect();
+
+            // Other heroes sorted by pickrate/matches desc
+            let mut other_heroes: Vec<_> = role
+                .heroes
+                .iter()
+                .filter(|h| !top_ids.contains(&h.hero_id))
+                .cloned()
+                .collect();
+            other_heroes.sort_by(|a, b| {
+                b.pickrate
+                    .partial_cmp(&a.pickrate)
+                    .unwrap_or(std::cmp::Ordering::Equal)
+            });
+
+            let cat_top = Category {
+                category_name: format!("TOP {role_upper} HEROES - ORDERED BY D2PT ELO"),
+                x_position: 0.0,
+                y_position: 0.0,
+                width: 1100.0,
+                height: 160.0,
+                hero_ids: top_heroes.iter().map(|h| h.hero_id).collect(),
+            };
+
+            let cat_other = Category {
+                category_name: format!("OTHER {role_upper} HEROES - ORDERED BY PICK RATE"),
+                x_position: 0.0,
+                y_position: 190.0,
+                width: 1100.0,
+                height: 380.0,
+                hero_ids: other_heroes.iter().map(|h| h.hero_id).collect(),
+            };
+
             GridConfig {
-                config_name: format!("MetaGrid POS {}", position_number(role.position)),
-                categories: vec![category],
+                config_name: role.position.config_name().to_string(),
+                categories: vec![cat_top, cat_other],
             }
         })
         .collect()
@@ -134,7 +179,8 @@ mod tests {
                             slug: "a".into(),
                             winrate: 0.60,
                             pickrate: 0.10,
-                            matches: 1,
+                            matches: 100,
+                            d2pt_rating: 3200,
                         },
                         HeroMeta {
                             hero_id: 20,
@@ -142,7 +188,8 @@ mod tests {
                             slug: "b".into(),
                             winrate: 0.40,
                             pickrate: 0.30,
-                            matches: 1,
+                            matches: 300,
+                            d2pt_rating: 2900,
                         },
                     ],
                 })
@@ -176,11 +223,15 @@ mod tests {
     fn multi_layout_makes_five_named_configs() {
         let cfgs = build_grid_multi(&sample_snapshot());
         assert_eq!(cfgs.len(), 5);
-        assert!(cfgs.iter().any(|c| c.config_name == "MetaGrid POS 1"));
-        assert!(cfgs.iter().any(|c| c.config_name == "MetaGrid POS 5"));
+        assert!(cfgs.iter().any(|c| c.config_name == "Carry"));
+        assert!(cfgs.iter().any(|c| c.config_name == "Mid"));
+        assert!(cfgs.iter().any(|c| c.config_name == "Offlane"));
+        assert!(cfgs.iter().any(|c| c.config_name == "Support"));
+        assert!(cfgs.iter().any(|c| c.config_name == "Hard Support"));
         for c in &cfgs {
-            assert_eq!(c.categories.len(), 1);
-            assert_eq!(c.categories[0].hero_ids, vec![20, 10]); // default pickrate desc → B before A
+            assert_eq!(c.categories.len(), 2);
+            assert!(c.categories[0].category_name.contains("TOP"));
+            assert!(c.categories[1].category_name.contains("OTHER"));
         }
     }
 }
