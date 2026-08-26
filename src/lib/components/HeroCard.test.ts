@@ -13,10 +13,12 @@ describe("HeroCard", () => {
         winrate: 0.53,
         pickrate: 0.12,
         matches: 900,
+        d2pt_rating: 3200,
       },
       rank: 1,
     });
     expect(screen.getByText("Anti-Mage")).toBeInTheDocument();
     expect(screen.getByText("53%")).toBeInTheDocument();
+    expect(screen.getByText("3200")).toBeInTheDocument();
   });
 });

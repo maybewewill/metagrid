@@ -31,7 +31,7 @@
       {#if store.dashMode === "preview"}
         <GridPreview roles={store.snapshot.roles} />
       {:else}
-        <div class="grid h-full grid-cols-5 grid-rows-[minmax(0,1fr)] gap-3">
+        <div class="grid grid-cols-5 gap-3">
           {#each store.snapshot.roles as role, i (role.position)}
             <div class="mg-rise min-h-0" style={`animation-delay:${i * 45}ms`}>
               <RoleColumn {role} />

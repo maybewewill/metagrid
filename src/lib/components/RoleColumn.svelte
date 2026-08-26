@@ -28,7 +28,7 @@
 </script>
 
 <section
-  class="flex h-full min-w-0 flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm"
+  class="flex min-w-0 flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm"
 >
   <header class="flex items-center gap-2 border-b border-border px-2.5 py-2">
     <span

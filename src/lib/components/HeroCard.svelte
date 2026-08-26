@@ -69,7 +69,13 @@
 
   <div class="min-w-0 flex-1">
     <div class="truncate text-[13px] font-medium leading-tight">{hero.name}</div>
-    <div class="text-[11px] leading-tight text-muted-foreground">{pct(hero.pickrate)} pick</div>
+    <div class="flex items-center gap-1.5 text-[11px] leading-tight text-muted-foreground">
+      <span>{pct(hero.pickrate)} pick</span>
+      {#if hero.d2pt_rating && hero.d2pt_rating > 0}
+        <span class="text-white/20">•</span>
+        <span class="font-mono text-cyan-400/90 font-medium" title="D2PT Rating">{hero.d2pt_rating}</span>
+      {/if}
+    </div>
   </div>
 
   <span class="shrink-0 text-[13px] font-semibold tabular-nums" style:color={wrColor}>
