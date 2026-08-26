@@ -4,6 +4,7 @@ mod grid_writer;
 mod hero_map;
 mod model;
 mod pipeline;
+mod portraits;
 mod provider;
 mod settings;
 mod state;
