@@ -30,21 +30,23 @@
 </script>
 
 <section
-  class="flex min-w-0 flex-col overflow-hidden rounded-sm border border-border bg-card shadow-sm"
+  class="flex h-full min-w-0 flex-col overflow-hidden rounded-sm border border-border bg-card shadow-sm"
 >
-  <header class="flex items-center gap-2 border-b border-border px-3 py-2">
-    <span
-      class="grid size-5 shrink-0 place-items-center rounded-sm bg-primary text-[11px] font-bold tabular-nums text-primary-foreground"
-    >
-      {n}
-    </span>
-    <span class="min-w-0 flex-1 truncate text-[13px] font-semibold">{title}</span>
-    <span class="shrink-0 font-mono text-[11px] tabular-nums text-muted-foreground">
+  <header class="flex items-center gap-2 border-b border-border px-3 py-2.5">
+    {#if store.settings?.role_labels !== "pos"}
+      <span
+        class="grid size-5 shrink-0 place-items-center rounded-sm bg-primary text-[11px] font-bold tabular-nums text-primary-foreground"
+      >
+        {n}
+      </span>
+    {/if}
+    <span class="min-w-0 flex-1 truncate text-[13px] font-bold tracking-tight">{title}</span>
+    <span class="shrink-0 font-mono text-[11px] font-medium tabular-nums text-muted-foreground">
       {pct(role.role_winrate)}
     </span>
   </header>
 
-  <div bind:this={listEl} class="scroll-thin flex min-h-0 flex-1 flex-col gap-0.5 overflow-auto p-1.5">
+  <div bind:this={listEl} class="scroll-thin flex min-h-0 flex-1 flex-col justify-between gap-1 overflow-auto p-1.5">
     {#each role.heroes.slice(0, 7) as h, i (h.hero_id)}
       <HeroCard hero={h} rank={i + 1} />
     {/each}

@@ -41,8 +41,8 @@ export const en = {
   },
   pos_prefix: "POS",
   grid: {
-    top: "TOP {role} - ORDERED BY D2PT ELO",
-    other: "OTHER {role} - ORDERED BY D2PT RATING"
+    top: "TOP {role} HEROES - ORDERED BY D2PT ELO",
+    other: "OTHER {role} HEROES - ORDERED BY PICK RATE"
   },
   settings: {
     title: "Settings",
@@ -119,7 +119,7 @@ export const ru = {
   pos_prefix: "ПОЗ",
   grid: {
     top: "ТОП {role} - ПО D2PT ELO",
-    other: "ДРУГИЕ {role} - ПО D2PT РЕЙТИНГУ"
+    other: "ДРУГИЕ {role} - ПО ПИКРЕЙТУ"
   },
   settings: {
     title: "Настройки",

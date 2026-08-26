@@ -43,14 +43,14 @@
 <div
   use:hoverLift
   role="group"
-  class="flex items-center gap-2.5 rounded-sm px-1.5 py-1.5 transition-colors hover:bg-accent"
+  class="flex items-center gap-2.5 rounded-sm px-2 py-2 transition-colors hover:bg-accent"
 >
-  <span class="w-3 shrink-0 text-right font-mono text-[11px] tabular-nums text-muted-foreground/60">
+  <span class="w-3.5 shrink-0 text-right font-mono text-[12px] font-medium tabular-nums text-muted-foreground/60">
     {rank}
   </span>
 
   <div
-    class="relative h-11 w-9 shrink-0 overflow-hidden rounded-sm bg-muted ring-1 ring-border"
+    class="relative h-[50px] w-[36px] shrink-0 overflow-hidden rounded-sm bg-muted ring-1 ring-border shadow-sm"
   >
     {#if !broken}
       <img
@@ -68,17 +68,17 @@
   </div>
 
   <div class="min-w-0 flex-1">
-    <div class="truncate text-[13px] font-medium leading-tight">{hero.name}</div>
-    <div class="flex items-center gap-1.5 text-[11px] leading-tight text-muted-foreground">
+    <div class="truncate text-[13px] font-semibold leading-tight">{hero.name}</div>
+    <div class="mt-0.5 flex items-center gap-1.5 text-[11px] leading-tight text-muted-foreground">
       <span>{pct(hero.pickrate)} pick</span>
       {#if hero.d2pt_rating && hero.d2pt_rating > 0}
         <span class="text-white/20">•</span>
-        <span class="font-mono text-cyan-400/90 font-medium" title="D2PT Rating">{hero.d2pt_rating}</span>
+        <span class="font-mono text-cyan-400 font-medium" title="D2PT Rating">{hero.d2pt_rating}</span>
       {/if}
     </div>
   </div>
 
-  <span class="shrink-0 text-[13px] font-semibold tabular-nums" style:color={wrColor}>
+  <span class="shrink-0 text-[13px] font-bold tabular-nums" style:color={wrColor}>
     {pct(hero.winrate)}
   </span>
 </div>

@@ -73,22 +73,49 @@
       <!-- Start with Windows (Autostart) -->
       <div class="flex items-center justify-between gap-4 py-3.5">
         <div class="flex min-w-0 flex-col">
-          <span class="text-sm font-medium">{$_("settings.autostart")}</span>
+          <span class="text-sm font-semibold">{$_("settings.autostart")}</span>
           <span class="text-xs text-muted-foreground">{$_("settings.autostart_hint")}</span>
         </div>
-        <Switch checked={local.autostart} onCheckedChange={(v) => (local.autostart = v)} />
+        <button
+          type="button"
+          role="switch"
+          aria-label={$_("settings.autostart")}
+          aria-checked={local.autostart}
+          class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 {local.autostart ? 'bg-cyan-500' : 'bg-zinc-700'}"
+          onclick={() => (local.autostart = !local.autostart)}
+        >
+          <span
+            aria-hidden="true"
+            class="pointer-events-none inline-block size-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out {local.autostart ? 'translate-x-5' : 'translate-x-0'}"
+          ></span>
+        </button>
       </div>
       <Separator />
 
       <!-- Role labels -->
       <div class="flex items-center justify-between gap-4 py-3.5">
-        <span class="text-sm font-medium">{$_("settings.role_labels")}</span>
-        <Tabs value={local.role_labels} onValueChange={(v) => (local.role_labels = v as "named" | "pos")}>
-          <TabsList class="h-8 rounded-sm bg-muted/60 p-0.5">
-            <TabsTrigger value="named" class="rounded-sm px-3 text-xs">{$_("settings.role_named")}</TabsTrigger>
-            <TabsTrigger value="pos" class="rounded-sm px-3 text-xs">{$_("settings.role_pos")}</TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <div class="flex min-w-0 flex-col">
+          <span class="text-sm font-semibold">{$_("settings.role_labels")}</span>
+          <span class="text-xs text-muted-foreground">
+            {local.role_labels === "named" ? (local.lang === "ru" ? "Керри, Мид, Оффлейн..." : "Carry, Mid, Offlane...") : (local.lang === "ru" ? "ПОЗ 1, ПОЗ 2, ПОЗ 3..." : "POS 1, POS 2, POS 3...")}
+          </span>
+        </div>
+        <div class="inline-flex rounded-sm bg-zinc-900 p-0.5 border border-border">
+          <button
+            type="button"
+            class="rounded-sm px-3 py-1.5 text-xs font-semibold transition-all {local.role_labels === 'named' ? 'bg-cyan-500 text-zinc-950 font-bold shadow' : 'text-zinc-400 hover:text-white'}"
+            onclick={() => (local.role_labels = 'named')}
+          >
+            {$_("settings.role_named")}
+          </button>
+          <button
+            type="button"
+            class="rounded-sm px-3 py-1.5 text-xs font-semibold transition-all {local.role_labels === 'pos' ? 'bg-cyan-500 text-zinc-950 font-bold shadow' : 'text-zinc-400 hover:text-white'}"
+            onclick={() => (local.role_labels = 'pos')}
+          >
+            {$_("settings.role_pos")}
+          </button>
+        </div>
       </div>
       <Separator />
 
