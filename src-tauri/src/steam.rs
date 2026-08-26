@@ -57,8 +57,13 @@ impl SteamLocator {
             .filter(|entry| entry.path().is_dir())
             .filter_map(|entry| {
                 let id = entry.file_name().to_string_lossy().into_owned();
-                let cfg_dir = entry.path().join(DOTA2_APP_ID).join("remote").join("cfg");
-                if cfg_dir.is_dir() {
+                if id == "0" || id == "anonymous" {
+                    return None;
+                }
+                let user_path = entry.path();
+                let dota_dir = user_path.join(DOTA2_APP_ID);
+                let cfg_dir = dota_dir.join("remote").join("cfg");
+                if cfg_dir.is_dir() || dota_dir.is_dir() {
                     let grid_path = cfg_dir.join("hero_grid_config.json");
                     Some(Account { id, grid_path })
                 } else {
@@ -86,6 +91,18 @@ mod tests {
         let accs = loc.accounts();
         assert_eq!(accs.len(), 1);
         assert_eq!(accs[0].id, "111");
+        assert!(accs[0].grid_path.ends_with("cfg/hero_grid_config.json"));
+    }
+
+    #[test]
+    fn finds_dota_account_even_if_cfg_dir_not_yet_created() {
+        let tmp = tempfile::tempdir().unwrap();
+        let root = tmp.path().to_path_buf();
+        std::fs::create_dir_all(root.join("userdata/333/570")).unwrap();
+        let loc = SteamLocator::with_root(root);
+        let accs = loc.accounts();
+        assert_eq!(accs.len(), 1);
+        assert_eq!(accs[0].id, "333");
         assert!(accs[0].grid_path.ends_with("cfg/hero_grid_config.json"));
     }
 

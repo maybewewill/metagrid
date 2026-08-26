@@ -46,10 +46,20 @@
   onMount(async () => {
     try {
       gridConfigs = await ipc.listGridConfigs();
+      if (local.grid_mode === "merge" && !local.merge_target && gridConfigs.length > 0) {
+        local.merge_target = gridConfigs[0];
+      }
     } catch {
       gridConfigs = [];
     }
   });
+
+  function selectGridMode(mode: "separate" | "merge") {
+    local.grid_mode = mode;
+    if (mode === "merge" && !local.merge_target && gridConfigs.length > 0) {
+      local.merge_target = gridConfigs[0];
+    }
+  }
 
   const accountLabel = $derived(local.account_id ?? $_("settings.all_accounts"));
 
@@ -174,14 +184,14 @@
           <button
             type="button"
             class="rounded-sm px-3 py-1.5 text-xs font-semibold transition-all {local.grid_mode === 'separate' ? 'bg-white text-zinc-950 font-bold shadow-sm' : 'text-zinc-400 hover:text-white'}"
-            onclick={() => (local.grid_mode = 'separate')}
+            onclick={() => selectGridMode('separate')}
           >
             {$_("settings.grid_mode_separate")}
           </button>
           <button
             type="button"
             class="rounded-sm px-3 py-1.5 text-xs font-semibold transition-all {local.grid_mode === 'merge' ? 'bg-white text-zinc-950 font-bold shadow-sm' : 'text-zinc-400 hover:text-white'}"
-            onclick={() => (local.grid_mode = 'merge')}
+            onclick={() => selectGridMode('merge')}
           >
             {$_("settings.grid_mode_merge")}
           </button>

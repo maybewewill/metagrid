@@ -79,6 +79,15 @@ pub fn upsert_configs(existing_json: &str, our_grids: &[GridConfig]) -> Result<S
         !is_metagrid_config(name)
     });
 
+    for config in configs.iter_mut() {
+        if let Some(cats) = config.get_mut("categories").and_then(|v| v.as_array_mut()) {
+            cats.retain(|c| {
+                let name = c.get("category_name").and_then(|v| v.as_str()).unwrap_or("");
+                !name.starts_with("META ")
+            });
+        }
+    }
+
     for our in our_grids {
         let our_value = serde_json::to_value(our)?;
         configs.push(our_value);
@@ -93,6 +102,11 @@ pub fn upsert_config(existing_json: &str, our: &GridConfig) -> Result<String, Gr
 }
 
 fn backup_and_write(path: &Path, existing: &str, new_json: &str) -> Result<(), GridError> {
+    let dir = path.parent().unwrap_or_else(|| Path::new("."));
+    if !dir.exists() {
+        std::fs::create_dir_all(dir)?;
+    }
+
     if !existing.trim().is_empty() {
         let bak_path = path.with_extension("json.metagrid.bak");
         if !bak_path.exists() {
@@ -100,7 +114,6 @@ fn backup_and_write(path: &Path, existing: &str, new_json: &str) -> Result<(), G
         }
     }
 
-    let dir = path.parent().unwrap_or_else(|| Path::new("."));
     let tmp_file_name = format!(
         ".{}.metagrid.tmp",
         path.file_name()
@@ -142,6 +155,18 @@ pub fn merge_meta_into(
         .or_insert_with(|| serde_json::Value::Array(Vec::new()))
         .as_array_mut()
         .ok_or_else(|| GridError::Shape("\"configs\" is not an array".to_string()))?;
+
+    for config in configs.iter_mut() {
+        let name = config.get("config_name").and_then(|v| v.as_str()).unwrap_or("");
+        if name != target_name {
+            if let Some(cats) = config.get_mut("categories").and_then(|v| v.as_array_mut()) {
+                cats.retain(|c| {
+                    let cat_name = c.get("category_name").and_then(|v| v.as_str()).unwrap_or("");
+                    !cat_name.starts_with("META ")
+                });
+            }
+        }
+    }
 
     let Some(target) = configs
         .iter_mut()
@@ -525,5 +550,45 @@ mod tests {
         let target_cats = v["configs"][0]["categories"].as_array().unwrap();
         assert_eq!(target_cats.len(), 5);
         assert!(target_cats.iter().all(|c| c["category_name"].as_str().unwrap().starts_with("META ")));
+    }
+
+    #[test]
+    fn upsert_configs_cleans_orphaned_meta_categories_from_user_grids() {
+        let existing = r#"{"version":3,"configs":[
+            {"config_name":"Custom Layout","categories":[
+                {"category_name":"META CARRY","x_position":0.0,"y_position":0.0,"width":10.0,"height":10.0,"hero_ids":[1]},
+                {"category_name":"My Heroes","x_position":100.0,"y_position":0.0,"width":50.0,"height":50.0,"hero_ids":[2]}
+            ]}
+        ]}"#;
+        let our = vec![GridConfig {
+            config_name: "MetaGrid — Carry".to_string(),
+            categories: vec![],
+        }];
+        let out = upsert_configs(existing, &our).unwrap();
+        let v: serde_json::Value = serde_json::from_str(&out).unwrap();
+        let user_cats = v["configs"][0]["categories"].as_array().unwrap();
+        assert_eq!(user_cats.len(), 1);
+        assert_eq!(user_cats[0]["category_name"], "My Heroes");
+    }
+
+    #[test]
+    fn merge_cleans_orphaned_meta_categories_from_other_grids() {
+        let existing = r#"{"version":3,"configs":[
+            {"config_name":"Layout A","categories":[
+                {"category_name":"META CARRY","x_position":0.0,"y_position":0.0,"width":10.0,"height":10.0,"hero_ids":[1]},
+                {"category_name":"A Heroes","x_position":100.0,"y_position":0.0,"width":50.0,"height":50.0,"hero_ids":[2]}
+            ]},
+            {"config_name":"Layout B","categories":[
+                {"category_name":"B Heroes","x_position":0.0,"y_position":0.0,"width":50.0,"height":50.0,"hero_ids":[3]}
+            ]}
+        ]}"#;
+        let cats = meta_cats_fixture();
+        let out = merge_meta_into(existing, &cats, "Layout B").unwrap().unwrap();
+        let v: serde_json::Value = serde_json::from_str(&out).unwrap();
+        let cats_a = v["configs"][0]["categories"].as_array().unwrap();
+        assert_eq!(cats_a.len(), 1);
+        assert_eq!(cats_a[0]["category_name"], "A Heroes");
+        let cats_b = v["configs"][1]["categories"].as_array().unwrap();
+        assert_eq!(cats_b.len(), 6);
     }
 }
