@@ -12,6 +12,8 @@ use tauri::{
     Manager,
 };
 
+use tauri_plugin_notification::NotificationExt;
+
 pub fn build(app: &tauri::App) -> tauri::Result<()> {
     let refresh = MenuItemBuilder::with_id("refresh", "Refresh config").build(app)?;
     let open = MenuItemBuilder::with_id("open", "Open MetaGrid").build(app)?;
@@ -25,6 +27,12 @@ pub fn build(app: &tauri::App) -> tauri::Result<()> {
         .show_menu_on_left_click(false)
         .on_menu_event(|app, event| match event.id().as_ref() {
             "refresh" => {
+                let _ = app
+                    .notification()
+                    .builder()
+                    .title("MetaGrid")
+                    .body("Refreshing meta from Dota2ProTracker...")
+                    .show();
                 let _ = crate::scheduler::trigger(app);
             }
             "open" => show_main(app),

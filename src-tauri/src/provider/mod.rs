@@ -5,13 +5,13 @@ use crate::model::MetaSnapshot;
 
 #[derive(Debug, thiserror::Error)]
 pub enum ProviderError {
-    #[error("http error: {0}")]
+    #[error("HTTP connection to Dota2ProTracker failed: {0}")]
     Http(String),
-    #[error("request blocked")]
+    #[error("Could not connect to Dota2ProTracker (request blocked or timeout)")]
     Blocked,
-    #[error("parse error: {0}")]
+    #[error("Failed to parse Dota2ProTracker meta: {0}")]
     Parse(String),
-    #[error("no data returned")]
+    #[error("No data returned from Dota2ProTracker")]
     Empty,
 }
 

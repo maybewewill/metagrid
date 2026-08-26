@@ -37,6 +37,8 @@
         return "";
     }
   });
+
+  const errorDetail = $derived(store.status.kind === "Error" ? store.status.detail : undefined);
 </script>
 
 <div
@@ -44,12 +46,18 @@
 >
   <div class="flex min-w-0 items-center gap-2 text-xs">
     <span class={`size-2 shrink-0 rounded-full ${dot}`}></span>
-    <span class="font-medium text-foreground">{label}</span>
-    {#if store.snapshot}
-      <span class="text-muted-foreground/50">·</span>
-      <span class="truncate text-muted-foreground">
-        {$_("status.updated", { values: { time: relTime(store.snapshot.fetched_at) } })}
+    {#if errorDetail}
+      <span class="font-medium text-destructive truncate max-w-xs" title={errorDetail}>
+        {errorDetail}
       </span>
+    {:else}
+      <span class="font-medium text-foreground">{label}</span>
+      {#if store.snapshot}
+        <span class="text-muted-foreground/50">·</span>
+        <span class="truncate text-muted-foreground">
+          {$_("status.updated", { values: { time: relTime(store.snapshot.fetched_at) } })}
+        </span>
+      {/if}
     {/if}
   </div>
 

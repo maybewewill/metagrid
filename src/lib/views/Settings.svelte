@@ -81,12 +81,12 @@
           role="switch"
           aria-label={$_("settings.autostart")}
           aria-checked={local.autostart}
-          class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border border-zinc-700 transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-1 focus-visible:ring-white {local.autostart ? 'bg-white' : 'bg-zinc-800'}"
+          class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full p-0.5 border border-zinc-700 transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-1 focus-visible:ring-white {local.autostart ? 'bg-white' : 'bg-zinc-800'}"
           onclick={() => (local.autostart = !local.autostart)}
         >
           <span
             aria-hidden="true"
-            class="pointer-events-none inline-block size-5 transform rounded-full shadow transition duration-200 ease-in-out {local.autostart ? 'translate-x-5 bg-zinc-950' : 'translate-x-0 bg-zinc-400'}"
+            class="pointer-events-none block size-[18px] transform rounded-full shadow transition-transform duration-200 ease-in-out {local.autostart ? 'translate-x-5 bg-zinc-950' : 'translate-x-0 bg-zinc-400'}"
           ></span>
         </button>
       </div>

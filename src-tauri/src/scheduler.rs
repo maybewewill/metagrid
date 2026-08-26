@@ -9,6 +9,7 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use tauri::{AppHandle, Emitter, Manager};
+use tauri_plugin_notification::NotificationExt;
 use tokio::sync::Notify;
 
 use crate::events;
@@ -60,6 +61,12 @@ pub async fn run_refresh(app: &AppHandle) -> Result<MetaSnapshot, String> {
             state.set_status(Status::Ok);
             crate::tray::set_state(app, &Status::Ok);
             let _ = app.emit(events::REFRESH_DONE, snap.clone());
+            let _ = app
+                .notification()
+                .builder()
+                .title("MetaGrid")
+                .body(format!("Meta updated for Patch {}", snap.patch))
+                .show();
             Ok(snap)
         }
         Err(err) => {
@@ -67,6 +74,12 @@ pub async fn run_refresh(app: &AppHandle) -> Result<MetaSnapshot, String> {
             state.set_status(Status::Error(msg.clone()));
             crate::tray::set_state(app, &Status::Error(msg.clone()));
             let _ = app.emit(events::REFRESH_ERROR, msg.clone());
+            let _ = app
+                .notification()
+                .builder()
+                .title("MetaGrid: Update Failed")
+                .body(format!("{}", msg))
+                .show();
             Err(msg)
         }
     }

@@ -160,7 +160,7 @@ pub fn build_grid_multi(snap: &MetaSnapshot) -> Vec<GridConfig> {
             if !other_heroes.is_empty() {
                 let other_header_y = 30.0 + card_h + 35.0; // 175.0
                 categories.push(Category {
-                    category_name: format!("OTHER {role_upper} HEROES - ORDERED BY PICK RATE"),
+                    category_name: format!("OTHER {role_upper} HEROES - ORDERED BY D2PT RATING (AND PICKRATE)"),
                     x_position: 0.0,
                     y_position: other_header_y,
                     width: 1100.0,

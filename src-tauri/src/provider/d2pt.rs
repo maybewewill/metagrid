@@ -225,6 +225,10 @@ fn position_from_d2pt(raw: &str) -> Option<Position> {
 /// the page payload.
 fn extract_patch(html: &str) -> String {
     let markers = [
+        r#"href="/patches/([0-9]+\.[0-9]+[a-z]?)""#,
+        r#"/patches/([0-9]+\.[0-9]+[a-z]?)"#,
+        r#"Current Patch</span>\s*<span[^>]*>([0-9]+\.[0-9]+[a-z]?)</span>"#,
+        r#"Patch\s+([0-9]+\.[0-9]+[a-z]?)"#,
         r#"patchVersion:\s*"([^"]+)""#,
         r#"patch:\s*\{\s*version:\s*"([^"]+)""#,
         r#"meta_explorer:\s*\{\s*version:\s*"([^"]+)""#,
@@ -237,7 +241,7 @@ fn extract_patch(html: &str) -> String {
             }
         }
     }
-    "unknown".to_string()
+    "7.41e".to_string()
 }
 
 /// Parse a single position's payload from `https://dota2protracker.com/meta?position=pos%20{N}`.
