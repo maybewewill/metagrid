@@ -7,10 +7,13 @@ mod model;
 mod pipeline;
 mod portraits;
 mod provider;
+mod scheduler;
 mod services;
 mod settings;
 mod state;
 mod steam;
+
+use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -34,6 +37,13 @@ pub fn run() {
             commands::get_autostart,
             commands::set_autostart
         ])
+        .setup(|app| {
+            app.manage(scheduler::Trigger(std::sync::Arc::new(
+                tokio::sync::Notify::new(),
+            )));
+            scheduler::spawn(app.handle().clone());
+            Ok(())
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

@@ -1,11 +1,9 @@
-use tauri::{AppHandle, Emitter, State};
+use tauri::{AppHandle, State};
 use tauri_plugin_autostart::ManagerExt;
 
-use crate::events;
-use crate::grid::GridOptions;
 use crate::model::MetaSnapshot;
-use crate::pipeline;
-use crate::services::{account_dtos, AccountDto, Services};
+use crate::scheduler;
+use crate::services::{account_dtos, AccountDto};
 use crate::settings::{data_dir, save_to, Settings};
 use crate::state::{Shared, Status};
 use crate::steam::SteamLocator;
@@ -41,50 +39,8 @@ pub fn list_accounts() -> Result<Vec<AccountDto>, String> {
 }
 
 #[tauri::command]
-pub async fn refresh_now(
-    app: AppHandle,
-    services: State<'_, Services>,
-    state: State<'_, Shared>,
-) -> Result<MetaSnapshot, String> {
-    state.set_status(Status::Refreshing);
-    let _ = app.emit(events::REFRESH_STARTED, ());
-
-    let settings = state.get_settings();
-    let opts = GridOptions {
-        sort: settings.sort,
-        layout_columns: settings.layout_columns,
-    };
-
-    let Some(steam) = SteamLocator::detect() else {
-        let msg = "could not detect a Steam installation".to_string();
-        state.set_status(Status::Error(msg.clone()));
-        let _ = app.emit(events::REFRESH_ERROR, msg.clone());
-        return Err(msg);
-    };
-
-    match pipeline::refresh_all(
-        &*services.provider,
-        &services.map,
-        &steam,
-        &opts,
-        settings.top_n,
-        settings.account_id.as_deref(),
-    )
-    .await
-    {
-        Ok(snap) => {
-            state.set_snapshot(snap.clone());
-            state.set_status(Status::Ok);
-            let _ = app.emit(events::REFRESH_DONE, snap.clone());
-            Ok(snap)
-        }
-        Err(err) => {
-            let msg = err.to_string();
-            state.set_status(Status::Error(msg.clone()));
-            let _ = app.emit(events::REFRESH_ERROR, msg.clone());
-            Err(msg)
-        }
-    }
+pub async fn refresh_now(app: AppHandle) -> Result<MetaSnapshot, String> {
+    scheduler::run_refresh(&app).await
 }
 
 #[tauri::command]
