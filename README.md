@@ -39,6 +39,13 @@ MetaGrid is an automated Windows desktop app and background tray utility for Dot
 
 Grids are written directly to Dota's `hero_grid_config.json`. Existing user-created custom grids are safely preserved, and automatic backups are created on every write.
 
+> [!TIP]
+> **100% VAC & Matchmaking Safe — Zero Ban Risk**
+> MetaGrid is completely safe to use and will never trigger VAC or game bans:
+> - **No Process Injection or Memory Access**: MetaGrid never injects DLLs, reads/writes `dota2.exe` memory, or hooks game functions.
+> - **Native JSON Configuration Only**: It strictly writes to `hero_grid_config.json` in your local `Steam/userdata/` folder — the exact same file Dota 2 modifies when you arrange heroes in the in-game layout editor.
+> - **External Public Data**: Meta statistics are fetched directly from Dota2ProTracker via standard HTTPS calls, completely independent of the Dota 2 game client or Steam network traffic.
+
 ---
 
 ## Screenshots
