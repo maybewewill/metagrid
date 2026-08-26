@@ -1,4 +1,5 @@
 mod commands;
+mod dota_watch;
 mod events;
 mod grid;
 mod grid_writer;
@@ -25,6 +26,7 @@ pub fn run() {
             tauri_plugin_autostart::MacosLauncher::LaunchAgent,
             Some(vec!["--minimized"]),
         ))
+        .plugin(tauri_plugin_notification::init())
         .manage::<state::Shared>(std::sync::Arc::new(state::AppState::new(
             settings::load_from(&settings::data_dir()),
         )))
@@ -64,6 +66,7 @@ pub fn run() {
                 });
             }
             scheduler::spawn(app.handle().clone());
+            dota_watch::spawn(app.handle().clone());
             Ok(())
         })
         .run(tauri::generate_context!())
