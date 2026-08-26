@@ -24,6 +24,7 @@
     layout_columns: true,
     lang: "en",
     onboarded: true,
+    role_labels: "named",
   };
 
   // Edit a local copy; nothing is applied until Save.
@@ -94,6 +95,18 @@
           <TabsList class="h-8">
             <TabsTrigger value="Pickrate" class="text-xs">{$_("settings.pickrate")}</TabsTrigger>
             <TabsTrigger value="Winrate" class="text-xs">{$_("settings.winrate")}</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
+      <Separator />
+
+      <!-- Role labels -->
+      <div class="flex items-center justify-between gap-4 py-4">
+        <span class="text-sm font-medium">{$_("settings.role_labels")}</span>
+        <Tabs value={local.role_labels} onValueChange={(v) => (local.role_labels = v as "named" | "pos")}>
+          <TabsList class="h-8">
+            <TabsTrigger value="named" class="text-xs">{$_("settings.role_named")}</TabsTrigger>
+            <TabsTrigger value="pos" class="text-xs">{$_("settings.role_pos")}</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>

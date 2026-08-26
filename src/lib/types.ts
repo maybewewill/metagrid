@@ -6,6 +6,8 @@ export type Position = "Pos1" | "Pos2" | "Pos3" | "Pos4" | "Pos5";
 
 export type SortMetric = "Pickrate" | "Winrate";
 
+export type RoleLabelStyle = "named" | "pos";
+
 export interface HeroMeta {
   hero_id: number;
   name: string;
@@ -37,6 +39,7 @@ export interface Settings {
   layout_columns: boolean;
   lang: "en" | "ru";
   onboarded: boolean;
+  role_labels: RoleLabelStyle;
 }
 
 export interface Account {

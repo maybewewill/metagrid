@@ -4,6 +4,10 @@ use serde::{Deserialize, Serialize};
 
 use crate::model::SortMetric;
 
+fn default_role_labels() -> String {
+    "named".into()
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Settings {
     pub top_n: usize,
@@ -14,6 +18,10 @@ pub struct Settings {
     pub layout_columns: bool,
     pub lang: String,
     pub onboarded: bool,
+    /// How role headers read: "named" (Carry/Mid/…) or "pos" (POS 1/POS 2/…).
+    /// `#[serde(default)]` so older settings.json files load unchanged.
+    #[serde(default = "default_role_labels")]
+    pub role_labels: String,
 }
 
 impl Default for Settings {
@@ -27,6 +35,7 @@ impl Default for Settings {
             layout_columns: true,
             lang: "en".into(),
             onboarded: false,
+            role_labels: default_role_labels(),
         }
     }
 }

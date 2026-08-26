@@ -13,9 +13,9 @@ use tauri::{
 };
 
 pub fn build(app: &tauri::App) -> tauri::Result<()> {
-    let refresh = MenuItemBuilder::with_id("refresh", "Refresh now").build(app)?;
+    let refresh = MenuItemBuilder::with_id("refresh", "Refresh config").build(app)?;
     let open = MenuItemBuilder::with_id("open", "Open MetaGrid").build(app)?;
-    let quit = MenuItemBuilder::with_id("quit", "Quit").build(app)?;
+    let quit = MenuItemBuilder::with_id("quit", "Exit").build(app)?;
     let menu = MenuBuilder::new(app)
         .items(&[&refresh, &open, &quit])
         .build()?;
