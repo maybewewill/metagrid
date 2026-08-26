@@ -1,5 +1,5 @@
 use crate::grid::build_grid_multi;
-use crate::grid_writer::{write_to, GridError};
+use crate::grid_writer::{write_configs_to, GridError};
 use crate::hero_map::HeroMap;
 use crate::model::MetaSnapshot;
 use crate::provider::{MetaProvider, ProviderError};
@@ -12,7 +12,6 @@ pub enum PipelineError {
     #[error(transparent)]
     Grid(#[from] GridError),
 }
-
 
 pub async fn refresh_all(
     provider: &dyn MetaProvider,
@@ -32,9 +31,7 @@ pub async fn refresh_all(
                 continue;
             }
         }
-        for grid in &grids {
-            write_to(&account.grid_path, grid)?;
-        }
+        write_configs_to(&account.grid_path, &grids)?;
     }
 
     Ok(snap)
@@ -184,9 +181,7 @@ mod tests {
             .unwrap();
 
         let grids = build_grid_multi(&snap, "named");
-        for grid in &grids {
-            write_to(&copy_path, grid).unwrap();
-        }
+        write_configs_to(&copy_path, &grids).unwrap();
 
         let after_contents = std::fs::read_to_string(&copy_path).unwrap();
         let after_value: serde_json::Value = serde_json::from_str(&after_contents).unwrap();
