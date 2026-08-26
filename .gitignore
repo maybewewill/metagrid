@@ -28,4 +28,6 @@ src-tauri/icons/ios/
 *.swo
 .DS_Store
 Thumbs.db
+.antigravity/
+.agents/
 
