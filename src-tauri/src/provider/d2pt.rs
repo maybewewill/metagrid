@@ -1,8 +1,15 @@
 use regex::Regex;
+use tokio::process::Command;
 
 use crate::hero_map::HeroMap;
 use crate::model::{HeroMeta, MetaSnapshot, Position, RoleMeta};
-use crate::provider::ProviderError;
+use crate::provider::{MetaProvider, ProviderError};
+
+const D2PT_URL: &str = "https://dota2protracker.com/";
+const USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
+const ACCEPT: &str =
+    "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8";
+const ACCEPT_LANGUAGE: &str = "en-US,en;q=0.9";
 
 /// Provider for https://dota2protracker.com/ meta stats.
 ///
@@ -19,6 +26,65 @@ impl D2ptProvider {
 impl Default for D2ptProvider {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+impl D2ptProvider {
+    /// Fetch the raw d2pt homepage payload.
+    ///
+    /// Shells out to `curl.exe` (Windows' built-in Schannel-backed curl)
+    /// rather than using `reqwest`: dota2protracker.com sits behind
+    /// Cloudflare and rejects reqwest/rustls TLS handshakes with a 403,
+    /// while curl.exe's native Windows TLS stack passes cleanly. This is a
+    /// deliberate, proven workaround — do not swap back to reqwest for this
+    /// provider.
+    pub async fn fetch_raw(&self) -> Result<String, ProviderError> {
+        let output = Command::new("curl.exe")
+            .arg("-s")
+            .arg("-H")
+            .arg(format!("User-Agent: {USER_AGENT}"))
+            .arg("-H")
+            .arg(format!("Accept: {ACCEPT}"))
+            .arg("-H")
+            .arg(format!("Accept-Language: {ACCEPT_LANGUAGE}"))
+            .arg(D2PT_URL)
+            .output()
+            .await
+            .map_err(|e| {
+                tracing::warn!(
+                    error = %e,
+                    "d2pt: Windows curl.exe not found (need Win10 1803+)"
+                );
+                ProviderError::Blocked
+            })?;
+
+        // A non-zero exit (e.g. TLS/connection failure) is treated the same
+        // as a blocked request rather than a distinct failure mode.
+        if !output.status.success() {
+            tracing::warn!(status = ?output.status, "d2pt: curl.exe exited non-zero");
+            return Err(ProviderError::Blocked);
+        }
+
+        let body = String::from_utf8_lossy(&output.stdout).into_owned();
+
+        if body.is_empty() || body.contains("Just a moment") || !body.contains("roles:[") {
+            tracing::warn!("d2pt: response looked blocked (empty/challenge/no roles marker)");
+            return Err(ProviderError::Blocked);
+        }
+
+        Ok(body)
+    }
+}
+
+#[async_trait::async_trait]
+impl MetaProvider for D2ptProvider {
+    fn id(&self) -> &'static str {
+        "d2pt"
+    }
+
+    async fn fetch(&self, map: &HeroMap, top_n: usize) -> Result<MetaSnapshot, ProviderError> {
+        let raw = self.fetch_raw().await?;
+        parse_meta(&raw, map, top_n)
     }
 }
 
@@ -267,5 +333,13 @@ mod tests {
             assert!(r.heroes.windows(2).all(|w| w[0].pickrate >= w[1].pickrate));
         }
         assert!(!snap.patch.is_empty());
+    }
+
+    #[tokio::test]
+    #[ignore] // run: cargo test --manifest-path src-tauri/Cargo.toml -- --ignored d2pt_live
+    async fn d2pt_live_fetch() {
+        let p = D2ptProvider::new();
+        let snap = p.fetch(&HeroMap::bundled(), 10).await.unwrap();
+        assert_eq!(snap.roles.len(), 5);
     }
 }
