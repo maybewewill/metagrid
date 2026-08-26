@@ -1,6 +1,7 @@
 <script lang="ts">
   import { _ } from "svelte-i18n";
   import { pct2 } from "$lib/format";
+  import { store } from "$lib/store.svelte";
   import type { RoleMeta } from "$lib/types";
   import { getHeroPortraitUrl, getFallbackPortraitUrl } from "$lib/utils";
 
@@ -16,6 +17,20 @@
     return Number(pos.slice(3));
   }
 
+  function tabLabel(r: RoleMeta) {
+    if (store.settings?.role_labels === "pos") {
+      return `${$_("pos_prefix")} ${n(r.position)}`;
+    }
+    return `${$_("pos_prefix")} ${n(r.position)} — ${$_(`role_upper.${r.position.toLowerCase()}`)}`;
+  }
+
+  function sectionRole(r: RoleMeta) {
+    if (store.settings?.role_labels === "pos") {
+      return `${$_("pos_prefix")} ${n(r.position)}`;
+    }
+    return $_(`role_upper.${r.position.toLowerCase()}`);
+  }
+
   function handleImgError(e: Event, slug: string) {
     const target = e.currentTarget as HTMLImageElement;
     if (!target.src.includes("steamstatic")) {
@@ -25,21 +40,19 @@
 </script>
 
 <div class="flex flex-col gap-5 font-sans">
-  <!-- Role Filter Tabs (No "All Roles") -->
   <div class="flex flex-wrap items-center gap-2 border-b border-white/10 pb-3">
     {#each roles as r (r.position)}
       <button
         class="rounded-sm px-4 py-2 text-xs font-bold uppercase tracking-wider transition-all {selectedPos === r.position ? 'bg-zinc-200 text-zinc-950 shadow-sm' : 'bg-zinc-900/80 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'}"
         onclick={() => (selectedPos = r.position)}
       >
-        {$_("pos_prefix")} {n(r.position)} — {$_(`role_upper.${r.position.toLowerCase()}`)}
+        {tabLabel(r)}
       </button>
     {/each}
   </div>
 
-  <!-- Hero Grid Layout 1-to-1 matching Dota 2 -->
   {#if currentRole}
-    {@const roleUpper = $_(`role_upper.${currentRole.position.toLowerCase()}`)}
+    {@const roleUpper = sectionRole(currentRole)}
     {@const topHeroes = currentRole.heroes.filter((h) => h.is_top).length > 0 ? currentRole.heroes.filter((h) => h.is_top) : currentRole.heroes.slice(0, 7)}
     {@const topHeroIds = new Set(topHeroes.map((h) => h.hero_id))}
     {@const otherHeroes = currentRole.heroes.filter((h) => !topHeroIds.has(h.hero_id))}

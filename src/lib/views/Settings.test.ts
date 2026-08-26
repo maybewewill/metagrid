@@ -22,7 +22,6 @@ vi.mock("$lib/store.svelte", () => ({
     go,
   },
 }));
-// Save also applies the OS-level autostart toggle via ipc.setAutostart.
 vi.mock("$lib/ipc", () => ({ setAutostart }));
 import Settings from "$lib/views/Settings.svelte";
 describe("Settings", () =>

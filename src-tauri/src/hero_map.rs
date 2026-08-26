@@ -1,8 +1,6 @@
 use std::collections::HashMap;
 
-/// Bundled Dota hero id to slug lookup table.
 pub struct HeroMap {
-    /// hero id -> slug (hero internal name without the `npc_dota_hero_` prefix)
     slug_by_id: HashMap<u32, String>,
 }
 

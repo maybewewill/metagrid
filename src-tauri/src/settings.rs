@@ -18,8 +18,6 @@ pub struct Settings {
     pub layout_columns: bool,
     pub lang: String,
     pub onboarded: bool,
-    /// How role headers read: "named" (Carry/Mid/…) or "pos" (POS 1/POS 2/…).
-    /// `#[serde(default)]` so older settings.json files load unchanged.
     #[serde(default = "default_role_labels")]
     pub role_labels: String,
 }
@@ -44,8 +42,6 @@ fn settings_path(dir: &Path) -> PathBuf {
     dir.join("settings.json")
 }
 
-/// Load settings from `dir/settings.json`. Missing or corrupt files fall
-/// back to `Settings::default()` — never error the caller.
 pub fn load_from(dir: &Path) -> Settings {
     let path = settings_path(dir);
     let Ok(contents) = std::fs::read_to_string(&path) else {
@@ -54,7 +50,6 @@ pub fn load_from(dir: &Path) -> Settings {
     serde_json::from_str(&contents).unwrap_or_default()
 }
 
-/// Save `s` as pretty JSON to `dir/settings.json`, creating `dir` if needed.
 pub fn save_to(dir: &Path, s: &Settings) -> std::io::Result<()> {
     std::fs::create_dir_all(dir)?;
     let json = serde_json::to_string_pretty(s)?;

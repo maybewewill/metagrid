@@ -179,9 +179,6 @@ export function setupI18n(initialLocale: Lang = getInitialLang()) {
 
 export async function setLanguage(l: Lang) {
   locale.set(l);
-  // Persist the choice. Guarded: store.saveSettings() is a no-op until
-  // store.init() has loaded settings, so this is safe to call before
-  // (or without) the store ever being initialized (e.g. in tests).
   if (store.settings) {
     await store.saveSettings({ lang: l });
   }

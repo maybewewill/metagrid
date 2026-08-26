@@ -1,11 +1,3 @@
-//! System tray icon + menu. Left-click (or the "Open MetaGrid" menu item)
-//! shows/focuses the main window; "Refresh now" wakes the background
-//! scheduler via [`crate::scheduler::trigger`]; "Quit" exits the app.
-//!
-//! [`set_state`] (Task 3.6) reflects the current [`crate::state::Status`] on
-//! the tray icon; called from `scheduler::run_refresh` at each status
-//! transition.
-
 use tauri::{
     menu::{MenuBuilder, MenuItemBuilder},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
@@ -60,22 +52,15 @@ fn show_main(app: &tauri::AppHandle) {
     }
 }
 
-/// Reflects `status` on the tray icon. Distinct icon art (tray-idle /
-/// tray-busy / tray-error) is not available yet, so every status currently
-/// maps to the default window icon — the match stays explicit so wiring in
-/// distinct art later is a one-line change per arm.
 pub fn set_state(app: &tauri::AppHandle, status: &crate::state::Status) {
     let Some(tray) = app.tray_by_id("main") else {
         return;
     };
     let icon = match status {
-        // TODO: distinct tray-idle/busy/error.png art
         crate::state::Status::Idle | crate::state::Status::Ok | crate::state::Status::Stale => {
             app.default_window_icon().cloned()
         }
-        // TODO: distinct tray-idle/busy/error.png art
         crate::state::Status::Refreshing => app.default_window_icon().cloned(),
-        // TODO: distinct tray-idle/busy/error.png art
         crate::state::Status::Error(_) => app.default_window_icon().cloned(),
     };
     let _ = tray.set_icon(icon);

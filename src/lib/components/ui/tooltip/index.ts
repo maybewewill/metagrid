@@ -10,7 +10,6 @@ export {
 	Content,
 	Provider,
 	Portal,
-	//
 	Root as Tooltip,
 	Content as TooltipContent,
 	Trigger as TooltipTrigger,

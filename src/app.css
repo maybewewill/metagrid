@@ -40,8 +40,6 @@
   font-display: swap;
 }
 
-/* Dark, black-first shadcn (neutral). Dark is the default (:root); a .light
-   class is kept only as an escape hatch. */
 :root {
   color-scheme: dark;
   --radius: 0.2rem;
@@ -184,6 +182,18 @@
   @media (prefers-reduced-motion: reduce) {
     .mg-rise {
       animation: none;
+    }
+  }
+
+  @media (min-width: 1400px) and (min-height: 780px) {
+    body {
+      zoom: 1.15;
+    }
+  }
+
+  @media (min-width: 1700px) and (min-height: 900px) {
+    body {
+      zoom: 1.3;
     }
   }
 }

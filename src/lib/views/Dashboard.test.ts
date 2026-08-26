@@ -29,6 +29,5 @@ import Dashboard from "$lib/views/Dashboard.svelte";
 describe("Dashboard", () =>
   it("renders role columns from snapshot", () => {
     render(Dashboard);
-    // Role header strips the "POS 1 — " prefix (a numbered chip carries it).
     expect(screen.getByText("Carry")).toBeInTheDocument();
   }));

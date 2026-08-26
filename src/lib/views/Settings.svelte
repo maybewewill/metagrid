@@ -26,7 +26,6 @@
     role_labels: "named",
   };
 
-  // Edit a local copy; nothing is applied until Save.
   let local = $state<SettingsShape>({ ...DEFAULTS, ...(store.settings ?? {}) });
   let saving = $state(false);
 
@@ -52,7 +51,7 @@
 
   function onLanguageChange(l: string) {
     local.lang = l as Lang;
-    setLanguage(l as Lang); // live preview
+    setLanguage(l as Lang);
   }
 </script>
 
@@ -72,7 +71,6 @@
 
   <div class="scroll-thin min-h-0 flex-1 overflow-auto">
     <div class="mx-auto flex max-w-xl flex-col px-4 py-2">
-      <!-- Start with Windows (Autostart) -->
       <div class="flex items-center justify-between gap-4 py-3.5">
         <div class="flex min-w-0 flex-col">
           <span class="text-sm font-semibold">{$_("settings.autostart")}</span>
@@ -94,7 +92,6 @@
       </div>
       <Separator />
 
-      <!-- Role labels -->
       <div class="flex items-center justify-between gap-4 py-3.5">
         <div class="flex min-w-0 flex-col">
           <span class="text-sm font-semibold">{$_("settings.role_labels")}</span>
@@ -121,7 +118,6 @@
       </div>
       <Separator />
 
-      <!-- Refresh interval -->
       <div class="flex items-center justify-between gap-4 py-3.5">
         <span class="text-sm font-medium">{$_("settings.interval")}</span>
         <Select
@@ -139,7 +135,6 @@
       </div>
       <Separator />
 
-      <!-- Account -->
       <div class="flex items-center justify-between gap-4 py-3.5">
         <span class="text-sm font-medium">{$_("settings.account")}</span>
         <Select
@@ -158,7 +153,6 @@
       </div>
       <Separator />
 
-      <!-- Language -->
       <div class="flex items-center justify-between gap-4 py-3.5">
         <span class="text-sm font-medium">{$_("settings.language")}</span>
         <div class="inline-flex rounded-sm bg-zinc-900 p-0.5 border border-border">

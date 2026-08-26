@@ -12,12 +12,6 @@ const ACCEPT: &str =
     "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8";
 const ACCEPT_LANGUAGE: &str = "en-US,en;q=0.9";
 
-/// Provider for https://dota2protracker.com/ meta stats.
-///
-/// Shells out to `curl.exe` (Windows' built-in Schannel-backed curl)
-/// rather than using `reqwest`: dota2protracker.com sits behind
-/// Cloudflare and rejects reqwest/rustls TLS handshakes with a 403,
-/// while curl.exe's native Windows TLS stack passes cleanly.
 pub struct D2ptProvider;
 
 impl D2ptProvider {
@@ -46,7 +40,6 @@ impl D2ptProvider {
 
         #[cfg(target_os = "windows")]
         {
-            // CREATE_NO_WINDOW = 0x0800_0000 ensures no visible cmd window flashes.
             cmd.creation_flags(0x0800_0000);
         }
 
@@ -69,7 +62,6 @@ impl D2ptProvider {
         Ok(body)
     }
 
-    /// Fetch the raw d2pt homepage payload.
     pub async fn fetch_raw(&self) -> Result<String, ProviderError> {
         let body = self.run_curl(D2PT_URL).await?;
         if !body.contains("roles:[") {
@@ -79,13 +71,11 @@ impl D2ptProvider {
         Ok(body)
     }
 
-    /// Fetch raw payload for a specific role position from `/meta?mmr=7000&period=8&position=pos+{p}`.
     pub async fn fetch_pos_raw(&self, pos: u8) -> Result<String, ProviderError> {
         let url = format!("{D2PT_META_URL}{pos}");
         self.run_curl(&url).await
     }
 
-    /// Fetches full meta for all 5 positions in parallel from `/meta?position=pos {1..5}`.
     pub async fn fetch_meta_all(&self, map: &HeroMap, top_n: usize) -> Result<MetaSnapshot, ProviderError> {
         let (p1, p2, p3, p4, p5) = tokio::join!(
             self.fetch_pos_raw(1),
@@ -126,7 +116,6 @@ impl D2ptProvider {
 #[async_trait::async_trait]
 impl MetaProvider for D2ptProvider {
     async fn fetch(&self, map: &HeroMap, top_n: usize) -> Result<MetaSnapshot, ProviderError> {
-        // Try the rich /meta endpoint first (supports full hero pool per role).
         match self.fetch_meta_all(map, top_n).await {
             Ok(snap) => Ok(snap),
             Err(e) => {
@@ -138,7 +127,6 @@ impl MetaProvider for D2ptProvider {
     }
 }
 
-/// A hero entry as pulled straight out of the data payload.
 struct RawHero {
     hero_id: u32,
     hero_name: String,
@@ -148,7 +136,6 @@ struct RawHero {
     d2pt_rating: u32,
 }
 
-/// Locate the `roles:[...]` array in the raw homepage HTML/JS payload.
 fn extract_roles_array(html: &str) -> Result<&str, ProviderError> {
     let start = html
         .find("roles:[")
@@ -187,7 +174,6 @@ fn extract_roles_array(html: &str) -> Result<&str, ProviderError> {
     Ok(&rest[..end_byte])
 }
 
-/// Parse the fixed-point winrate D2PT emits (e.g. `.5321`).
 fn parse_win_rate(raw: &str) -> Option<f32> {
     let normalized = if let Some(rest) = raw.strip_prefix('.') {
         format!("0.{rest}")
@@ -197,7 +183,6 @@ fn parse_win_rate(raw: &str) -> Option<f32> {
     normalized.parse::<f32>().ok()
 }
 
-/// Normalize a hero display name into a slug the same way d2pt hero keys look.
 fn derive_slug(hero_name: &str) -> String {
     hero_name
         .chars()
@@ -217,8 +202,6 @@ fn position_from_d2pt(raw: &str) -> Option<Position> {
     }
 }
 
-/// Best-effort extraction of the current patch string (e.g. `"7.41e"`) from
-/// the page payload.
 fn extract_patch(html: &str) -> String {
     let markers = [
         r#"href="/patches/([0-9]+\.[0-9]+[a-z]?)""#,
@@ -240,14 +223,12 @@ fn extract_patch(html: &str) -> String {
     "7.41e".to_string()
 }
 
-/// Parse a single position's payload from `https://dota2protracker.com/meta?position=pos%20{N}`.
 pub fn parse_pos_meta(
     raw: &str,
     target_pos: Position,
     map: &HeroMap,
     _top_n: usize,
 ) -> Result<RoleMeta, ProviderError> {
-    // 1. Extract Top Heroes from the HTML Top Heroes container
     let mut top_hero_names = Vec::new();
     if let Some(top_idx) = raw.find("Top Heroes") {
         let slice_len = std::cmp::min(6000, raw.len() - top_idx);
@@ -352,7 +333,6 @@ pub fn parse_pos_meta(
     }
 
     if top_heroes.is_empty() {
-        // Fallback: top 7 by d2pt_rating descending
         let mut sorted = all_heroes.clone();
         sorted.sort_by(|a, b| {
             if b.d2pt_rating != a.d2pt_rating {
@@ -366,7 +346,6 @@ pub fn parse_pos_meta(
 
     let top_ids: std::collections::HashSet<u32> = top_heroes.iter().map(|h| h.hero_id).collect();
 
-    // Other heroes sorted by d2pt_rating desc, then winrate desc
     let mut other_heroes: Vec<HeroMeta> = all_heroes
         .into_iter()
         .filter(|h| !top_ids.contains(&h.hero_id))
@@ -395,7 +374,6 @@ pub fn parse_pos_meta(
     })
 }
 
-/// Parse a d2pt homepage payload into a `MetaSnapshot`.
 pub fn parse_meta(raw: &str, map: &HeroMap, top_n: usize) -> Result<MetaSnapshot, ProviderError> {
     let roles_blob = extract_roles_array(raw)?;
 
@@ -501,7 +479,6 @@ pub fn parse_meta(raw: &str, map: &HeroMap, top_n: usize) -> Result<MetaSnapshot
         )));
     }
 
-    // Order deterministically as Pos1..Pos5 regardless of source order.
     roles.sort_by_key(|r| Position::all().iter().position(|p| *p == r.position));
 
     let patch = extract_patch(raw);
@@ -526,10 +503,10 @@ mod tests {
     fn parses_five_roles_top_n_sorted() {
         let map = HeroMap::bundled();
         let snap = parse_meta(FIXTURE_HOME, &map, 10).unwrap();
-        assert_eq!(snap.roles.len(), 5); // POS 1..5
+        assert_eq!(snap.roles.len(), 5);
         for r in &snap.roles {
             assert!(r.heroes.len() <= 10);
-            assert!(r.heroes.iter().all(|h| h.hero_id != 0)); // every name resolved
+            assert!(r.heroes.iter().all(|h| h.hero_id != 0));
             assert!(r.heroes.windows(2).all(|w| w[0].pickrate >= w[1].pickrate));
         }
         assert!(!snap.patch.is_empty());
@@ -547,7 +524,7 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore] // run: cargo test --manifest-path src-tauri/Cargo.toml -- --ignored d2pt_live
+    #[ignore]
     async fn d2pt_live_fetch() {
         let p = D2ptProvider::new();
         let snap = p.fetch(&HeroMap::bundled(), 15).await.unwrap();

@@ -13,19 +13,18 @@ pub enum PipelineError {
     Grid(#[from] GridError),
 }
 
-/// Fetch the current meta from `provider` ONCE, build the multi-role MetaGrid layout
-/// matching the Grid preview (Carry, Mid, Offlane, Support, Hard Support with TOP HEROES
-/// and OTHER HEROES), and write into every Steam account's `hero_grid_config.json`.
+
 pub async fn refresh_all(
     provider: &dyn MetaProvider,
     map: &HeroMap,
     steam: &SteamLocator,
     top_n: usize,
     account_filter: Option<&str>,
+    role_labels: &str,
 ) -> Result<MetaSnapshot, PipelineError> {
     let snap: MetaSnapshot = provider.fetch(map, top_n).await?;
 
-    let grids = build_grid_multi(&snap);
+    let grids = build_grid_multi(&snap, role_labels);
 
     for account in steam.accounts() {
         if let Some(filter_id) = account_filter {
@@ -101,7 +100,7 @@ mod tests {
 
         let steam = SteamLocator::with_root(root);
 
-        let snap = refresh_all(&FakeProvider, &HeroMap::bundled(), &steam, 10, None)
+        let snap = refresh_all(&FakeProvider, &HeroMap::bundled(), &steam, 10, None, "named")
             .await
             .unwrap();
 
@@ -121,7 +120,7 @@ mod tests {
 
         let steam = SteamLocator::with_root(root);
 
-        refresh_all(&FakeProvider, &HeroMap::bundled(), &steam, 10, None)
+        refresh_all(&FakeProvider, &HeroMap::bundled(), &steam, 10, None, "named")
             .await
             .unwrap();
 
@@ -144,10 +143,6 @@ mod tests {
         assert!(!names.contains(&"MetaGrid".to_string()));
     }
 
-    /// Live end-to-end proof: fetches the REAL d2pt site and writes a REAL
-    /// hero_grid_config.json format grid — but ONLY into a temp COPY of the
-    /// user's real file, never the real file itself. Run explicitly with:
-    /// `cargo test --manifest-path src-tauri/Cargo.toml -- --ignored live_end_to_end --nocapture`
     #[tokio::test]
     #[ignore]
     async fn live_end_to_end() {
@@ -188,7 +183,7 @@ mod tests {
             .await
             .unwrap();
 
-        let grids = build_grid_multi(&snap);
+        let grids = build_grid_multi(&snap, "named");
         for grid in &grids {
             write_to(&copy_path, grid).unwrap();
         }
@@ -230,7 +225,7 @@ mod tests {
             let top3: Vec<&str> = role.heroes.iter().take(3).map(|h| h.name.as_str()).collect();
             println!(
                 "{:<24} heroes={:<3} top3={:?}",
-                role.position.config_name(),
+                role.position.config_name("named"),
                 role.heroes.len(),
                 top3
             );

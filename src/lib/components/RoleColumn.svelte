@@ -15,7 +15,6 @@
     if (store.settings?.role_labels === "pos") {
       return `${$_("pos_prefix")} ${n}`;
     }
-    // named: strip the "POS 1 — " / "ПОЗ 1 — " prefix, keep just the role name.
     return $_(roleLabel(role.position)).replace(/^POS\s*\d+\s*—\s*|^ПОЗ\s*\d+\s*—\s*/u, "");
   });
 

@@ -9,10 +9,8 @@ class Store {
   settings = $state<Settings | null>(null);
   accounts = $state<Account[]>([]);
   view = $state<View>("onboarding");
-  /** Dashboard sub-mode: the meta list vs the in-Dota grid preview. */
   dashMode = $state<"list" | "preview">("list");
   loading = $state(false);
-  /** Absolute dir holding cached `<slug>.png` hero portraits; null until `init()` resolves it. */
   portraitDir = $state<string | null>(null);
 
   isFresh = $derived.by(() => {
@@ -22,7 +20,6 @@ class Store {
     return Date.now() - fetchedAt < intervalMs;
   });
 
-  /** Loads settings/snapshot/status/accounts and subscribes to backend events. */
   async init(): Promise<void> {
     this.loading = true;
     try {
@@ -55,7 +52,6 @@ class Store {
     }
   }
 
-  /** Triggers an immediate refresh and stores the resulting snapshot. */
   async refresh(): Promise<void> {
     this.loading = true;
     try {
@@ -65,7 +61,6 @@ class Store {
     }
   }
 
-  /** Merges `patch` into the current settings, persists, and updates state. */
   async saveSettings(patch: Partial<Settings>): Promise<void> {
     if (!this.settings) return;
     const merged: Settings = { ...this.settings, ...patch };

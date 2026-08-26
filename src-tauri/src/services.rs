@@ -8,7 +8,6 @@ use crate::provider::d2pt::D2ptProvider;
 use crate::provider::MetaProvider;
 use crate::steam::SteamLocator;
 
-/// Shared dependencies handed to Tauri commands via `.manage(...)`.
 pub struct Services {
     pub provider: Arc<dyn MetaProvider>,
     pub map: HeroMap,
@@ -29,9 +28,6 @@ impl Default for Services {
     }
 }
 
-/// The Tauri-resolved app data directory (`$APPDATA/com.metagrid.app`),
-/// managed so commands and the scheduler can read/write settings and
-/// portraits from the same place the `assetProtocol` scope points at.
 pub struct DataDir(pub PathBuf);
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

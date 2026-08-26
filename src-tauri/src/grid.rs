@@ -34,18 +34,15 @@ impl GridConfig {
     }
 }
 
-/// Per-role layout mode: produces one `GridConfig` per role — `"Carry"`, `"Mid"`, `"Offlane"`,
-/// `"Support"`, `"Hard Support"` — containing the 7 Top Heroes from D2PT ELO followed by
-/// Other Heroes sorted by D2PT rating, with Winrate % and Pickrate % displayed above each portrait.
-pub fn build_grid_multi(snap: &MetaSnapshot) -> Vec<GridConfig> {
+pub fn build_grid_multi(snap: &MetaSnapshot, role_labels: &str) -> Vec<GridConfig> {
     snap.roles
         .iter()
         .map(|role| {
-            let role_upper = role.position.role_upper();
-            
+            let role_upper = role.position.role_upper(role_labels);
+            let config_name = role.position.config_name(role_labels).to_string();
+
             let mut categories = Vec::new();
 
-            // Header 1: TOP HEROES
             categories.push(Category {
                 category_name: format!("TOP {role_upper} HEROES - ORDERED BY D2PT ELO"),
                 x_position: 0.0,
@@ -76,7 +73,6 @@ pub fn build_grid_multi(snap: &MetaSnapshot) -> Vec<GridConfig> {
 
             let top_ids: std::collections::HashSet<u32> = top_slice.iter().map(|h| h.hero_id).collect();
 
-            // Top heroes boxes in a single row
             for (idx, h) in top_slice.iter().enumerate() {
                 categories.push(Category {
                     category_name: format!("{:.2}%\n{:.2}%", h.winrate * 100.0, h.pickrate * 100.0),
@@ -88,7 +84,6 @@ pub fn build_grid_multi(snap: &MetaSnapshot) -> Vec<GridConfig> {
                 });
             }
 
-            // Other heroes (excluding top heroes)
             let other_heroes: Vec<_> = role
                 .heroes
                 .iter()
@@ -97,7 +92,7 @@ pub fn build_grid_multi(snap: &MetaSnapshot) -> Vec<GridConfig> {
                 .collect();
 
             if !other_heroes.is_empty() {
-                let other_header_y = 30.0 + card_h + 35.0; // 175.0
+                let other_header_y = 30.0 + card_h + 35.0;
                 categories.push(Category {
                     category_name: format!("OTHER {role_upper} HEROES - ORDERED BY D2PT RATING (AND PICKRATE)"),
                     x_position: 0.0,
@@ -123,7 +118,7 @@ pub fn build_grid_multi(snap: &MetaSnapshot) -> Vec<GridConfig> {
             }
 
             GridConfig {
-                config_name: role.position.config_name().to_string(),
+                config_name,
                 categories,
             }
         })
@@ -172,7 +167,7 @@ mod tests {
     }
     #[test]
     fn multi_layout_makes_five_named_configs() {
-        let cfgs = build_grid_multi(&sample_snapshot());
+        let cfgs = build_grid_multi(&sample_snapshot(), "named");
         assert_eq!(cfgs.len(), 5);
         assert!(cfgs.iter().any(|c| c.config_name == "Carry"));
         assert!(cfgs.iter().any(|c| c.config_name == "Mid"));
@@ -183,5 +178,9 @@ mod tests {
             assert!(c.categories.len() >= 2);
             assert!(c.categories[0].category_name.contains("TOP"));
         }
+
+        let pos_cfgs = build_grid_multi(&sample_snapshot(), "pos");
+        assert!(pos_cfgs.iter().any(|c| c.config_name == "POS 1"));
+        assert!(pos_cfgs[0].categories[0].category_name.contains("POS 1"));
     }
 }

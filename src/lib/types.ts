@@ -1,7 +1,3 @@
-// TS mirrors of the Rust domain types in src-tauri/src/model.rs,
-// settings.rs, and state.rs. Keep these in lockstep with the backend —
-// they are the contract for the typed IPC layer (Task 4.3).
-
 export type Position = "Pos1" | "Pos2" | "Pos3" | "Pos4" | "Pos5";
 
 export type SortMetric = "Pickrate" | "Winrate";
@@ -48,7 +44,6 @@ export interface Account {
   id: string;
 }
 
-// Mirrors state.rs `Status` with #[serde(tag = "kind", content = "detail")].
 export type Status =
   | { kind: "Idle" }
   | { kind: "Refreshing" }

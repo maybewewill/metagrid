@@ -39,9 +39,6 @@ pub fn run() {
             commands::get_portrait_dir
         ])
         .setup(|app| {
-            // Resolve the data dir via Tauri (not the `directories` crate)
-            // so it matches the `assetProtocol` scope in tauri.conf.json:
-            // `$APPDATA/com.metagrid.app`.
             let data = app.path().app_data_dir()?;
             std::fs::create_dir_all(&data).ok();
 

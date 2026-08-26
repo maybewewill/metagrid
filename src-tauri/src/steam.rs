@@ -15,11 +15,6 @@ pub struct SteamLocator {
 }
 
 impl SteamLocator {
-    /// Detect the Steam installation root.
-    ///
-    /// On Windows, reads `HKCU\Software\Valve\Steam\SteamPath` from the
-    /// registry. If the key is missing, or on non-Windows targets, falls
-    /// back to the default Steam install path.
     pub fn detect() -> Option<SteamLocator> {
         #[cfg(windows)]
         {
@@ -49,9 +44,6 @@ impl SteamLocator {
         SteamLocator { root }
     }
 
-    /// Scan `<root>/userdata/<id>/` for accounts that have a Dota 2
-    /// (app id 570) grid config directory, returning one `Account` per
-    /// matching id.
     pub fn accounts(&self) -> Vec<Account> {
         let userdata = self.root.join("userdata");
 
@@ -88,7 +80,6 @@ mod tests {
     fn finds_only_dota_accounts() {
         let tmp = tempfile::tempdir().unwrap();
         let root = tmp.path().to_path_buf();
-        // acc A has dota; acc B does not
         std::fs::create_dir_all(root.join("userdata/111/570/remote/cfg")).unwrap();
         std::fs::create_dir_all(root.join("userdata/222/730/remote")).unwrap();
         let loc = SteamLocator::with_root(root);
@@ -107,8 +98,6 @@ mod tests {
 
     #[test]
     fn detect_falls_back_when_no_registry_entry() {
-        // detect() must never panic and must always yield a locator, even
-        // when the registry key is absent (or on non-windows targets).
         let loc = SteamLocator::detect();
         assert!(loc.is_some());
     }

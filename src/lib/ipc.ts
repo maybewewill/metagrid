@@ -2,7 +2,6 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import type { Account, MetaSnapshot, Settings, Status } from "$lib/types";
 
-// Event name constants mirroring src-tauri/src/events.rs.
 export const EVENTS = {
   REFRESH_STARTED: "metagrid://refresh-started",
   REFRESH_DONE: "metagrid://refresh-done",

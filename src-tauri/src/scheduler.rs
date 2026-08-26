@@ -1,10 +1,3 @@
-//! Background refresh scheduler: kicks a refresh once at startup, then on a
-//! settings-driven interval, and can be woken early via [`trigger`] (e.g. by
-//! the tray or the Dota watcher). [`run_refresh`] is the single source of
-//! truth for "what a refresh does" — the `refresh_now` IPC command delegates
-//! to it so there is no duplicated logic between the manual and scheduled
-//! refresh paths.
-
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
@@ -19,10 +12,6 @@ use crate::services::Services;
 use crate::state::{Shared, Status};
 use crate::steam::SteamLocator;
 
-/// Runs a full refresh cycle: sets status, emits lifecycle events, resolves
-/// settings/Steam/provider off the app handle's managed state, and updates
-/// the shared snapshot/status on completion. Used by both the `refresh_now`
-/// IPC command and the background scheduler.
 pub async fn run_refresh(app: &AppHandle) -> Result<MetaSnapshot, String> {
     let state = app.state::<Shared>();
     let services = app.state::<Services>();
@@ -47,6 +36,7 @@ pub async fn run_refresh(app: &AppHandle) -> Result<MetaSnapshot, String> {
         &steam,
         settings.top_n,
         settings.account_id.as_deref(),
+        &settings.role_labels,
     )
     .await
     {
@@ -79,17 +69,12 @@ pub async fn run_refresh(app: &AppHandle) -> Result<MetaSnapshot, String> {
     }
 }
 
-/// Returns `true` when `now` is less than `min` after `last` — i.e. the
-/// trigger arrived too soon and should be ignored.
 pub fn should_debounce(last: Instant, now: Instant, min: Duration) -> bool {
     now.duration_since(last) < min
 }
 
-/// Managed state wrapping the `Notify` used to wake the scheduler loop early.
 pub struct Trigger(pub Arc<Notify>);
 
-/// Wakes the background scheduler loop, causing it to (subject to debounce)
-/// run a refresh immediately instead of waiting for the next interval tick.
 pub fn trigger(app: &AppHandle) -> tauri::Result<()> {
     app.state::<Trigger>().0.notify_one();
     Ok(())
@@ -98,10 +83,6 @@ pub fn trigger(app: &AppHandle) -> tauri::Result<()> {
 const MIN_INTERVAL_HOURS: u64 = 1;
 const DEBOUNCE_FLOOR: Duration = Duration::from_secs(30);
 
-/// Spawns the background scheduler task: one refresh at startup, then a loop
-/// that wakes on either the settings-driven interval or an explicit
-/// [`trigger`], applying a debounce floor so rapid triggers collapse into a
-/// single refresh.
 pub fn spawn(app: AppHandle) {
     tauri::async_runtime::spawn(async move {
         let mut last = Instant::now();

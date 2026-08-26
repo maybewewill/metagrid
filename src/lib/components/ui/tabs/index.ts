@@ -10,7 +10,6 @@ export {
 	Trigger,
 	tabsListVariants,
 	type TabsListVariant,
-	//
 	Root as Tabs,
 	Content as TabsContent,
 	List as TabsList,

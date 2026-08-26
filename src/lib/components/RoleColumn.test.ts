@@ -23,10 +23,7 @@ const role: RoleMeta = {
 describe("RoleColumn", () => {
   it("renders the role and all heroes", () => {
     render(RoleColumn, { role });
-    // The "POS 1 — " prefix is stripped in the header (a numbered chip carries
-    // the position), so the role name renders on its own.
     expect(screen.getByText("Carry")).toBeInTheDocument();
-    // Hero portraits load from the Steam CDN — one <img> per hero.
     expect(screen.getAllByRole("img").length).toBe(2);
   });
 });

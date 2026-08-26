@@ -15,12 +15,10 @@
   onMount(() => {
     store.init();
 
-    // Disable browser context menu
     const handleContextMenu = (e: MouseEvent) => {
       e.preventDefault();
     };
 
-    // Disable browser default shortcuts (refresh, devtools, print, etc.)
     const handleKeyDown = (e: KeyboardEvent) => {
       if (
         e.key === "F5" ||

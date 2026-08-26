@@ -32,7 +32,6 @@
       .toUpperCase(),
   );
 
-  // Colour the win-rate by value: red (~48%) → amber (~52%) → green (~56%+).
   const wrColor = $derived.by(() => {
     const t = Math.max(0, Math.min(1, (hero.winrate - 0.48) / 0.08));
     const hue = 20 + t * 130;
@@ -45,7 +44,6 @@
   role="group"
   class="group flex flex-1 min-h-0 items-center overflow-hidden rounded-sm border border-zinc-800/60 bg-zinc-900/40 transition-all duration-150 hover:border-zinc-700 hover:bg-zinc-800/80"
 >
-  <!-- Hero Portrait flush to the left -->
   <div
     class="relative h-full w-[52px] shrink-0 overflow-hidden bg-zinc-950 border-r border-zinc-800/80"
   >
@@ -64,7 +62,6 @@
     {/if}
   </div>
 
-  <!-- Hero Details -->
   <div class="flex min-w-0 flex-1 flex-col justify-center px-3.5 py-1 gap-1">
     <div class="truncate text-[13.5px] font-extrabold uppercase tracking-wide text-zinc-100 group-hover:text-white">
       {hero.name}
@@ -78,7 +75,6 @@
     </div>
   </div>
 
-  <!-- Winrate -->
   <div class="shrink-0 pr-3.5 flex flex-col items-end justify-center">
     <span
       class="font-mono text-[14px] font-black tracking-tight tabular-nums"
