@@ -309,7 +309,7 @@ pub fn parse_pos_meta(
 
     let total_matches: u64 = raw_heroes.iter().map(|h| h.matches as u64).sum();
 
-    let mut heroes: Vec<HeroMeta> = raw_heroes
+    let all_heroes: Vec<HeroMeta> = raw_heroes
         .into_iter()
         .map(|h| {
             let slug = h
@@ -321,10 +321,6 @@ pub fn parse_pos_meta(
             } else {
                 0.0
             };
-            let is_top = top_hero_names.iter().any(|top_name| {
-                top_name.eq_ignore_ascii_case(&h.hero_name)
-                    || top_name.eq_ignore_ascii_case(&slug)
-            });
             HeroMeta {
                 hero_id: h.hero_id,
                 name: h.hero_name,
@@ -333,16 +329,38 @@ pub fn parse_pos_meta(
                 pickrate,
                 matches: h.matches,
                 d2pt_rating: h.d2pt_rating,
-                is_top,
+                is_top: true,
             }
         })
         .collect();
 
-    heroes.sort_by(|a, b| {
-        b.pickrate
-            .partial_cmp(&a.pickrate)
-            .unwrap_or(std::cmp::Ordering::Equal)
-    });
+    let mut heroes: Vec<HeroMeta> = Vec::new();
+    if !top_hero_names.is_empty() {
+        for top_name in &top_hero_names {
+            if let Some(found) = all_heroes.iter().find(|h| {
+                top_name.eq_ignore_ascii_case(&h.name)
+                    || top_name.eq_ignore_ascii_case(&h.slug)
+                    || derive_slug(top_name).eq_ignore_ascii_case(&h.slug)
+            }) {
+                if !heroes.iter().any(|existing| existing.hero_id == found.hero_id) {
+                    heroes.push(found.clone());
+                }
+            }
+        }
+    }
+
+    if heroes.is_empty() {
+        // Fallback: top 7 by d2pt_rating descending
+        let mut sorted = all_heroes;
+        sorted.sort_by(|a, b| {
+            if b.d2pt_rating != a.d2pt_rating {
+                b.d2pt_rating.cmp(&a.d2pt_rating)
+            } else {
+                b.winrate.partial_cmp(&a.winrate).unwrap_or(std::cmp::Ordering::Equal)
+            }
+        });
+        heroes = sorted.into_iter().take(7).collect();
+    }
 
     let role_winrate = if heroes.is_empty() {
         0.0
@@ -498,13 +516,12 @@ mod tests {
     }
 
     #[test]
-    fn parses_pos1_meta_fixture_full_hero_pool() {
+    fn parses_pos1_meta_fixture_top_heroes() {
         let map = HeroMap::bundled();
-        let role = parse_pos_meta(FIXTURE_POS1, Position::Pos1, &map, 15).unwrap();
+        let role = parse_pos_meta(FIXTURE_POS1, Position::Pos1, &map, 7).unwrap();
         assert_eq!(role.position, Position::Pos1);
-        assert_eq!(role.heroes.len(), 66);
+        assert_eq!(role.heroes.len(), 7);
         assert!(role.heroes.iter().all(|h| h.hero_id != 0));
-        assert!(role.heroes.windows(2).all(|w| w[0].pickrate >= w[1].pickrate));
         assert!(role.role_winrate > 0.0);
     }
 

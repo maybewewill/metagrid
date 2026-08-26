@@ -96,44 +96,14 @@ pub fn build_grid(snap: &MetaSnapshot, opts: &GridOptions) -> GridConfig {
 }
 
 /// Per-role layout mode: produces one `GridConfig` per role — `"Carry"`, `"Mid"`, `"Offlane"`,
-/// `"Support"`, `"Hard Support"` — each containing individual category boxes for each hero
-/// with their Winrate % and Pickrate % formatted as the category title so numbers appear
-/// directly above each portrait in Dota 2.
+/// `"Support"`, `"Hard Support"` — containing the 7 Top Heroes from D2PT ELO with their
+/// Winrate % and Pickrate % displayed above each portrait.
 pub fn build_grid_multi(snap: &MetaSnapshot) -> Vec<GridConfig> {
     snap.roles
         .iter()
         .map(|role| {
             let role_upper = role.position.role_upper();
             
-            // Separate top heroes and other heroes
-            let mut top_heroes: Vec<_> = role.heroes.iter().filter(|h| h.is_top).cloned().collect();
-            if top_heroes.is_empty() {
-                // Fallback: top 7 by d2pt_rating or winrate
-                let mut sorted = role.heroes.clone();
-                sorted.sort_by(|a, b| {
-                    if b.d2pt_rating != a.d2pt_rating {
-                        b.d2pt_rating.cmp(&a.d2pt_rating)
-                    } else {
-                        b.winrate.partial_cmp(&a.winrate).unwrap_or(std::cmp::Ordering::Equal)
-                    }
-                });
-                top_heroes = sorted.into_iter().take(7).collect();
-            }
-
-            let top_ids: std::collections::HashSet<u32> = top_heroes.iter().map(|h| h.hero_id).collect();
-
-            let mut other_heroes: Vec<_> = role
-                .heroes
-                .iter()
-                .filter(|h| !top_ids.contains(&h.hero_id))
-                .cloned()
-                .collect();
-            other_heroes.sort_by(|a, b| {
-                b.pickrate
-                    .partial_cmp(&a.pickrate)
-                    .unwrap_or(std::cmp::Ordering::Equal)
-            });
-
             let mut categories = Vec::new();
 
             // Header 1: TOP HEROES
@@ -149,41 +119,13 @@ pub fn build_grid_multi(snap: &MetaSnapshot) -> Vec<GridConfig> {
             let card_w = 68.0;
             let card_h = 110.0;
             let gap_x = 12.0;
-            let gap_y = 24.0;
-            let heroes_per_row = 14;
 
-            // Top heroes boxes in a single row
-            for (idx, h) in top_heroes.iter().enumerate() {
+            // Top heroes boxes in a single row (up to 7 heroes)
+            for (idx, h) in role.heroes.iter().take(7).enumerate() {
                 categories.push(Category {
                     category_name: format!("{:.2}%\n{:.2}%", h.winrate * 100.0, h.pickrate * 100.0),
                     x_position: (idx as f64) * (card_w + gap_x),
                     y_position: 30.0,
-                    width: card_w,
-                    height: card_h,
-                    hero_ids: vec![h.hero_id],
-                });
-            }
-
-            // Header 2: OTHER HEROES
-            let other_header_y = 30.0 + card_h + 35.0; // 175.0
-            categories.push(Category {
-                category_name: format!("OTHER {role_upper} HEROES - ORDERED BY PICK RATE"),
-                x_position: 0.0,
-                y_position: other_header_y,
-                width: 1100.0,
-                height: 0.0,
-                hero_ids: vec![],
-            });
-
-            // Other heroes boxes in rows of 14
-            let other_heroes_start_y = other_header_y + 30.0;
-            for (idx, h) in other_heroes.iter().enumerate() {
-                let col = idx % heroes_per_row;
-                let row = idx / heroes_per_row;
-                categories.push(Category {
-                    category_name: format!("{:.2}%\n{:.2}%", h.winrate * 100.0, h.pickrate * 100.0),
-                    x_position: (col as f64) * (card_w + gap_x),
-                    y_position: other_heroes_start_y + (row as f64) * (card_h + gap_y),
                     width: card_w,
                     height: card_h,
                     hero_ids: vec![h.hero_id],
@@ -273,7 +215,6 @@ mod tests {
         for c in &cfgs {
             assert!(c.categories.len() >= 2);
             assert!(c.categories[0].category_name.contains("TOP"));
-            assert!(c.categories.iter().any(|cat| cat.category_name.contains("OTHER")));
         }
     }
 }
