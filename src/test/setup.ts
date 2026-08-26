@@ -15,3 +15,15 @@ import en from "$lib/i18n/messages/en.json";
 // chain.
 addMessages("en", en);
 init({ fallbackLocale: "en", initialLocale: "en" });
+
+// jsdom doesn't implement ResizeObserver, but bits-ui primitives (Slider,
+// Select, ...) construct one unconditionally when mounted. Stub it globally
+// so any component test that renders those primitives doesn't need its own
+// per-file shim.
+if (typeof globalThis.ResizeObserver === "undefined") {
+  globalThis.ResizeObserver = class ResizeObserver {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  };
+}
