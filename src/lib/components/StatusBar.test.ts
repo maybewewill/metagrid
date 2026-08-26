@@ -13,11 +13,19 @@ vi.mock("$lib/store.svelte", () => ({
     go: vi.fn(),
   },
 }));
+const { launchDota } = vi.hoisted(() => ({ launchDota: vi.fn() }));
+vi.mock("$lib/ipc", () => ({ launchDota }));
 import StatusBar from "$lib/components/StatusBar.svelte";
 describe("StatusBar", () => {
   it("refresh button triggers store.refresh", async () => {
     render(StatusBar);
     await fireEvent.click(screen.getByRole("button", { name: /refresh/i }));
     expect(refresh).toHaveBeenCalled();
+  });
+
+  it("play button triggers ipc.launchDota", async () => {
+    render(StatusBar);
+    await fireEvent.click(screen.getByRole("button", { name: /play/i }));
+    expect(launchDota).toHaveBeenCalled();
   });
 });

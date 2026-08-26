@@ -3,7 +3,8 @@
   import { store } from "$lib/store.svelte";
   import { relTime } from "$lib/format";
   import { Button } from "$lib/components/ui/button";
-  import { RefreshCw, Settings } from "@lucide/svelte";
+  import { RefreshCw, Settings, Play } from "@lucide/svelte";
+  import * as ipc from "$lib/ipc";
 
   const dotClass = $derived.by(() => {
     switch (store.status.kind) {
@@ -34,6 +35,10 @@
     {/if}
   </div>
   <div class="flex items-center gap-1">
+    <Button variant="ghost" size="sm" onclick={() => ipc.launchDota()}>
+      <Play size={14} />
+      {$_("app.play")}
+    </Button>
     <Button
       variant="ghost"
       size="icon-sm"
