@@ -16,13 +16,13 @@
         "label": "main",
         "title": "MetaGrid",
         "width": 1280,
-        "height": 650,
+        "height": 670,
         "minWidth": 1280,
-        "minHeight": 650,
+        "minHeight": 670,
         "decorations": false,
         "visible": false,
         "skipTaskbar": false,
-        "resizable": true,
+        "resizable": false,
         "center": true
       }
     ],

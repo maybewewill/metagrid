@@ -25,7 +25,7 @@
   <a href="#screenshots">Screenshots</a> &middot;
   <a href="#features">Features</a> &middot;
   <a href="#installation">Installation</a> &middot;
-  <a href="#how-it-works">How It Works</a> &middot;
+  <a href="#configuration">Configuration</a> &middot;
   <a href="#development">Development</a>
 </div>
 
@@ -79,10 +79,10 @@ Grids are written directly to Dota's `hero_grid_config.json`. Existing user-crea
 - **Automated Background Sync**: Runs silently in the system tray, updating hero grids on your chosen interval.
 - **Process Watcher**: Automatically detects when `dota2.exe` launches and patches the meta before the match starts.
 - **Live Meta Fetching**: Parses current patch meta from Dota2ProTracker with winrate, pickrate, and D2PT ratings.
+- **Dual Grid Modes**: Support for 5 standalone role grids or non-destructive merge into your favorite custom grid layout.
 - **In-Game Grid Sync**: Generates clean, per-role layouts formatted to match Dota 2's picking phase grid geometry.
 - **Multi-Account Discovery**: Detects all local Steam user directories under `Steam/userdata/<id>/570/remote/cfg/`.
 - **Atomic File Operations**: Safe writing mechanism using temporary files with `.metagrid.bak` fallback.
-- **Fullscreen Adaptive Scaling**: Clean proportional UI scaling for high-resolution displays.
 - **Tray & Startup Integration**: Runs minimized in the background with customizable autostart on system boot.
 - **Localization**: Full interface support for English and Russian.
 
@@ -101,26 +101,7 @@ cargo install --git https://github.com/maybewewill/metagrid
 
 1. Download `MetaGrid_x.y.z_x64-setup.exe` or `MetaGrid_x.y.z_x64_Portable.zip` from [Releases](https://github.com/maybewewill/metagrid/releases).
 2. Run the app, pick your Steam account and language, then click **Fetch & Patch**.
-3. In Dota 2, open **Heroes → Hero Grids** and select the **MetaGrid** layout.
-
----
-
-## How It Works
-
-```mermaid
-flowchart LR
-    A[Dota2ProTracker] -->|Fetch via Schannel| B(MetaGrid Core)
-    B -->|Parse & Rank Heroes| C{Grid Multi-Builder}
-    C -->|Top Picks + Meta Pool| D[hero_grid_config.json]
-    D -->|Steam Userdata Sync| E[Dota 2 Client]
-    F[Dota 2 Process Watcher] -.->|On Game Launch| B
-    G[Tray / Scheduler] -.->|Trigger Refresh| B
-```
-
-Grid configuration path:
-```
-<Steam_Installation_Path>/userdata/<Account_ID>/570/remote/cfg/hero_grid_config.json
-```
+3. In Dota 2, open **Heroes → Hero Grids** and select your updated layout.
 
 ---
 
@@ -128,6 +109,8 @@ Grid configuration path:
 
 | Setting | Options | Description |
 | :--- | :--- | :--- |
+| **Grid Mode** | `Separate` / `Merge` | Choose between 5 standalone role grids or injecting a live META block into an existing grid. |
+| **Target Grid** | Custom grid name | Select which existing hero layout to inject the META block into (when Merge mode is active). |
 | **Role Labels** | `Named` / `POS 1-5` | Toggle role naming convention across the UI and in-game grid tabs. |
 | **Refresh Interval** | `30m`, `1h`, `3h`, `6h`, `12h`, `24h` | Background scheduler sync interval. |
 | **Steam Account** | `All accounts` or specific Steam ID | Target account selection. |

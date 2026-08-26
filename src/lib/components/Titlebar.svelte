@@ -1,29 +1,9 @@
 <script lang="ts">
   import { getCurrentWindow } from "@tauri-apps/api/window";
-  import { Minus, Square, Minimize2, X } from "@lucide/svelte";
+  import { Minus, X } from "@lucide/svelte";
 
   let { patch }: { patch?: string } = $props();
   const win = getCurrentWindow();
-  let isMaximized = $state(false);
-
-  $effect(() => {
-    win.isMaximized().then((max) => (isMaximized = max));
-    const unlisten = win.onResized(async () => {
-      isMaximized = await win.isMaximized();
-    });
-    return () => {
-      unlisten.then((fn) => fn());
-    };
-  });
-
-  async function toggleMaximize() {
-    try {
-      await win.toggleMaximize();
-      isMaximized = await win.isMaximized();
-    } catch (e) {
-      console.error("toggleMaximize failed:", e);
-    }
-  }
 </script>
 
 <header
@@ -33,7 +13,6 @@
     data-tauri-drag-region
     role="presentation"
     class="flex h-full flex-1 items-center gap-2.5 pl-3.5 cursor-default"
-    ondblclick={toggleMaximize}
   >
     <span class="grid size-5 place-items-center rounded-sm bg-foreground text-background">
       <span class="text-[11px] font-black leading-none">M</span>
@@ -55,18 +34,6 @@
       onclick={() => win.minimize()}
     >
       <Minus size={15} />
-    </button>
-    <button
-      type="button"
-      aria-label={isMaximized ? "Restore" : "Maximize"}
-      class="grid h-full w-11 place-items-center text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-      onclick={toggleMaximize}
-    >
-      {#if isMaximized}
-        <Minimize2 size={13} />
-      {:else}
-        <Square size={13} />
-      {/if}
     </button>
     <button
       type="button"
