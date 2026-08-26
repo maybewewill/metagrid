@@ -13,19 +13,19 @@ impl Position {
     pub fn config_name(&self, role_labels: &str) -> &'static str {
         if role_labels == "pos" {
             match self {
-                Position::Pos1 => "⚡ POS 1",
-                Position::Pos2 => "⚡ POS 2",
-                Position::Pos3 => "⚡ POS 3",
-                Position::Pos4 => "⚡ POS 4",
-                Position::Pos5 => "⚡ POS 5",
+                Position::Pos1 => "POS 1",
+                Position::Pos2 => "POS 2",
+                Position::Pos3 => "POS 3",
+                Position::Pos4 => "POS 4",
+                Position::Pos5 => "POS 5",
             }
         } else {
             match self {
-                Position::Pos1 => "⚡ Carry",
-                Position::Pos2 => "⚡ Mid",
-                Position::Pos3 => "⚡ Offlane",
-                Position::Pos4 => "⚡ Support",
-                Position::Pos5 => "⚡ Hard Support",
+                Position::Pos1 => "Carry",
+                Position::Pos2 => "Mid",
+                Position::Pos3 => "Offlane",
+                Position::Pos4 => "Support",
+                Position::Pos5 => "Hard Support",
             }
         }
     }
@@ -102,8 +102,8 @@ mod tests {
     #[test]
     fn snapshot_serde_roundtrips_and_labels() {
         assert_eq!(Position::all().len(), 5);
-        assert_eq!(Position::Pos1.config_name("named"), "⚡ Carry");
-        assert_eq!(Position::Pos1.config_name("pos"), "⚡ POS 1");
+        assert_eq!(Position::Pos1.config_name("named"), "Carry");
+        assert_eq!(Position::Pos1.config_name("pos"), "POS 1");
         let snap = MetaSnapshot {
             patch: "7.41e".into(), fetched_at: "2026-08-26T10:00:00Z".into(),
             source: "d2pt".into(),

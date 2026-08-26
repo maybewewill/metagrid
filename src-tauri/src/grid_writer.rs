@@ -19,7 +19,41 @@ pub enum GridError {
 
 pub fn is_metagrid_config(name: &str) -> bool {
     let n = name.trim();
-    n == "MetaGrid" || n.starts_with("MetaGrid") || n.starts_with('⚡') || n.starts_with("⚡ ")
+    n == "MetaGrid"
+        || n.starts_with("MetaGrid")
+        || n.starts_with('⚡')
+        || n.starts_with("⚡ ")
+        || matches!(
+            n.to_ascii_uppercase().as_str(),
+            "CARRY"
+                | "MID"
+                | "OFFLANE"
+                | "SUPPORT"
+                | "HARD SUPPORT"
+                | "POS 1"
+                | "POS 2"
+                | "POS 3"
+                | "POS 4"
+                | "POS 5"
+                | "POS1"
+                | "POS2"
+                | "POS3"
+                | "POS4"
+                | "POS5"
+        )
+        || matches!(
+            n,
+            "Керри"
+                | "Мид"
+                | "Оффлейн"
+                | "Саппорт"
+                | "Хард Саппорт"
+                | "ПОЗ 1"
+                | "ПОЗ 2"
+                | "ПОЗ 3"
+                | "ПОЗ 4"
+                | "ПОЗ 5"
+        )
 }
 
 pub fn upsert_configs(existing_json: &str, our_grids: &[GridConfig]) -> Result<String, GridError> {
@@ -256,14 +290,14 @@ mod tests {
     }
 
     #[test]
-    fn upsert_configs_preserves_user_configs_named_after_roles() {
+    fn upsert_configs_preserves_foreign_and_replaces_our_grids() {
         let existing = r#"{"version":3,"configs":[
             {"config_name":"Main Layout","categories":[]},
-            {"config_name":"Carry","categories":[]},
-            {"config_name":"⚡ Old Carry","categories":[]}
+            {"config_name":"My Custom","categories":[]},
+            {"config_name":"⚡ Old Grid","categories":[]}
         ]}"#;
 
-        let named_grids: Vec<GridConfig> = ["⚡ Carry", "⚡ Mid", "⚡ Offlane", "⚡ Support", "⚡ Hard Support"]
+        let named_grids: Vec<GridConfig> = ["Carry", "Mid", "Offlane", "Support", "Hard Support"]
             .iter()
             .map(|&name| GridConfig {
                 config_name: name.to_string(),
@@ -281,9 +315,9 @@ mod tests {
             .map(|c| c["config_name"].as_str().unwrap().to_string())
             .collect();
         assert!(names.contains(&"Main Layout".to_string()));
-        assert!(names.contains(&"Carry".to_string()));
-        assert!(!names.contains(&"⚡ Old Carry".to_string()));
-        for name in &["⚡ Carry", "⚡ Mid", "⚡ Offlane", "⚡ Support", "⚡ Hard Support"] {
+        assert!(names.contains(&"My Custom".to_string()));
+        assert!(!names.contains(&"⚡ Old Grid".to_string()));
+        for name in &["Carry", "Mid", "Offlane", "Support", "Hard Support"] {
             assert!(names.contains(&name.to_string()));
         }
 
