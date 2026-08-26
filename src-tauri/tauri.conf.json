@@ -27,7 +27,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; img-src 'self' https://cdn.cloudflare.steamstatic.com data:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; script-src 'self'"
+      "csp": "default-src 'self'; img-src 'self' https://dota2protracker.com data:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; script-src 'self'"
     }
   },
   "bundle": {

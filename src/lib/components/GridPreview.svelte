@@ -4,7 +4,7 @@
   import { store } from "$lib/store.svelte";
   import RoleIcon from "$lib/components/RoleIcon.svelte";
   import type { RoleMeta } from "$lib/types";
-  import { getHeroPortraitUrl, getFallbackPortraitUrl } from "$lib/utils";
+  import { getHeroPortraitUrl } from "$lib/utils";
 
   let { roles }: { roles: RoleMeta[] } = $props();
 
@@ -32,11 +32,9 @@
     return $_(`role_upper.${r.position.toLowerCase()}`);
   }
 
-  function handleImgError(e: Event, slug: string) {
+  function handleImgError(e: Event) {
     const target = e.currentTarget as HTMLImageElement;
-    if (!target.src.includes("steamstatic")) {
-      target.src = getFallbackPortraitUrl(slug);
-    }
+    target.style.visibility = "hidden";
   }
 </script>
 
@@ -88,7 +86,7 @@
                   alt={h.name}
                   loading="lazy"
                   class="size-full object-cover object-top opacity-95 transition-opacity group-hover:opacity-100"
-                  onerror={(e) => handleImgError(e, h.slug)}
+                  onerror={handleImgError}
                 />
               </div>
             </div>
@@ -125,7 +123,7 @@
                     alt={h.name}
                     loading="lazy"
                     class="size-full object-cover object-top opacity-95 transition-opacity group-hover:opacity-100"
-                    onerror={(e) => handleImgError(e, h.slug)}
+                    onerror={handleImgError}
                   />
                 </div>
               </div>
