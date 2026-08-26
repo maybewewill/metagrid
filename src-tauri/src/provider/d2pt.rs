@@ -6,7 +6,7 @@ use crate::model::{HeroMeta, MetaSnapshot, Position, RoleMeta};
 use crate::provider::{MetaProvider, ProviderError};
 
 const D2PT_URL: &str = "https://dota2protracker.com/";
-const D2PT_META_URL: &str = "https://dota2protracker.com/meta?position=pos%20";
+const D2PT_META_URL: &str = "https://dota2protracker.com/meta?mmr=7000&period=8&position=pos%2B";
 const USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 const ACCEPT: &str =
     "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8";
@@ -44,29 +44,23 @@ impl D2ptProvider {
             .arg(format!("Accept-Language: {ACCEPT_LANGUAGE}"))
             .arg(url);
 
-        // Suppress the console window curl.exe would otherwise flash on every
-        // fetch: CREATE_NO_WINDOW (0x0800_0000).
-        #[cfg(windows)]
-        cmd.creation_flags(0x0800_0000);
+        #[cfg(target_os = "windows")]
+        {
+            // CREATE_NO_WINDOW = 0x0800_0000 ensures no visible cmd window flashes.
+            cmd.creation_flags(0x0800_0000);
+        }
 
-        let output = cmd
-            .output()
-            .await
-            .map_err(|e| {
-                tracing::warn!(
-                    error = %e,
-                    "d2pt: Windows curl.exe not found (need Win10 1803+)"
-                );
-                ProviderError::Blocked
-            })?;
+        let output = cmd.output().await.map_err(|e| {
+            tracing::warn!(error = %e, "d2pt: curl execution failed");
+            ProviderError::Blocked
+        })?;
 
         if !output.status.success() {
-            tracing::warn!(status = ?output.status, "d2pt: curl.exe exited non-zero");
+            tracing::warn!(code = ?output.status.code(), "d2pt: curl exited non-zero");
             return Err(ProviderError::Blocked);
         }
 
-        let body = String::from_utf8_lossy(&output.stdout).into_owned();
-
+        let body = String::from_utf8_lossy(&output.stdout).to_string();
         if body.is_empty() || body.contains("Just a moment") {
             tracing::warn!("d2pt: response looked blocked (empty or Cloudflare challenge)");
             return Err(ProviderError::Blocked);
@@ -85,7 +79,7 @@ impl D2ptProvider {
         Ok(body)
     }
 
-    /// Fetch raw payload for a specific role position from `/meta?position=pos {p}`.
+    /// Fetch raw payload for a specific role position from `/meta?mmr=7000&period=8&position=pos+{p}`.
     pub async fn fetch_pos_raw(&self, pos: u8) -> Result<String, ProviderError> {
         let url = format!("{D2PT_META_URL}{pos}");
         self.run_curl(&url).await
@@ -140,7 +134,7 @@ impl MetaProvider for D2ptProvider {
         match self.fetch_meta_all(map, top_n).await {
             Ok(snap) => Ok(snap),
             Err(e) => {
-                tracing::warn!(error = %e, "d2pt: /meta fetch failed, falling back to homepage");
+                tracing::warn!(error = %e, "d2pt: /meta multi-fetch failed, falling back to homepage");
                 let raw = self.fetch_raw().await?;
                 parse_meta(&raw, map, top_n)
             }
@@ -253,6 +247,22 @@ pub fn parse_pos_meta(
     map: &HeroMap,
     top_n: usize,
 ) -> Result<RoleMeta, ProviderError> {
+    // 1. Extract Top Heroes from the HTML Top Heroes container
+    let mut top_hero_names = Vec::new();
+    if let Some(top_idx) = raw.find("Top Heroes") {
+        let slice_len = std::cmp::min(6000, raw.len() - top_idx);
+        let top_slice = &raw[top_idx..top_idx + slice_len];
+        if let Ok(card_re) = Regex::new(r#"<a\s+href="/hero/([^"]+)""#) {
+            for cap in card_re.captures_iter(top_slice) {
+                if top_hero_names.len() >= 7 {
+                    break;
+                }
+                let decoded = urlencoding::decode(&cap[1]).unwrap_or_default().to_string();
+                top_hero_names.push(decoded);
+            }
+        }
+    }
+
     let hero_re = Regex::new(
         r#"\{hero_id:(\d+),hero_name:"([^"]+)",npc:"([^"]+)",position:"([^"]+)"[\s\S]*?matches:(\d+),wins:(\d+),win_rate:(\.?\d+(?:\.\d+)?)[\s\S]*?d2pt_rating:(\d+)"#,
     )
@@ -311,6 +321,10 @@ pub fn parse_pos_meta(
             } else {
                 0.0
             };
+            let is_top = top_hero_names.iter().any(|top_name| {
+                top_name.eq_ignore_ascii_case(&h.hero_name)
+                    || top_name.eq_ignore_ascii_case(&slug)
+            });
             HeroMeta {
                 hero_id: h.hero_id,
                 name: h.hero_name,
@@ -319,6 +333,7 @@ pub fn parse_pos_meta(
                 pickrate,
                 matches: h.matches,
                 d2pt_rating: h.d2pt_rating,
+                is_top,
             }
         })
         .collect();
@@ -417,6 +432,7 @@ pub fn parse_meta(raw: &str, map: &HeroMap, top_n: usize) -> Result<MetaSnapshot
                     pickrate,
                     matches: h.matches,
                     d2pt_rating: 0,
+                    is_top: false,
                 }
             })
             .collect();

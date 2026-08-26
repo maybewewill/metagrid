@@ -77,6 +77,8 @@ pub struct HeroMeta {
     pub matches: u32,
     #[serde(default)]
     pub d2pt_rating: u32,
+    #[serde(default)]
+    pub is_top: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -105,7 +107,7 @@ mod tests {
             patch: "7.41e".into(), fetched_at: "2026-08-26T10:00:00Z".into(),
             source: "d2pt".into(),
             roles: vec![RoleMeta { position: Position::Pos1, role_winrate: 0.52,
-                heroes: vec![HeroMeta{hero_id:1,name:"Anti-Mage".into(),slug:"antimage".into(),winrate:0.53,pickrate:0.12,matches:900,d2pt_rating:3000}] }],
+                heroes: vec![HeroMeta{hero_id:1,name:"Anti-Mage".into(),slug:"antimage".into(),winrate:0.53,pickrate:0.12,matches:900,d2pt_rating:3000,is_top:false}] }],
         };
         let json = serde_json::to_string(&snap).unwrap();
         let back: MetaSnapshot = serde_json::from_str(&json).unwrap();

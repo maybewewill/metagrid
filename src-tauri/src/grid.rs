@@ -96,30 +96,32 @@ pub fn build_grid(snap: &MetaSnapshot, opts: &GridOptions) -> GridConfig {
 }
 
 /// Per-role layout mode: produces one `GridConfig` per role — `"Carry"`, `"Mid"`, `"Offlane"`,
-/// `"Support"`, `"Hard Support"` — each containing two categories:
-/// 1. "TOP {ROLE} HEROES - ORDERED BY D2PT ELO" (top rating heroes)
-/// 2. "OTHER {ROLE} HEROES - ORDERED BY PICK RATE" (remaining heroes)
+/// `"Support"`, `"Hard Support"` — each containing individual category boxes for each hero
+/// with their Winrate % and Pickrate % formatted as the category title so numbers appear
+/// directly above each portrait in Dota 2.
 pub fn build_grid_multi(snap: &MetaSnapshot) -> Vec<GridConfig> {
     snap.roles
         .iter()
         .map(|role| {
             let role_upper = role.position.role_upper();
             
-            // Top heroes sorted by d2pt_rating desc (or winrate if rating is 0)
-            let mut by_rating = role.heroes.clone();
-            by_rating.sort_by(|a, b| {
-                if b.d2pt_rating != a.d2pt_rating {
-                    b.d2pt_rating.cmp(&a.d2pt_rating)
-                } else {
-                    b.winrate.partial_cmp(&a.winrate).unwrap_or(std::cmp::Ordering::Equal)
-                }
-            });
+            // Separate top heroes and other heroes
+            let mut top_heroes: Vec<_> = role.heroes.iter().filter(|h| h.is_top).cloned().collect();
+            if top_heroes.is_empty() {
+                // Fallback: top 7 by d2pt_rating or winrate
+                let mut sorted = role.heroes.clone();
+                sorted.sort_by(|a, b| {
+                    if b.d2pt_rating != a.d2pt_rating {
+                        b.d2pt_rating.cmp(&a.d2pt_rating)
+                    } else {
+                        b.winrate.partial_cmp(&a.winrate).unwrap_or(std::cmp::Ordering::Equal)
+                    }
+                });
+                top_heroes = sorted.into_iter().take(7).collect();
+            }
 
-            let top_count = std::cmp::min(7, by_rating.len());
-            let top_heroes = &by_rating[..top_count];
             let top_ids: std::collections::HashSet<u32> = top_heroes.iter().map(|h| h.hero_id).collect();
 
-            // Other heroes sorted by pickrate/matches desc
             let mut other_heroes: Vec<_> = role
                 .heroes
                 .iter()
@@ -132,27 +134,65 @@ pub fn build_grid_multi(snap: &MetaSnapshot) -> Vec<GridConfig> {
                     .unwrap_or(std::cmp::Ordering::Equal)
             });
 
-            let cat_top = Category {
+            let mut categories = Vec::new();
+
+            // Header 1: TOP HEROES
+            categories.push(Category {
                 category_name: format!("TOP {role_upper} HEROES - ORDERED BY D2PT ELO"),
                 x_position: 0.0,
                 y_position: 0.0,
                 width: 1100.0,
-                height: 160.0,
-                hero_ids: top_heroes.iter().map(|h| h.hero_id).collect(),
-            };
+                height: 0.0,
+                hero_ids: vec![],
+            });
 
-            let cat_other = Category {
+            let card_w = 68.0;
+            let card_h = 110.0;
+            let gap_x = 12.0;
+            let gap_y = 24.0;
+            let heroes_per_row = 14;
+
+            // Top heroes boxes in a single row
+            for (idx, h) in top_heroes.iter().enumerate() {
+                categories.push(Category {
+                    category_name: format!("{:.2}%\n{:.2}%", h.winrate * 100.0, h.pickrate * 100.0),
+                    x_position: (idx as f64) * (card_w + gap_x),
+                    y_position: 30.0,
+                    width: card_w,
+                    height: card_h,
+                    hero_ids: vec![h.hero_id],
+                });
+            }
+
+            // Header 2: OTHER HEROES
+            let other_header_y = 30.0 + card_h + 35.0; // 175.0
+            categories.push(Category {
                 category_name: format!("OTHER {role_upper} HEROES - ORDERED BY PICK RATE"),
                 x_position: 0.0,
-                y_position: 190.0,
+                y_position: other_header_y,
                 width: 1100.0,
-                height: 380.0,
-                hero_ids: other_heroes.iter().map(|h| h.hero_id).collect(),
-            };
+                height: 0.0,
+                hero_ids: vec![],
+            });
+
+            // Other heroes boxes in rows of 14
+            let other_heroes_start_y = other_header_y + 30.0;
+            for (idx, h) in other_heroes.iter().enumerate() {
+                let col = idx % heroes_per_row;
+                let row = idx / heroes_per_row;
+                categories.push(Category {
+                    category_name: format!("{:.2}%\n{:.2}%", h.winrate * 100.0, h.pickrate * 100.0),
+                    x_position: (col as f64) * (card_w + gap_x),
+                    y_position: other_heroes_start_y + (row as f64) * (card_h + gap_y),
+                    width: card_w,
+                    height: card_h,
+                    hero_ids: vec![h.hero_id],
+                });
+            }
 
             GridConfig {
                 config_name: role.position.config_name().to_string(),
-                categories: vec![cat_top, cat_other],
+                categories,
             }
         })
         .collect()
@@ -181,6 +221,7 @@ mod tests {
                             pickrate: 0.10,
                             matches: 100,
                             d2pt_rating: 3200,
+                            is_top: true,
                         },
                         HeroMeta {
                             hero_id: 20,
@@ -190,6 +231,7 @@ mod tests {
                             pickrate: 0.30,
                             matches: 300,
                             d2pt_rating: 2900,
+                            is_top: false,
                         },
                     ],
                 })
@@ -229,9 +271,9 @@ mod tests {
         assert!(cfgs.iter().any(|c| c.config_name == "Support"));
         assert!(cfgs.iter().any(|c| c.config_name == "Hard Support"));
         for c in &cfgs {
-            assert_eq!(c.categories.len(), 2);
+            assert!(c.categories.len() >= 2);
             assert!(c.categories[0].category_name.contains("TOP"));
-            assert!(c.categories[1].category_name.contains("OTHER"));
+            assert!(c.categories.iter().any(|cat| cat.category_name.contains("OTHER")));
         }
     }
 }

@@ -152,6 +152,7 @@ mod tests {
                             pickrate: 0.20,
                             matches: 100,
                             d2pt_rating: 3200,
+                            is_top: true,
                         },
                         HeroMeta {
                             hero_id: (i as u32) * 10 + 2,
@@ -161,6 +162,7 @@ mod tests {
                             pickrate: 0.10,
                             matches: 50,
                             d2pt_rating: 2900,
+                            is_top: false,
                         },
                     ],
                 })
