@@ -1,0 +1,51 @@
+{
+  "app": {
+    "name": "MetaGrid",
+    "play": "Play"
+  },
+  "status": {
+    "fresh": "Fresh",
+    "stale": "Stale",
+    "error": "Error",
+    "refreshing": "Refreshing",
+    "updated": "Updated {time}",
+    "refresh": "Refresh"
+  },
+  "role": {
+    "pos1": "POS 1 — Carry",
+    "pos2": "POS 2 — Mid",
+    "pos3": "POS 3 — Offlane",
+    "pos4": "POS 4 — Soft Support",
+    "pos5": "POS 5 — Hard Support"
+  },
+  "settings": {
+    "title": "Settings",
+    "heroes_per_role": "Heroes per role",
+    "sort": "Sort",
+    "pickrate": "Pick rate",
+    "winrate": "Win rate",
+    "interval": "Refresh interval",
+    "account": "Account",
+    "all_accounts": "All accounts",
+    "autostart": "Start with Windows",
+    "layout": "Layout",
+    "language": "Language",
+    "save": "Save",
+    "back": "Back"
+  },
+  "onboarding": {
+    "welcome": "Welcome to MetaGrid",
+    "pick_account": "Pick an account",
+    "fetch": "Fetching data",
+    "finish": "Finish",
+    "no_accounts": "No accounts found"
+  },
+  "toast": {
+    "updated": "Data updated",
+    "error": "Something went wrong"
+  },
+  "empty": {
+    "title": "Nothing here yet",
+    "cta": "Get started"
+  }
+}
