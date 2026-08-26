@@ -1,4 +1,4 @@
-﻿<div align="center">
+<div align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset=".github/logo-dark.svg">
     <source media="(prefers-color-scheme: light)" srcset=".github/logo-light.svg">
@@ -33,15 +33,22 @@
 
 ## Overview
 
-MetaGrid is a Windows desktop application and background tray utility for Dota 2 players. It fetches meta data directly from [dota2protracker.com](https://dota2protracker.com) (7000+ MMR matches) and generates up-to-date in-game hero grids for all 5 positions (Carry, Mid, Offlane, Support, Hard Support).
+MetaGrid is an automated Windows desktop app and background tray utility for Dota 2. It pulls live high-MMR meta statistics directly from [dota2protracker.com](https://dota2protracker.com) and keeps your in-game hero grids updated for all 5 roles (Carry, Mid, Offlane, Support, Hard Support).
 
-Grids are written directly to Dota's `hero_grid_config.json`. Existing user-created grids are preserved without modifications, and automatic backups are created before changes are written.
+**Set and forget**: MetaGrid runs silently in the Windows system tray and does all the work for you. It monitors when Dota 2 starts and automatically writes fresh meta grids to your local Steam configuration without requiring manual interaction.
+
+Grids are written directly to Dota's `hero_grid_config.json`. Existing user-created custom grids are safely preserved, and automatic backups are created on every write.
 
 ---
 
 ## Screenshots
 
 <div align="center">
+
+### In-Game Dota 2 Grid
+<img src="docs/images/in-game-grid.png" alt="MetaGrid In-Game Dota 2 Grid" width="850" />
+
+<br/><br/>
 
 ### Meta Dashboard (List View)
 <img src="docs/images/dashboard.png" alt="MetaGrid Dashboard List View" width="850" />
@@ -62,9 +69,10 @@ Grids are written directly to Dota's `hero_grid_config.json`. Existing user-crea
 
 ## Features
 
+- **Automated Background Sync**: Runs silently in the system tray, updating hero grids on your chosen interval.
+- **Process Watcher**: Automatically detects when `dota2.exe` launches and patches the meta before the match starts.
 - **Live Meta Fetching**: Parses current patch meta from Dota2ProTracker with winrate, pickrate, and D2PT ratings.
-- **In-Game Grid Sync**: Generates 5-column and per-role grids formatted for the Dota 2 picking phase layout.
-- **Process Watcher**: Detects when `dota2.exe` starts and automatically refreshes grid files.
+- **In-Game Grid Sync**: Generates clean, per-role layouts formatted to match Dota 2's picking phase grid geometry.
 - **Multi-Account Discovery**: Detects all local Steam user directories under `Steam/userdata/<id>/570/remote/cfg/`.
 - **Atomic File Operations**: Safe writing mechanism using temporary files with `.metagrid.bak` fallback.
 - **Fullscreen Adaptive Scaling**: Clean proportional UI scaling for high-resolution displays.
@@ -106,7 +114,7 @@ Grid configuration path:
 | Setting | Options | Description |
 | :--- | :--- | :--- |
 | **Role Labels** | `Named` / `POS 1-5` | Toggle role naming convention across the UI and in-game grid tabs. |
-| **Refresh Interval** | `1h`, `3h`, `6h`, `12h`, `24h` | Background scheduler sync interval. |
+| **Refresh Interval** | `30m`, `1h`, `3h`, `6h`, `12h`, `24h` | Background scheduler sync interval. |
 | **Steam Account** | `All accounts` or specific Steam ID | Target account selection. |
 | **Start with Windows** | `Enabled` / `Disabled` | Launch minimized on system startup. |
 | **Language** | `English` / `Russian` | UI language and grid category names. |

@@ -12,7 +12,14 @@
   import { ArrowLeft, Check } from "@lucide/svelte";
   import type { Settings as SettingsShape } from "$lib/types";
 
-  const intervalOptions = [1, 3, 6, 12, 24];
+  const intervalOptions = [
+    { value: 0.5, label: () => $_("settings.interval_30m") },
+    { value: 1, label: () => $_("settings.interval_hours", { values: { n: 1 } }) },
+    { value: 3, label: () => $_("settings.interval_hours", { values: { n: 3 } }) },
+    { value: 6, label: () => $_("settings.interval_hours", { values: { n: 6 } }) },
+    { value: 12, label: () => $_("settings.interval_hours", { values: { n: 12 } }) },
+    { value: 24, label: () => $_("settings.interval_hours", { values: { n: 24 } }) },
+  ];
 
   const DEFAULTS: SettingsShape = {
     top_n: 10,
@@ -125,10 +132,14 @@
           value={String(local.interval_hours)}
           onValueChange={(v) => (local.interval_hours = Number(v))}
         >
-          <SelectTrigger class="w-32 rounded-sm text-xs">{$_("settings.interval_hours", { values: { n: local.interval_hours } })}</SelectTrigger>
+          <SelectTrigger class="w-32 rounded-sm text-xs">
+            {local.interval_hours === 0.5
+              ? $_("settings.interval_30m")
+              : $_("settings.interval_hours", { values: { n: local.interval_hours } })}
+          </SelectTrigger>
           <SelectContent class="rounded-sm">
-            {#each intervalOptions as h (h)}
-              <SelectItem value={String(h)} class="rounded-sm text-xs">{$_("settings.interval_hours", { values: { n: h } })}</SelectItem>
+            {#each intervalOptions as opt (opt.value)}
+              <SelectItem value={String(opt.value)} class="rounded-sm text-xs">{opt.label()}</SelectItem>
             {/each}
           </SelectContent>
         </Select>

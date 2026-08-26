@@ -80,7 +80,7 @@ pub fn trigger(app: &AppHandle) -> tauri::Result<()> {
     Ok(())
 }
 
-const MIN_INTERVAL_HOURS: u64 = 1;
+const MIN_INTERVAL_SECS: u64 = 60 * 30; // 30 minutes floor
 const DEBOUNCE_FLOOR: Duration = Duration::from_secs(30);
 
 pub fn spawn(app: AppHandle) {
@@ -91,9 +91,9 @@ pub fn spawn(app: AppHandle) {
             let interval_hours = app
                 .state::<Shared>()
                 .get_settings()
-                .interval_hours
-                .max(MIN_INTERVAL_HOURS);
-            let dur = Duration::from_secs(interval_hours * 3600);
+                .interval_hours;
+            let interval_secs = ((interval_hours * 3600.0).round() as u64).max(MIN_INTERVAL_SECS);
+            let dur = Duration::from_secs(interval_secs);
             let notify = app.state::<Trigger>().0.clone();
 
             tokio::select! {

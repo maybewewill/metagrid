@@ -24,6 +24,7 @@ describe("RoleColumn", () => {
   it("renders the role and all heroes", () => {
     render(RoleColumn, { role });
     expect(screen.getByText("Carry")).toBeInTheDocument();
-    expect(screen.getAllByRole("img").length).toBe(2);
+    expect(screen.getByAltText("POS 1")).toBeInTheDocument();
+    expect(screen.getAllByRole("img").length).toBe(3);
   });
 });

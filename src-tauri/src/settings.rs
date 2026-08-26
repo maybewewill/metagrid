@@ -12,7 +12,7 @@ fn default_role_labels() -> String {
 pub struct Settings {
     pub top_n: usize,
     pub sort: SortMetric,
-    pub interval_hours: u64,
+    pub interval_hours: f64,
     pub account_id: Option<String>,
     pub autostart: bool,
     pub layout_columns: bool,
@@ -27,7 +27,7 @@ impl Default for Settings {
         Settings {
             top_n: 10,
             sort: SortMetric::Pickrate,
-            interval_hours: 6,
+            interval_hours: 6.0,
             account_id: None,
             autostart: true,
             layout_columns: false,
@@ -65,7 +65,7 @@ mod tests {
         assert_eq!(load_from(tmp.path()), Settings::default());
         let s = Settings {
             top_n: 7,
-            interval_hours: 3,
+            interval_hours: 3.0,
             ..Default::default()
         };
         save_to(tmp.path(), &s).unwrap();
