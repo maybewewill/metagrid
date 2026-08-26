@@ -59,7 +59,7 @@ pub fn build_grid(snap: &MetaSnapshot, opts: &GridOptions) -> GridConfig {
             Category {
                 category_name: format!(
                     "{} (WR {}%)",
-                    role.position.label(),
+                    role.position.label("en"),
                     (role.role_winrate * 100.0).round() as i32
                 ),
                 x_position,

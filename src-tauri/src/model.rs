@@ -10,13 +10,23 @@ pub enum Position {
 }
 
 impl Position {
-    pub fn label(&self) -> &'static str {
-        match self {
-            Position::Pos1 => "POS 1 — Carry",
-            Position::Pos2 => "POS 2 — Mid",
-            Position::Pos3 => "POS 3 — Offlane",
-            Position::Pos4 => "POS 4 — Soft Support",
-            Position::Pos5 => "POS 5 — Hard Support",
+    pub fn label(&self, lang: &str) -> &'static str {
+        if lang == "ru" {
+            match self {
+                Position::Pos1 => "ПОЗ 1 — Керри",
+                Position::Pos2 => "ПОЗ 2 — Мид",
+                Position::Pos3 => "ПОЗ 3 — Оффлейн",
+                Position::Pos4 => "ПОЗ 4 — Саппорт 4",
+                Position::Pos5 => "ПОЗ 5 — Саппорт 5",
+            }
+        } else {
+            match self {
+                Position::Pos1 => "POS 1 — Carry",
+                Position::Pos2 => "POS 2 — Mid",
+                Position::Pos3 => "POS 3 — Offlane",
+                Position::Pos4 => "POS 4 — Soft Support",
+                Position::Pos5 => "POS 5 — Hard Support",
+            }
         }
     }
 
@@ -67,7 +77,7 @@ mod tests {
     use super::*;
     #[test]
     fn snapshot_serde_roundtrips_and_labels() {
-        assert_eq!(Position::Pos1.label(), "POS 1 — Carry");
+        assert_eq!(Position::Pos1.label("en"), "POS 1 — Carry");
         assert_eq!(Position::all().len(), 5);
         let snap = MetaSnapshot {
             patch: "7.41e".into(), fetched_at: "2026-08-26T10:00:00Z".into(),

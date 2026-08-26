@@ -250,7 +250,7 @@ mod tests {
             let top3: Vec<&str> = role.heroes.iter().take(3).map(|h| h.name.as_str()).collect();
             println!(
                 "{:<24} heroes={:<3} top3={:?}",
-                role.position.label(),
+                role.position.label("en"),
                 role.heroes.len(),
                 top3
             );

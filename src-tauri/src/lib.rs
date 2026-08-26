@@ -4,6 +4,7 @@ mod hero_map;
 mod model;
 mod pipeline;
 mod provider;
+mod settings;
 mod steam;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
