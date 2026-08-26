@@ -1,6 +1,7 @@
 import { addMessages, init, locale, getLocaleFromNavigator } from "svelte-i18n";
 import en from "./messages/en.json";
 import ru from "./messages/ru.json";
+import { store } from "$lib/store.svelte";
 
 export type Lang = "en" | "ru";
 
@@ -24,7 +25,12 @@ export function setupI18n(initialLocale: Lang = getInitialLang()) {
   });
 }
 
-export function setLanguage(l: Lang) {
+export async function setLanguage(l: Lang) {
   locale.set(l);
-  // TODO: persist via store (task 4.4)
+  // Persist the choice. Guarded: store.saveSettings() is a no-op until
+  // store.init() has loaded settings, so this is safe to call before
+  // (or without) the store ever being initialized (e.g. in tests).
+  if (store.settings) {
+    await store.saveSettings({ lang: l });
+  }
 }
