@@ -3,7 +3,8 @@ import { describe, it, expect, vi } from "vitest";
 vi.mock("@tauri-apps/api/core", () => ({ convertFileSrc: (p: string) => p }));
 vi.mock("motion", () => ({ animate: vi.fn() }));
 import RoleColumn from "$lib/components/RoleColumn.svelte";
-const role = {
+import type { RoleMeta } from "$lib/types";
+const role: RoleMeta = {
   position: "Pos1",
   role_winrate: 0.52,
   heroes: [
