@@ -20,6 +20,7 @@
     "autostart:allow-disable",
     "autostart:allow-is-enabled",
     "notification:default",
+    "opener:default",
     "mcp-bridge:default"
   ]
 }

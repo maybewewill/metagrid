@@ -78,3 +78,8 @@ pub fn set_autostart(
 pub fn get_portrait_dir(data: State<DataDir>) -> String {
     data.0.join("portraits").to_string_lossy().into_owned()
 }
+
+#[tauri::command]
+pub async fn check_update() -> Result<crate::updater::UpdateInfo, String> {
+    crate::updater::check_for_updates().await
+}

@@ -9,8 +9,9 @@
   import { Switch } from "$lib/components/ui/switch";
   import { Button } from "$lib/components/ui/button";
   import { Separator } from "$lib/components/ui/separator";
-  import { ArrowLeft, Check } from "@lucide/svelte";
-  import type { Settings as SettingsShape } from "$lib/types";
+  import { ArrowLeft, Check, RefreshCw, Download, Sparkles } from "@lucide/svelte";
+  import { openUrl } from "@tauri-apps/plugin-opener";
+  import type { Settings as SettingsShape, UpdateInfo } from "$lib/types";
 
   const intervalOptions = [
     { value: 0.5, label: () => $_("settings.interval_30m") },
@@ -35,6 +36,8 @@
 
   let local = $state<SettingsShape>({ ...DEFAULTS, ...(store.settings ?? {}) });
   let saving = $state(false);
+  let checkingUpdate = $state(false);
+  let updateInfo = $state<UpdateInfo | null>(null);
 
   const accountLabel = $derived(local.account_id ?? $_("settings.all_accounts"));
 
@@ -59,6 +62,29 @@
   function onLanguageChange(l: string) {
     local.lang = l as Lang;
     setLanguage(l as Lang);
+  }
+
+  async function checkUpdates() {
+    checkingUpdate = true;
+    try {
+      const info = await ipc.checkUpdate();
+      updateInfo = info;
+      if (!info.available) {
+        toast.success($_("settings.up_to_date"));
+      } else {
+        toast.info($_("settings.update_available", { values: { version: info.latest_version } }));
+      }
+    } catch (err) {
+      toast.error(String(err));
+    } finally {
+      checkingUpdate = false;
+    }
+  }
+
+  async function openUpdateLink() {
+    if (updateInfo?.download_url || updateInfo?.release_url) {
+      await openUrl(updateInfo.download_url || updateInfo.release_url);
+    }
   }
 </script>
 
@@ -182,6 +208,46 @@
             RU
           </button>
         </div>
+      </div>
+      <Separator />
+
+      <div class="flex flex-col gap-3 py-3.5">
+        <div class="flex items-center justify-between gap-4">
+          <div class="flex min-w-0 flex-col">
+            <span class="text-sm font-semibold">{$_("settings.updates")}</span>
+            <span class="text-xs text-muted-foreground">
+              {updateInfo?.current_version ?? "v0.1.1"}
+            </span>
+          </div>
+
+          <Button
+            variant="outline"
+            size="sm"
+            class="gap-1.5 rounded-sm text-xs"
+            disabled={checkingUpdate}
+            onclick={checkUpdates}
+          >
+            <RefreshCw size={13} class={checkingUpdate ? "animate-spin" : ""} />
+            <span>{checkingUpdate ? $_("settings.checking_updates") : $_("settings.check_updates")}</span>
+          </Button>
+        </div>
+
+        {#if updateInfo?.available}
+          <div class="flex items-center justify-between gap-3 rounded-sm border border-emerald-500/30 bg-emerald-950/20 p-3 text-xs text-emerald-300">
+            <div class="flex items-center gap-2">
+              <Sparkles size={16} class="shrink-0 text-emerald-400" />
+              <span>{$_("settings.update_available", { values: { version: updateInfo.latest_version } })}</span>
+            </div>
+            <Button
+              size="sm"
+              class="gap-1.5 rounded-sm bg-emerald-500 text-zinc-950 font-bold hover:bg-emerald-400 text-xs"
+              onclick={openUpdateLink}
+            >
+              <Download size={13} />
+              <span>{$_("settings.download_update")}</span>
+            </Button>
+          </div>
+        {/if}
       </div>
     </div>
   </div>

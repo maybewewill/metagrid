@@ -45,6 +45,10 @@ export function getPortraitDir(): Promise<string> {
   return invoke("get_portrait_dir");
 }
 
+export function checkUpdate(): Promise<import("$lib/types").UpdateInfo> {
+  return invoke("check_update");
+}
+
 export function onRefreshDone(cb: (payload: MetaSnapshot) => void): Promise<UnlistenFn> {
   return listen<MetaSnapshot>(EVENTS.REFRESH_DONE, (e) => cb(e.payload));
 }

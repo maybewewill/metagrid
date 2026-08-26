@@ -13,6 +13,7 @@ mod settings;
 mod state;
 mod steam;
 mod tray;
+mod updater;
 
 use tauri::Manager;
 use tauri_plugin_autostart::ManagerExt;
@@ -43,7 +44,8 @@ pub fn run() {
             commands::refresh_now,
             commands::get_autostart,
             commands::set_autostart,
-            commands::get_portrait_dir
+            commands::get_portrait_dir,
+            commands::check_update
         ])
         .setup(|app| {
             let data = app.path().app_data_dir()?;

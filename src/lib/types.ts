@@ -51,6 +51,15 @@ export type Status =
   | { kind: "Stale" }
   | { kind: "Error"; detail: string };
 
+export interface UpdateInfo {
+  available: boolean;
+  current_version: string;
+  latest_version: string;
+  release_url: string;
+  release_notes?: string;
+  download_url?: string;
+}
+
 export function isMetaSnapshot(x: unknown): x is MetaSnapshot {
   if (typeof x !== "object" || x === null) return false;
   const s = x as Record<string, unknown>;
