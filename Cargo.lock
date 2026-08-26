@@ -2247,7 +2247,7 @@ dependencies = [
 
 [[package]]
 name = "metagrid"
-version = "0.1.1"
+version = "1.0.1"
 dependencies = [
  "anyhow",
  "async-trait",

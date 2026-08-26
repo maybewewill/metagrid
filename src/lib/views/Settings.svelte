@@ -281,7 +281,7 @@
           <div class="flex min-w-0 flex-col">
             <span class="text-sm font-semibold">{$_("settings.updates")}</span>
             <span class="text-xs text-muted-foreground">
-              {updateInfo?.current_version ?? "v0.1.1"}
+              {updateInfo?.current_version ?? "v1.0.1"}
             </span>
           </div>
 

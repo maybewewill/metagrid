@@ -52,22 +52,31 @@ Grids are written directly to Dota's `hero_grid_config.json`. Existing user-crea
 
 <div align="center">
 
-### Meta Dashboard (List View)
+### Meta Dashboard
 <img src="docs/images/dashboard.png" alt="MetaGrid Dashboard List View" width="850" />
 
 <br/><br/>
 
-### In-Game Grid Preview
-<img src="docs/images/grid-preview.png" alt="MetaGrid In-Game Grid Preview" width="850" />
+### In-Game Hero Grid Modes (Separate vs Merged)
+
+<table>
+  <tr>
+    <th width="50%" align="center"><b>Separate Mode</b><br/><sub>5 Standalone Role Layouts</sub></th>
+    <th width="50%" align="center"><b>Merge Mode</b><br/><sub>Live META Injected into Custom Grid</sub></th>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="docs/images/in-game-grid.png" alt="Separate Mode Grid" width="100%" />
+    </td>
+    <td align="center">
+      <img src="docs/images/in-game-merge-grid.png" alt="Merge Mode Grid" width="100%" />
+    </td>
+  </tr>
+</table>
 
 <br/><br/>
 
-### In-Game Dota 2 Grid
-<img src="docs/images/in-game-grid.png" alt="MetaGrid In-Game Dota 2 Grid" width="850" />
-
-<br/><br/>
-
-### Settings
+### Settings & Preferences
 <img src="docs/images/settings.png" alt="MetaGrid Settings" width="850" />
 
 </div>

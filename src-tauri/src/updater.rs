@@ -2,6 +2,14 @@ use serde::{Deserialize, Serialize};
 
 const GITHUB_API_URL: &str = "https://api.github.com/repos/maybewewill/metagrid/releases/latest";
 const CURRENT_VERSION: &str = env!("CARGO_PKG_VERSION");
+const GIT_HASH: Option<&str> = option_env!("GIT_HASH");
+
+pub fn get_current_version_display() -> String {
+    match GIT_HASH {
+        Some(hash) if !hash.is_empty() && hash != "unknown" => format!("v{CURRENT_VERSION}+{hash}"),
+        _ => format!("v{CURRENT_VERSION}"),
+    }
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct UpdateInfo {
@@ -62,7 +70,7 @@ pub async fn check_for_updates() -> Result<UpdateInfo, String> {
 
     Ok(UpdateInfo {
         available,
-        current_version: format!("v{CURRENT_VERSION}"),
+        current_version: get_current_version_display(),
         latest_version: latest_tag.to_string(),
         release_url: release.html_url,
         release_notes: release.body,
@@ -71,8 +79,12 @@ pub async fn check_for_updates() -> Result<UpdateInfo, String> {
 }
 
 fn is_newer_version(latest: &str, current: &str) -> bool {
+    fn clean(v: &str) -> &str {
+        v.split('+').next().unwrap_or(v).trim_start_matches('v')
+    }
     let parse = |v: &str| -> Vec<u32> {
-        v.split('.')
+        clean(v)
+            .split('.')
             .map(|p| p.chars().take_while(|c| c.is_ascii_digit()).collect::<String>())
             .filter_map(|s| s.parse::<u32>().ok())
             .collect()
@@ -90,10 +102,12 @@ mod tests {
 
     #[test]
     fn compares_semver_correctly() {
-        assert!(is_newer_version("0.1.2", "0.1.1"));
-        assert!(is_newer_version("0.2.0", "0.1.9"));
-        assert!(is_newer_version("1.0.0", "0.9.9"));
-        assert!(!is_newer_version("0.1.1", "0.1.1"));
-        assert!(!is_newer_version("0.1.0", "0.1.1"));
+        assert!(is_newer_version("1.0.2", "1.0.1"));
+        assert!(is_newer_version("1.1.0", "1.0.9"));
+        assert!(is_newer_version("2.0.0", "1.9.9"));
+        assert!(is_newer_version("1.0.2", "1.0.1+abc1234"));
+        assert!(!is_newer_version("1.0.1", "1.0.1"));
+        assert!(!is_newer_version("1.0.1", "1.0.1+abc1234"));
+        assert!(!is_newer_version("1.0.0", "1.0.1"));
     }
 }
