@@ -49,6 +49,10 @@ impl AppState {
     pub fn get_settings(&self) -> Settings {
         self.settings.lock().unwrap().clone()
     }
+
+    pub fn set_settings(&self, s: Settings) {
+        *self.settings.lock().unwrap() = s;
+    }
 }
 
 pub type Shared = Arc<AppState>;

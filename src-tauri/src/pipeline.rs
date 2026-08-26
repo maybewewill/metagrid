@@ -5,6 +5,7 @@ use crate::grid_writer::{write_to, GridError, METAGRID_NAME};
 use crate::hero_map::HeroMap;
 use crate::model::MetaSnapshot;
 use crate::provider::{MetaProvider, ProviderError};
+use crate::steam::SteamLocator;
 
 #[derive(Debug, thiserror::Error)]
 pub enum PipelineError {
@@ -77,6 +78,33 @@ pub async fn run_once(
         preserved_configs,
         wrote_metagrid: true,
     })
+}
+
+/// Fetch the current meta from `provider` ONCE, build a MetaGrid layout from
+/// it, and write that same grid into every Steam account's
+/// `hero_grid_config.json` (or only the account matching `account_filter`,
+/// if given) — preserving every other config already in each file.
+pub async fn refresh_all(
+    provider: &dyn MetaProvider,
+    map: &HeroMap,
+    steam: &SteamLocator,
+    opts: &GridOptions,
+    top_n: usize,
+    account_filter: Option<&str>,
+) -> Result<MetaSnapshot, PipelineError> {
+    let snap: MetaSnapshot = provider.fetch(map, top_n).await?;
+    let grid = build_grid(&snap, opts);
+
+    for account in steam.accounts() {
+        if let Some(filter_id) = account_filter {
+            if account.id != filter_id {
+                continue;
+            }
+        }
+        write_to(&account.grid_path, &grid)?;
+    }
+
+    Ok(snap)
 }
 
 #[cfg(test)]
@@ -154,6 +182,34 @@ mod tests {
         assert_eq!(summary.preserved_configs, vec!["Main Layout".to_string()]);
         assert_eq!(summary.roles, 5);
         assert!(summary.wrote_metagrid);
+    }
+
+    #[tokio::test]
+    async fn refresh_all_writes_to_each_account() {
+        use crate::steam::SteamLocator;
+
+        let tmp = tempfile::tempdir().unwrap();
+        let root = tmp.path().to_path_buf();
+        std::fs::create_dir_all(root.join("userdata/111/570/remote/cfg")).unwrap();
+        std::fs::create_dir_all(root.join("userdata/222/570/remote/cfg")).unwrap();
+
+        let steam = SteamLocator::with_root(root);
+
+        let opts = GridOptions {
+            sort: SortMetric::Pickrate,
+            layout_columns: true,
+        };
+
+        let snap = refresh_all(&FakeProvider, &HeroMap::bundled(), &steam, &opts, 10, None)
+            .await
+            .unwrap();
+
+        assert_eq!(snap.roles.len(), 5);
+
+        for account in steam.accounts() {
+            let written = std::fs::read_to_string(&account.grid_path).unwrap();
+            assert!(written.contains("MetaGrid"));
+        }
     }
 
     /// Live end-to-end proof: fetches the REAL d2pt site and writes a REAL

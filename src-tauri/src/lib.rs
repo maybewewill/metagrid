@@ -1,3 +1,4 @@
+mod commands;
 mod events;
 mod grid;
 mod grid_writer;
@@ -6,21 +7,33 @@ mod model;
 mod pipeline;
 mod portraits;
 mod provider;
+mod services;
 mod settings;
 mod state;
 mod steam;
-
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet])
+        .plugin(tauri_plugin_autostart::init(
+            tauri_plugin_autostart::MacosLauncher::LaunchAgent,
+            Some(vec!["--minimized"]),
+        ))
+        .manage::<state::Shared>(std::sync::Arc::new(state::AppState::new(
+            settings::load_from(&settings::data_dir()),
+        )))
+        .manage(services::Services::new())
+        .invoke_handler(tauri::generate_handler![
+            commands::get_snapshot,
+            commands::get_status,
+            commands::get_settings,
+            commands::save_settings,
+            commands::list_accounts,
+            commands::refresh_now,
+            commands::get_autostart,
+            commands::set_autostart
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
