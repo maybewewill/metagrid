@@ -15,6 +15,7 @@ mod steam;
 mod tray;
 
 use tauri::Manager;
+use tauri_plugin_autostart::ManagerExt;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -43,6 +44,16 @@ pub fn run() {
                 tokio::sync::Notify::new(),
             )));
             tray::build(app)?;
+
+            let want = app.state::<state::Shared>().get_settings().autostart;
+            let mgr = app.autolaunch();
+            if want && !mgr.is_enabled().unwrap_or(false) {
+                let _ = mgr.enable();
+            }
+            if !want && mgr.is_enabled().unwrap_or(false) {
+                let _ = mgr.disable();
+            }
+
             if let Some(w) = app.get_webview_window("main") {
                 let w2 = w.clone();
                 w.on_window_event(move |e| {
