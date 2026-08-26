@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { fly } from "svelte/transition";
+  import { fade } from "svelte/transition";
   import { _ } from "svelte-i18n";
   import { toast } from "svelte-sonner";
   import { store } from "$lib/store.svelte";
@@ -32,11 +32,11 @@
   });
 </script>
 
-<div class="flex h-full flex-col">
+<div class="flex h-full flex-col bg-background text-foreground">
   <Titlebar patch={store.snapshot?.patch} />
-  <main class="flex-1 overflow-auto p-3">
+  <main class="relative min-h-0 flex-1">
     {#key store.view}
-      <div in:fly={{ y: 8, duration: 150 }}>
+      <div class="absolute inset-0" in:fade={{ duration: 120 }}>
         {#if store.view === "onboarding"}
           <Onboarding />
         {:else if store.view === "settings"}
@@ -47,5 +47,5 @@
       </div>
     {/key}
   </main>
-  <Toaster position="bottom-right" />
+  <Toaster position="bottom-right" richColors={false} />
 </div>

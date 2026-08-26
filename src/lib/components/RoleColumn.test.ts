@@ -1,14 +1,9 @@
 import { render, screen } from "@testing-library/svelte";
 import { describe, it, expect, vi } from "vitest";
-vi.mock("@tauri-apps/api/core", () => ({ convertFileSrc: (p: string) => p }));
 vi.mock("motion", () => ({ animate: vi.fn() }));
 import RoleColumn from "$lib/components/RoleColumn.svelte";
-import { store } from "$lib/store.svelte";
 import type { RoleMeta } from "$lib/types";
 
-// HeroCard reads store.portraitDir to build its portrait src; without it set
-// it falls back to initials and renders no <img>, so set it explicitly here.
-store.portraitDir = "C:/data/portraits";
 const role: RoleMeta = {
   position: "Pos1",
   role_winrate: 0.52,
@@ -24,10 +19,14 @@ const role: RoleMeta = {
     },
   ],
 };
+
 describe("RoleColumn", () => {
-  it("renders label and all heroes", () => {
+  it("renders the role and all heroes", () => {
     render(RoleColumn, { role });
-    expect(screen.getByText("POS 1 — Carry")).toBeInTheDocument();
+    // The "POS 1 — " prefix is stripped in the header (a numbered chip carries
+    // the position), so the role name renders on its own.
+    expect(screen.getByText("Carry")).toBeInTheDocument();
+    // Hero portraits load from the Steam CDN — one <img> per hero.
     expect(screen.getAllByRole("img").length).toBe(2);
   });
 });

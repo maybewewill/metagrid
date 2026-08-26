@@ -1,18 +1,17 @@
 <script lang="ts">
-  import { convertFileSrc } from "@tauri-apps/api/core";
   import { hoverLift } from "$lib/motion";
   import type { HeroMeta } from "$lib/types";
   import { pct } from "$lib/format";
-  import { store } from "$lib/store.svelte";
 
   let { hero, rank }: { hero: HeroMeta; rank: number } = $props();
 
   let broken = $state(false);
 
-  // No portrait dir known yet (or backend not wired) -> fall back straight
-  // to initials instead of attempting to load a non-existent image.
+  // Hero portraits come straight from Valve's CDN by internal slug (the same
+  // `<slug>.png` naming Dota's own client uses); `img-src` in the CSP allows
+  // this host. Falls back to initials if the image can't load (offline).
   const src = $derived(
-    store.portraitDir ? convertFileSrc(`${store.portraitDir}/${hero.slug}.png`) : null
+    `https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/${hero.slug}.png`,
   );
   const initials = $derived(
     hero.name
@@ -21,41 +20,44 @@
       .map((w) => w[0])
       .join("")
       .slice(0, 2)
-      .toUpperCase()
+      .toUpperCase(),
   );
 </script>
 
 <div
   use:hoverLift
   role="group"
-  class="flex items-center gap-2 rounded-lg border border-border bg-card/40 p-1.5"
+  class="flex items-center gap-2.5 rounded-md px-1.5 py-1 transition-colors hover:bg-muted"
 >
-  <div class="relative size-9 shrink-0 overflow-hidden rounded-md bg-muted">
-    {#if src && !broken}
+  <span class="w-3 shrink-0 text-right font-mono text-[11px] tabular-nums text-muted-foreground/70">
+    {rank}
+  </span>
+
+  <div
+    class="relative h-7 w-[52px] shrink-0 overflow-hidden rounded-[5px] bg-muted ring-1 ring-border"
+  >
+    {#if !broken}
       <img
         {src}
         alt={hero.name}
+        loading="lazy"
         class="size-full object-cover"
         onerror={() => (broken = true)}
       />
     {:else}
-      <div
-        class="grid size-full place-items-center text-[10px] font-semibold text-muted-foreground"
-      >
+      <div class="grid size-full place-items-center text-[10px] font-semibold text-muted-foreground">
         {initials}
       </div>
     {/if}
-    <span
-      class="absolute bottom-0 left-0 rounded-tr bg-background/80 px-1 text-[9px] leading-tight text-muted-foreground"
-    >
-      {rank}
-    </span>
   </div>
+
   <div class="min-w-0 flex-1">
-    <div class="truncate text-xs font-medium">{hero.name}</div>
-    <div class="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-      <span class="font-semibold text-foreground">{pct(hero.winrate)}</span>
-      <span>{pct(hero.pickrate)}</span>
+    <div class="truncate text-[13px] font-medium leading-tight">{hero.name}</div>
+    <div class="text-[11px] leading-tight text-muted-foreground">
+      {pct(hero.pickrate)}
+      {" "}pick
     </div>
   </div>
+
+  <span class="shrink-0 text-[13px] font-semibold tabular-nums">{pct(hero.winrate)}</span>
 </div>

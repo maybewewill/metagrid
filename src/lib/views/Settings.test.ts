@@ -1,6 +1,10 @@
 import { render, screen, fireEvent } from "@testing-library/svelte";
 import { describe, it, expect, vi } from "vitest";
-const { saveSettings, go } = vi.hoisted(() => ({ saveSettings: vi.fn(), go: vi.fn() }));
+const { saveSettings, go, setAutostart } = vi.hoisted(() => ({
+  saveSettings: vi.fn(),
+  go: vi.fn(),
+  setAutostart: vi.fn(),
+}));
 vi.mock("$lib/store.svelte", () => ({
   store: {
     settings: {
@@ -18,11 +22,14 @@ vi.mock("$lib/store.svelte", () => ({
     go,
   },
 }));
+// Save also applies the OS-level autostart toggle via ipc.setAutostart.
+vi.mock("$lib/ipc", () => ({ setAutostart }));
 import Settings from "$lib/views/Settings.svelte";
 describe("Settings", () =>
   it("Save persists and returns to dashboard", async () => {
     render(Settings);
     await fireEvent.click(screen.getByRole("button", { name: /save/i }));
     expect(saveSettings).toHaveBeenCalled();
+    expect(setAutostart).toHaveBeenCalledWith(true);
     expect(go).toHaveBeenCalledWith("dashboard");
   }));

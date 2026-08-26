@@ -1,13 +1,13 @@
 {
   "app": {
-    "name": "MetaGrid",
-    "play": "Play"
+    "name": "MetaGrid"
   },
   "status": {
-    "fresh": "Fresh",
+    "fresh": "Up to date",
     "stale": "Stale",
     "error": "Error",
     "refreshing": "Refreshing",
+    "idle": "Idle",
     "updated": "Updated {time}",
     "refresh": "Refresh"
   },
@@ -21,31 +21,37 @@
   "settings": {
     "title": "Settings",
     "heroes_per_role": "Heroes per role",
-    "sort": "Sort",
+    "sort": "Sort by",
     "pickrate": "Pick rate",
     "winrate": "Win rate",
     "interval": "Refresh interval",
     "account": "Account",
     "all_accounts": "All accounts",
     "autostart": "Start with Windows",
-    "layout": "Layout",
+    "autostart_hint": "Launch MetaGrid on login",
+    "layout": "Separate grid per role",
+    "layout_hint": "Off = one grid with five columns",
     "language": "Language",
     "save": "Save",
+    "saved": "Settings saved",
     "back": "Back"
   },
   "onboarding": {
     "welcome": "Welcome to MetaGrid",
-    "pick_account": "Pick an account",
-    "fetch": "Fetching data",
-    "finish": "Finish",
-    "no_accounts": "No accounts found"
+    "subtitle": "A fresh meta hero grid, kept up to date in the background.",
+    "pick_account": "Write the grid to",
+    "fetch": "Fetch first meta",
+    "fetched": "Meta loaded",
+    "finish": "Get started",
+    "no_accounts": "No Dota accounts found — launch Dota once, then reopen MetaGrid."
   },
   "toast": {
-    "updated": "Data updated",
-    "error": "Something went wrong"
+    "updated": "Meta updated",
+    "error": "Refresh failed"
   },
   "empty": {
-    "title": "Nothing here yet",
-    "cta": "Get started"
+    "title": "No meta yet",
+    "desc": "Pull the current pro meta and build your hero grid.",
+    "cta": "Fetch meta"
   }
 }
