@@ -1,5 +1,5 @@
 <script lang="ts">
-  import pos1 from "$lib/assets/pos/pos_1.png";
+  import pos1 from "$lib/assets/pos/pos_1.svg";
   import pos2 from "$lib/assets/pos/pos_2.png";
   import pos3 from "$lib/assets/pos/pos_3.png";
   import pos4 from "$lib/assets/pos/pos_4.png";
