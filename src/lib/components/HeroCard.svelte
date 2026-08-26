@@ -2,7 +2,7 @@
   import { hoverLift } from "$lib/motion";
   import type { HeroMeta } from "$lib/types";
   import { pct } from "$lib/format";
-  import { getHeroPortraitUrl, getFallbackPortraitUrl } from "$lib/utils";
+  import { getHeroPortraitUrl } from "$lib/utils";
 
   let { hero }: { hero: HeroMeta; rank?: number } = $props();
 
@@ -15,11 +15,7 @@
   });
 
   function handleError() {
-    if (currentSrc.includes("dota2protracker.com")) {
-      currentSrc = getFallbackPortraitUrl(hero.slug);
-    } else {
-      broken = true;
-    }
+    broken = true;
   }
 
   const initials = $derived(

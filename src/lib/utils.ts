@@ -9,10 +9,6 @@ export function getHeroPortraitUrl(slug: string): string {
   return `https://dota2protracker.com/static/heroes/${slug}_vert.jpg`;
 }
 
-export function getFallbackPortraitUrl(slug: string): string {
-  return `https://cdn.cloudflare.steamstatic.com/apps/dota2/images/heroes/${slug}_vert.jpg`;
-}
-
 export type WithElementRef<T, U extends HTMLElement = HTMLElement> = T & {
   ref?: U | null;
 };
