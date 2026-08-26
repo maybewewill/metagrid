@@ -1,0 +1,2 @@
+# Freeze test fixtures byte-for-byte (no EOL normalization)
+src-tauri/tests/fixtures/** -text
