@@ -3,7 +3,7 @@ use std::io;
 use std::path::Path;
 use thiserror::Error;
 
-const MERGE_GAP: f64 = 40.0;
+const MERGE_GAP: f64 = 20.0;
 
 #[derive(Debug, Error)]
 pub enum GridError {
@@ -376,7 +376,7 @@ mod tests {
             .iter()
             .find(|c| c["category_name"] == "2pos")
             .unwrap();
-        assert_eq!(user["x_position"].as_f64().unwrap(), 572.0);
+        assert_eq!(user["x_position"].as_f64().unwrap(), 300.0);
     }
 
     #[test]
@@ -403,8 +403,8 @@ mod tests {
 
         let user1 = c1.iter().find(|c| c["category_name"] == "2pos").unwrap();
         let user2 = c2.iter().find(|c| c["category_name"] == "2pos").unwrap();
-        assert_eq!(user1["x_position"].as_f64().unwrap(), 572.0);
-        assert_eq!(user2["x_position"].as_f64().unwrap(), 572.0);
+        assert_eq!(user1["x_position"].as_f64().unwrap(), 300.0);
+        assert_eq!(user2["x_position"].as_f64().unwrap(), 300.0);
     }
 
     #[test]

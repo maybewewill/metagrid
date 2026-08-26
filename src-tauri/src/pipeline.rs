@@ -189,7 +189,7 @@ mod tests {
             .iter()
             .find(|c| c["category_name"] == "2pos")
             .unwrap();
-        assert_eq!(user["x_position"].as_f64().unwrap(), 572.0);
+        assert_eq!(user["x_position"].as_f64().unwrap(), 300.0);
     }
 
     #[tokio::test]

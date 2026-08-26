@@ -126,12 +126,9 @@ pub fn build_grid_multi(snap: &MetaSnapshot, role_labels: &str) -> Vec<GridConfi
 }
 
 pub fn build_meta_categories(snap: &MetaSnapshot, role_labels: &str, top_n: usize) -> Vec<Category> {
-    const PER_ROW: usize = 7;
-    const STEP_X: f64 = 76.0;
-    const STEP_Y: f64 = 98.0;
-    const HEADER_H: f64 = 34.0;
-    const SECTION_GAP: f64 = 18.0;
-    let block_w = PER_ROW as f64 * STEP_X;
+    const CATEGORY_W: f64 = 280.0;
+    const CATEGORY_H: f64 = 96.0;
+    const SECTION_GAP: f64 = 10.0;
 
     let mut cats = Vec::new();
     let mut cursor_y = 0.0_f64;
@@ -140,17 +137,15 @@ pub fn build_meta_categories(snap: &MetaSnapshot, role_labels: &str, top_n: usiz
         if hero_ids.is_empty() {
             continue;
         }
-        let rows = ((hero_ids.len() + PER_ROW - 1) / PER_ROW) as f64;
-        let section_h = HEADER_H + rows * STEP_Y;
         cats.push(Category {
             category_name: format!("META {}", role.position.role_upper(role_labels)),
             x_position: 0.0,
             y_position: cursor_y,
-            width: block_w,
-            height: section_h,
+            width: CATEGORY_W,
+            height: CATEGORY_H,
             hero_ids,
         });
-        cursor_y += section_h + SECTION_GAP;
+        cursor_y += CATEGORY_H + SECTION_GAP;
     }
     cats
 }
@@ -221,7 +216,7 @@ mod tests {
         assert!(cats.iter().all(|c| c.category_name.starts_with("META ")));
         assert!(cats.iter().any(|c| c.category_name == "META CARRY"));
         assert!(cats.iter().all(|c| c.x_position == 0.0));
-        assert!(cats.windows(2).all(|w| w[1].y_position > w[0].y_position));
-        assert!(cats.iter().all(|c| c.width == 532.0));
+        assert!(cats.iter().all(|c| c.width == 280.0));
+        assert!(cats.iter().all(|c| c.height == 96.0));
     }
 }
