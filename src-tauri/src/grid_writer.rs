@@ -170,11 +170,55 @@ pub fn merge_meta_into(
         .filter_map(|c| c.get("x_position").and_then(|v| v.as_f64()))
         .fold(f64::INFINITY, f64::min);
     if user_min_x.is_finite() {
-        let delta = user_left_target - user_min_x;
-        if delta != 0.0 {
-            for c in cats.iter_mut() {
-                if let Some(x) = c.get("x_position").and_then(|v| v.as_f64()) {
-                    c["x_position"] = serde_json::json!(x + delta);
+        let user_max_x = cats
+            .iter()
+            .filter_map(|c| {
+                let x = c.get("x_position").and_then(|v| v.as_f64())?;
+                let w = c.get("width").and_then(|v| v.as_f64())?;
+                Some(x + w)
+            })
+            .fold(0.0_f64, f64::max);
+        let user_min_y = cats
+            .iter()
+            .filter_map(|c| c.get("y_position").and_then(|v| v.as_f64()))
+            .fold(0.0_f64, f64::min);
+        let user_max_y = cats
+            .iter()
+            .filter_map(|c| {
+                let y = c.get("y_position").and_then(|v| v.as_f64())?;
+                let h = c.get("height").and_then(|v| v.as_f64())?;
+                Some(y + h)
+            })
+            .fold(0.0_f64, f64::max);
+
+        let user_span_w = (user_max_x - user_min_x).max(1.0);
+        let user_span_h = (user_max_y - user_min_y).max(1.0);
+        let avail_w = 1400.0 - user_left_target;
+        let avail_h = 560.0 - user_min_y.min(20.0);
+
+        let scale = if user_span_w > avail_w || user_span_h > avail_h {
+            let sx = avail_w / user_span_w;
+            let sy = avail_h / user_span_h;
+            sx.min(sy).clamp(0.65, 1.0)
+        } else {
+            1.0
+        };
+
+        for c in cats.iter_mut() {
+            if let Some(x) = c.get("x_position").and_then(|v| v.as_f64()) {
+                let rel_x = x - user_min_x;
+                c["x_position"] = serde_json::json!(user_left_target + rel_x * scale);
+            }
+            if let Some(y) = c.get("y_position").and_then(|v| v.as_f64()) {
+                let rel_y = y - user_min_y;
+                c["y_position"] = serde_json::json!(user_min_y + rel_y * scale);
+            }
+            if scale < 1.0 {
+                if let Some(w) = c.get("width").and_then(|v| v.as_f64()) {
+                    c["width"] = serde_json::json!(w * scale);
+                }
+                if let Some(h) = c.get("height").and_then(|v| v.as_f64()) {
+                    c["height"] = serde_json::json!(h * scale);
                 }
             }
         }
@@ -423,6 +467,26 @@ mod tests {
         assert_eq!(user["y_position"].as_f64().unwrap(), 20.0);
         assert_eq!(user["width"].as_f64().unwrap(), 687.0);
         assert_eq!(user["height"].as_f64().unwrap(), 293.0);
+    }
+
+    #[test]
+    fn merge_scales_oversized_user_categories_uniformly_preserving_aspect_ratio() {
+        let existing = r#"{"version":3,"configs":[
+            {"config_name":"Main Layout","categories":[
+                {"category_name":"Huge","x_position":0.0,"y_position":0.0,"width":1600.0,"height":800.0,"hero_ids":[1]}
+            ]}
+        ]}"#;
+        let cats = meta_cats_fixture();
+        let out = merge_meta_into(existing, &cats, "Main Layout").unwrap().unwrap();
+        let v: serde_json::Value = serde_json::from_str(&out).unwrap();
+        let target_cats = v["configs"][0]["categories"].as_array().unwrap();
+        let user = target_cats.iter().find(|c| c["category_name"] == "Huge").unwrap();
+        let w = user["width"].as_f64().unwrap();
+        let h = user["height"].as_f64().unwrap();
+        let aspect_ratio = w / h;
+        assert!((aspect_ratio - 2.0).abs() < 1e-6);
+        assert!(w < 1600.0);
+        assert!(h < 800.0);
     }
 
     #[test]

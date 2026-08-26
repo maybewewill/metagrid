@@ -84,7 +84,11 @@ export const en = {
     subtitle: "A fresh meta hero grid, kept up to date in the background.",
     pick_account: "Write the grid to",
     fetch: "Fetch & Patch",
+    fetch_meta: "Fetch Meta",
     fetched: "Meta loaded",
+    choose_mode: "Choose Grid Mode",
+    choose_mode_desc: "Select how MetaGrid should arrange your hero layouts in Dota 2:",
+    tip_settings: "You can change this at any time in Settings.",
     finish: "Get started",
     no_accounts: "No Dota accounts found — launch Dota once, then reopen MetaGrid."
   },
@@ -180,7 +184,11 @@ export const ru = {
     subtitle: "Актуальная мета-сетка героев, обновляется в фоне.",
     pick_account: "Куда записывать сетку",
     fetch: "Fetch & Patch",
+    fetch_meta: "Загрузить мету",
     fetched: "Мета загружена",
+    choose_mode: "Выберите режим сетки",
+    choose_mode_desc: "Выберите, как MetaGrid должен разместить сетки героев в Dota 2:",
+    tip_settings: "В любое время можно изменить в настройках.",
     finish: "Начать",
     no_accounts: "Аккаунты Dota не найдены — запустите Dota один раз и откройте MetaGrid снова."
   },

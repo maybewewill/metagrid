@@ -33,6 +33,10 @@ export function refreshNow(): Promise<MetaSnapshot> {
   return invoke("refresh_now");
 }
 
+export function fetchOnly(): Promise<MetaSnapshot> {
+  return invoke("fetch_only");
+}
+
 export function getAutostart(): Promise<boolean> {
   return invoke("get_autostart");
 }

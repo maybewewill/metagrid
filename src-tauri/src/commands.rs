@@ -48,6 +48,21 @@ pub async fn refresh_now(app: AppHandle) -> Result<MetaSnapshot, String> {
 }
 
 #[tauri::command]
+pub async fn fetch_only(
+    state: State<'_, Shared>,
+    services: State<'_, crate::services::Services>,
+) -> Result<MetaSnapshot, String> {
+    let settings = state.get_settings();
+    let snap = services
+        .provider
+        .fetch(&services.map, settings.top_n)
+        .await
+        .map_err(|e| e.to_string())?;
+    state.set_snapshot(snap.clone());
+    Ok(snap)
+}
+
+#[tauri::command]
 pub fn get_autostart(app: AppHandle) -> Result<bool, String> {
     app.autolaunch().is_enabled().map_err(|e| e.to_string())
 }

@@ -42,6 +42,7 @@ pub fn run() {
             commands::save_settings,
             commands::list_accounts,
             commands::refresh_now,
+            commands::fetch_only,
             commands::get_autostart,
             commands::set_autostart,
             commands::get_portrait_dir,

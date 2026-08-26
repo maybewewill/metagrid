@@ -61,6 +61,17 @@ class Store {
     }
   }
 
+  async fetchOnly(): Promise<MetaSnapshot> {
+    this.loading = true;
+    try {
+      const snap = await ipc.fetchOnly();
+      this.snapshot = snap;
+      return snap;
+    } finally {
+      this.loading = false;
+    }
+  }
+
   async saveSettings(patch: Partial<Settings>): Promise<void> {
     if (!this.settings) return;
     const merged: Settings = { ...this.settings, ...patch };
