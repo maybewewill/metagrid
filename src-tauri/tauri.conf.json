@@ -10,13 +10,14 @@
     "frontendDist": "../dist"
   },
   "app": {
+    "withGlobalTauri": true,
     "windows": [
       {
         "label": "main",
         "title": "MetaGrid",
-        "width": 1120,
+        "width": 1180,
         "height": 700,
-        "minWidth": 1120,
+        "minWidth": 1180,
         "minHeight": 700,
         "decorations": false,
         "visible": false,

@@ -68,8 +68,8 @@
   </div>
 
   <div class="min-w-0 flex-1">
-    <div class="truncate text-[13px] font-semibold leading-tight">{hero.name}</div>
-    <div class="mt-0.5 flex items-center gap-1.5 text-[11px] leading-tight text-muted-foreground">
+    <div class="truncate text-[12.5px] font-semibold leading-tight text-zinc-100">{hero.name}</div>
+    <div class="mt-0.5 flex items-center gap-1 text-[11px] leading-tight text-muted-foreground">
       <span>{pct(hero.pickrate)} pick</span>
       {#if hero.d2pt_rating && hero.d2pt_rating > 0}
         <span class="text-white/20">•</span>
@@ -78,7 +78,7 @@
     </div>
   </div>
 
-  <span class="shrink-0 text-[13px] font-bold tabular-nums" style:color={wrColor}>
+  <span class="shrink-0 text-[12.5px] font-bold tabular-nums" style:color={wrColor}>
     {pct(hero.winrate)}
   </span>
 </div>
