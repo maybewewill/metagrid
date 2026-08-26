@@ -12,6 +12,7 @@ mod services;
 mod settings;
 mod state;
 mod steam;
+mod tray;
 
 use tauri::Manager;
 
@@ -41,6 +42,7 @@ pub fn run() {
             app.manage(scheduler::Trigger(std::sync::Arc::new(
                 tokio::sync::Notify::new(),
             )));
+            tray::build(app)?;
             scheduler::spawn(app.handle().clone());
             Ok(())
         })
