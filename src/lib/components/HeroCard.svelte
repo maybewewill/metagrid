@@ -73,7 +73,7 @@
       <span>{pct(hero.pickrate)} pick</span>
       {#if hero.d2pt_rating && hero.d2pt_rating > 0}
         <span class="text-white/20">•</span>
-        <span class="font-mono text-cyan-400 font-medium" title="D2PT Rating">{hero.d2pt_rating}</span>
+        <span class="font-mono text-zinc-300 font-medium" title="D2PT Rating">{hero.d2pt_rating}</span>
       {/if}
     </div>
   </div>

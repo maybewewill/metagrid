@@ -81,12 +81,12 @@
           role="switch"
           aria-label={$_("settings.autostart")}
           aria-checked={local.autostart}
-          class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 {local.autostart ? 'bg-cyan-500' : 'bg-zinc-700'}"
+          class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border border-zinc-700 transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-1 focus-visible:ring-white {local.autostart ? 'bg-white' : 'bg-zinc-800'}"
           onclick={() => (local.autostart = !local.autostart)}
         >
           <span
             aria-hidden="true"
-            class="pointer-events-none inline-block size-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out {local.autostart ? 'translate-x-5' : 'translate-x-0'}"
+            class="pointer-events-none inline-block size-5 transform rounded-full shadow transition duration-200 ease-in-out {local.autostart ? 'translate-x-5 bg-zinc-950' : 'translate-x-0 bg-zinc-400'}"
           ></span>
         </button>
       </div>
@@ -103,14 +103,14 @@
         <div class="inline-flex rounded-sm bg-zinc-900 p-0.5 border border-border">
           <button
             type="button"
-            class="rounded-sm px-3 py-1.5 text-xs font-semibold transition-all {local.role_labels === 'named' ? 'bg-cyan-500 text-zinc-950 font-bold shadow' : 'text-zinc-400 hover:text-white'}"
+            class="rounded-sm px-3 py-1.5 text-xs font-semibold transition-all {local.role_labels === 'named' ? 'bg-white text-zinc-950 font-bold shadow-sm' : 'text-zinc-400 hover:text-white'}"
             onclick={() => (local.role_labels = 'named')}
           >
             {$_("settings.role_named")}
           </button>
           <button
             type="button"
-            class="rounded-sm px-3 py-1.5 text-xs font-semibold transition-all {local.role_labels === 'pos' ? 'bg-cyan-500 text-zinc-950 font-bold shadow' : 'text-zinc-400 hover:text-white'}"
+            class="rounded-sm px-3 py-1.5 text-xs font-semibold transition-all {local.role_labels === 'pos' ? 'bg-white text-zinc-950 font-bold shadow-sm' : 'text-zinc-400 hover:text-white'}"
             onclick={() => (local.role_labels = 'pos')}
           >
             {$_("settings.role_pos")}
@@ -159,12 +159,22 @@
       <!-- Language -->
       <div class="flex items-center justify-between gap-4 py-3.5">
         <span class="text-sm font-medium">{$_("settings.language")}</span>
-        <Tabs value={local.lang} onValueChange={onLanguageChange}>
-          <TabsList class="h-8 rounded-sm bg-muted/60 p-0.5">
-            <TabsTrigger value="en" class="rounded-sm px-4 text-xs font-semibold">EN</TabsTrigger>
-            <TabsTrigger value="ru" class="rounded-sm px-4 text-xs font-semibold">RU</TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <div class="inline-flex rounded-sm bg-zinc-900 p-0.5 border border-border">
+          <button
+            type="button"
+            class="rounded-sm px-4 py-1 text-xs font-semibold transition-all {local.lang === 'en' ? 'bg-white text-zinc-950 font-bold shadow-sm' : 'text-zinc-400 hover:text-white'}"
+            onclick={() => onLanguageChange('en')}
+          >
+            EN
+          </button>
+          <button
+            type="button"
+            class="rounded-sm px-4 py-1 text-xs font-semibold transition-all {local.lang === 'ru' ? 'bg-white text-zinc-950 font-bold shadow-sm' : 'text-zinc-400 hover:text-white'}"
+            onclick={() => onLanguageChange('ru')}
+          >
+            RU
+          </button>
+        </div>
       </div>
     </div>
   </div>
