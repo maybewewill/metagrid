@@ -3,3 +3,16 @@ node_modules/
 dist/
 .superpowers/
 *.log
+
+# Tauri v2 + SvelteKit scaffold (task 0.1)
+src-tauri/target/
+src-tauri/gen/
+build/
+.svelte-kit/
+package/
+.DS_Store
+.env
+.env.*
+!.env.example
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
