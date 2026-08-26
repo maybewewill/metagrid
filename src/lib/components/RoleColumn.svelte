@@ -46,9 +46,9 @@
     </span>
   </header>
 
-  <div bind:this={listEl} class="scroll-thin flex min-h-0 flex-1 flex-col justify-between gap-1 overflow-auto p-1.5 bg-zinc-950/40">
-    {#each role.heroes.slice(0, 7) as h, i (h.hero_id)}
-      <HeroCard hero={h} rank={i + 1} />
+  <div bind:this={listEl} class="scroll-thin flex min-h-0 flex-1 flex-col gap-1 overflow-auto p-1 bg-zinc-950/40">
+    {#each role.heroes.slice(0, 7) as h (h.hero_id)}
+      <HeroCard hero={h} />
     {/each}
     {#if role.heroes.length === 0}
       <p class="px-2 py-6 text-center text-xs text-muted-foreground">—</p>
