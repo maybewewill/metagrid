@@ -18,6 +18,11 @@ export function pct(x: number): string {
   return `${Math.round(x * 100)}%`;
 }
 
+/** Format a 0..1 fraction as a 2-decimal percentage, e.g. 0.538 -> "53.80%". */
+export function pct2(x: number): string {
+  return `${(x * 100).toFixed(2)}%`;
+}
+
 /**
  * Returns the i18n key for a role position (e.g. "Pos1" -> "role.pos1").
  * Callers resolve the localized label via `$_(roleLabel(position))`.

@@ -43,7 +43,7 @@
   </header>
 
   <div bind:this={listEl} class="scroll-thin flex min-h-0 flex-1 flex-col gap-0.5 overflow-auto p-1.5">
-    {#each role.heroes as h, i (h.hero_id)}
+    {#each role.heroes.slice(0, 7) as h, i (h.hero_id)}
       <HeroCard hero={h} rank={i + 1} />
     {/each}
     {#if role.heroes.length === 0}

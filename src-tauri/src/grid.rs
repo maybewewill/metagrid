@@ -96,8 +96,8 @@ pub fn build_grid(snap: &MetaSnapshot, opts: &GridOptions) -> GridConfig {
 }
 
 /// Per-role layout mode: produces one `GridConfig` per role — `"Carry"`, `"Mid"`, `"Offlane"`,
-/// `"Support"`, `"Hard Support"` — containing the 7 Top Heroes from D2PT ELO with their
-/// Winrate % and Pickrate % displayed above each portrait.
+/// `"Support"`, `"Hard Support"` — containing the 7 Top Heroes from D2PT ELO followed by
+/// Other Heroes sorted by D2PT rating, with Winrate % and Pickrate % displayed above each portrait.
 pub fn build_grid_multi(snap: &MetaSnapshot) -> Vec<GridConfig> {
     snap.roles
         .iter()
@@ -119,9 +119,26 @@ pub fn build_grid_multi(snap: &MetaSnapshot) -> Vec<GridConfig> {
             let card_w = 68.0;
             let card_h = 110.0;
             let gap_x = 12.0;
+            let gap_y = 24.0;
+            let heroes_per_row = 14;
 
-            // Top heroes boxes in a single row (up to 7 heroes)
-            for (idx, h) in role.heroes.iter().take(7).enumerate() {
+            let top_heroes: Vec<_> = role.heroes.iter().filter(|h| h.is_top).cloned().collect();
+            let top_count = if top_heroes.is_empty() {
+                std::cmp::min(7, role.heroes.len())
+            } else {
+                top_heroes.len()
+            };
+
+            let top_slice = if top_heroes.is_empty() {
+                &role.heroes[..top_count]
+            } else {
+                &top_heroes[..]
+            };
+
+            let top_ids: std::collections::HashSet<u32> = top_slice.iter().map(|h| h.hero_id).collect();
+
+            // Top heroes boxes in a single row
+            for (idx, h) in top_slice.iter().enumerate() {
                 categories.push(Category {
                     category_name: format!("{:.2}%\n{:.2}%", h.winrate * 100.0, h.pickrate * 100.0),
                     x_position: (idx as f64) * (card_w + gap_x),
@@ -130,6 +147,40 @@ pub fn build_grid_multi(snap: &MetaSnapshot) -> Vec<GridConfig> {
                     height: card_h,
                     hero_ids: vec![h.hero_id],
                 });
+            }
+
+            // Other heroes (excluding top heroes)
+            let other_heroes: Vec<_> = role
+                .heroes
+                .iter()
+                .filter(|h| !top_ids.contains(&h.hero_id))
+                .cloned()
+                .collect();
+
+            if !other_heroes.is_empty() {
+                let other_header_y = 30.0 + card_h + 35.0; // 175.0
+                categories.push(Category {
+                    category_name: format!("OTHER {role_upper} HEROES - ORDERED BY D2PT RATING"),
+                    x_position: 0.0,
+                    y_position: other_header_y,
+                    width: 1100.0,
+                    height: 0.0,
+                    hero_ids: vec![],
+                });
+
+                let other_heroes_start_y = other_header_y + 30.0;
+                for (idx, h) in other_heroes.iter().enumerate() {
+                    let col = idx % heroes_per_row;
+                    let row = idx / heroes_per_row;
+                    categories.push(Category {
+                        category_name: format!("{:.2}%\n{:.2}%", h.winrate * 100.0, h.pickrate * 100.0),
+                        x_position: (col as f64) * (card_w + gap_x),
+                        y_position: other_heroes_start_y + (row as f64) * (card_h + gap_y),
+                        width: card_w,
+                        height: card_h,
+                        hero_ids: vec![h.hero_id],
+                    });
+                }
             }
 
             GridConfig {

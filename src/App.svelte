@@ -15,6 +15,26 @@
   onMount(() => {
     store.init();
 
+    // Disable browser context menu
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+    };
+
+    // Disable browser default shortcuts (refresh, devtools, print, etc.)
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        e.key === "F5" ||
+        e.key === "F12" ||
+        (e.ctrlKey && ["r", "R", "f", "F", "p", "P", "u", "U"].includes(e.key)) ||
+        (e.ctrlKey && e.shiftKey && ["r", "R", "i", "I", "j", "J", "c", "C"].includes(e.key))
+      ) {
+        e.preventDefault();
+      }
+    };
+
+    window.addEventListener("contextmenu", handleContextMenu);
+    window.addEventListener("keydown", handleKeyDown);
+
     let unlistenDone: UnlistenFn | undefined;
     let unlistenError: UnlistenFn | undefined;
 
@@ -26,6 +46,8 @@
     });
 
     return () => {
+      window.removeEventListener("contextmenu", handleContextMenu);
+      window.removeEventListener("keydown", handleKeyDown);
       unlistenDone?.();
       unlistenError?.();
     };
