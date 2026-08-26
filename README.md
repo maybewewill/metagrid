@@ -62,7 +62,7 @@ Grids are written directly to Dota's `hero_grid_config.json`. Existing user-crea
 <table>
   <tr>
     <th width="50%" align="center"><b>Separate Mode</b><br/><sub>5 Standalone Role Layouts</sub></th>
-    <th width="50%" align="center"><b>Merge Mode</b><br/><sub>Live META Injected into Custom Grid</sub></th>
+    <th width="50%" align="center"><b>Merge Mode</b><br/><sub>Live META Injected into Existing Grid</sub></th>
   </tr>
   <tr>
     <td align="center">
