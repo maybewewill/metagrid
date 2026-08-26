@@ -110,7 +110,6 @@ const DEBOUNCE_FLOOR: Duration = Duration::from_secs(30);
 /// single refresh.
 pub fn spawn(app: AppHandle) {
     tauri::async_runtime::spawn(async move {
-        let _ = run_refresh(&app).await;
         let mut last = Instant::now();
 
         loop {

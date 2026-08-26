@@ -43,11 +43,11 @@
 <div
   use:hoverLift
   role="group"
-  class="group flex h-[62px] items-center overflow-hidden rounded-sm border border-zinc-800/60 bg-zinc-900/40 transition-all duration-150 hover:border-zinc-700 hover:bg-zinc-800/80"
+  class="group flex h-[66px] items-center overflow-hidden rounded-sm border border-zinc-800/60 bg-zinc-900/40 transition-all duration-150 hover:border-zinc-700 hover:bg-zinc-800/80"
 >
   <!-- Hero Portrait flush to the left -->
   <div
-    class="relative h-full w-[46px] shrink-0 overflow-hidden bg-zinc-950 border-r border-zinc-800/80"
+    class="relative h-full w-[48px] shrink-0 overflow-hidden bg-zinc-950 border-r border-zinc-800/80"
   >
     {#if !broken}
       <img
@@ -65,23 +65,23 @@
   </div>
 
   <!-- Hero Details -->
-  <div class="flex min-w-0 flex-1 flex-col justify-center px-2.5 py-1 gap-0.5">
-    <div class="truncate text-[12.5px] font-extrabold uppercase tracking-wide text-zinc-100 group-hover:text-white">
+  <div class="flex min-w-0 flex-1 flex-col justify-center px-3 py-1 gap-0.5">
+    <div class="truncate text-[13px] font-extrabold uppercase tracking-wide text-zinc-100 group-hover:text-white">
       {hero.name}
     </div>
-    <div class="flex items-center gap-1.5 text-[11px] font-mono leading-none text-zinc-400 whitespace-nowrap overflow-hidden">
+    <div class="flex items-center gap-1.5 text-[11.5px] font-mono leading-none text-zinc-400 whitespace-nowrap overflow-hidden">
       <span>{pct(hero.pickrate)} Pick</span>
       {#if hero.d2pt_rating && hero.d2pt_rating > 0}
         <span class="text-zinc-600">·</span>
-        <span class="font-medium text-zinc-300" title="D2PT Rating">{hero.d2pt_rating}</span>
+        <span class="font-bold text-purple-400" title="D2PT Rating">{hero.d2pt_rating}</span>
       {/if}
     </div>
   </div>
 
   <!-- Winrate -->
-  <div class="shrink-0 pr-2.5 flex flex-col items-end justify-center">
+  <div class="shrink-0 pr-3 flex flex-col items-end justify-center">
     <span
-      class="font-mono text-[13px] font-black tracking-tight tabular-nums"
+      class="font-mono text-[13.5px] font-black tracking-tight tabular-nums"
       style:color={wrColor}
     >
       {pct(hero.winrate)}
