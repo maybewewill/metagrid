@@ -125,10 +125,6 @@ impl D2ptProvider {
 
 #[async_trait::async_trait]
 impl MetaProvider for D2ptProvider {
-    fn id(&self) -> &'static str {
-        "d2pt"
-    }
-
     async fn fetch(&self, map: &HeroMap, top_n: usize) -> Result<MetaSnapshot, ProviderError> {
         // Try the rich /meta endpoint first (supports full hero pool per role).
         match self.fetch_meta_all(map, top_n).await {

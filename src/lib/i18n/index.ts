@@ -11,11 +11,11 @@ export const en = {
     fresh: "Up to date",
     stale: "Stale",
     error: "Error",
-    refreshing: "Fetching meta...",
+    refreshing: "Fetching & Patching...",
     idle: "Idle",
     updated: "Updated {time}",
-    fetch: "Fetch meta",
-    refresh: "Fetch meta",
+    fetch: "Fetch & Patch",
+    refresh: "Fetch & Patch",
     list: "List",
     grid: "Grid"
   },
@@ -67,7 +67,7 @@ export const en = {
     welcome: "Welcome to MetaGrid",
     subtitle: "A fresh meta hero grid, kept up to date in the background.",
     pick_account: "Write the grid to",
-    fetch: "Fetch first meta",
+    fetch: "Fetch & Patch",
     fetched: "Meta loaded",
     finish: "Get started",
     no_accounts: "No Dota accounts found — launch Dota once, then reopen MetaGrid."
@@ -79,7 +79,7 @@ export const en = {
   empty: {
     title: "No meta yet",
     desc: "Pull the current pro meta and build your hero grid.",
-    cta: "Fetch meta"
+    cta: "Fetch & Patch"
   }
 };
 
@@ -91,11 +91,11 @@ export const ru = {
     fresh: "Актуально",
     stale: "Устарело",
     error: "Ошибка",
-    refreshing: "Загрузка меты...",
+    refreshing: "Fetching & Patching...",
     idle: "Ожидание",
     updated: "Обновлено {time}",
-    fetch: "Загрузить мету",
-    refresh: "Загрузить мету",
+    fetch: "Fetch & Patch",
+    refresh: "Fetch & Patch",
     list: "Список",
     grid: "Сетка"
   },
@@ -147,7 +147,7 @@ export const ru = {
     welcome: "Добро пожаловать в MetaGrid",
     subtitle: "Актуальная мета-сетка героев, обновляется в фоне.",
     pick_account: "Куда записывать сетку",
-    fetch: "Загрузить мету",
+    fetch: "Fetch & Patch",
     fetched: "Мета загружена",
     finish: "Начать",
     no_accounts: "Аккаунты Dota не найдены — запустите Dota один раз и откройте MetaGrid снова."
@@ -159,7 +159,7 @@ export const ru = {
   empty: {
     title: "Меты пока нет",
     desc: "Забрать актуальную про-мету и собрать сетку героев.",
-    cta: "Загрузить мету"
+    cta: "Fetch & Patch"
   }
 };
 

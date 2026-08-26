@@ -1,7 +1,5 @@
-use std::path::Path;
-
-use crate::grid::{build_grid, build_grid_multi, GridOptions};
-use crate::grid_writer::{write_to, GridError, METAGRID_NAME};
+use crate::grid::build_grid_multi;
+use crate::grid_writer::{write_to, GridError};
 use crate::hero_map::HeroMap;
 use crate::model::MetaSnapshot;
 use crate::provider::{MetaProvider, ProviderError};
@@ -15,73 +13,6 @@ pub enum PipelineError {
     Grid(#[from] GridError),
 }
 
-#[derive(Debug, Clone, serde::Serialize)]
-pub struct RunSummary {
-    pub source: String,
-    pub patch: String,
-    pub roles: usize,
-    pub total_heroes: usize,
-    pub grid_path: String,
-    pub preserved_configs: Vec<String>,
-    pub wrote_metagrid: bool,
-}
-
-/// Read `grid_path` (if present) and collect the `config_name`s of every
-/// config in it except `"MetaGrid"`. Missing, empty, or unparseable files
-/// are treated as "nothing to preserve" — `write_to` enforces its own
-/// safety around the actual write, so this read is best-effort/informational
-/// only and must never error the pipeline.
-fn read_preserved_config_names(grid_path: &Path) -> Vec<String> {
-    let Ok(contents) = std::fs::read_to_string(grid_path) else {
-        return Vec::new();
-    };
-    if contents.trim().is_empty() {
-        return Vec::new();
-    }
-    let Ok(value) = serde_json::from_str::<serde_json::Value>(&contents) else {
-        return Vec::new();
-    };
-    let Some(configs) = value.get("configs").and_then(|c| c.as_array()) else {
-        return Vec::new();
-    };
-    configs
-        .iter()
-        .filter_map(|c| c.get("config_name").and_then(|n| n.as_str()))
-        .filter(|name| *name != METAGRID_NAME)
-        .map(|name| name.to_string())
-        .collect()
-}
-
-/// Fetch the current meta from `provider`, build a MetaGrid layout from it,
-/// and write it into `grid_path` — preserving every other config already in
-/// that file.
-pub async fn run_once(
-    provider: &dyn MetaProvider,
-    map: &HeroMap,
-    grid_path: &Path,
-    _opts: &GridOptions,
-    top_n: usize,
-) -> Result<RunSummary, PipelineError> {
-    let snap: MetaSnapshot = provider.fetch(map, top_n).await?;
-
-    let preserved_configs = read_preserved_config_names(grid_path);
-
-    let grids = build_grid_multi(&snap);
-    for grid in &grids {
-        write_to(grid_path, grid)?;
-    }
-
-    Ok(RunSummary {
-        source: snap.source.clone(),
-        patch: snap.patch.clone(),
-        roles: snap.roles.len(),
-        total_heroes: snap.roles.iter().map(|r| r.heroes.len()).sum(),
-        grid_path: grid_path.display().to_string(),
-        preserved_configs,
-        wrote_metagrid: true,
-    })
-}
-
 /// Fetch the current meta from `provider` ONCE, build the multi-role MetaGrid layout
 /// matching the Grid preview (Carry, Mid, Offlane, Support, Hard Support with TOP HEROES
 /// and OTHER HEROES), and write into every Steam account's `hero_grid_config.json`.
@@ -89,7 +20,6 @@ pub async fn refresh_all(
     provider: &dyn MetaProvider,
     map: &HeroMap,
     steam: &SteamLocator,
-    _opts: &GridOptions,
     top_n: usize,
     account_filter: Option<&str>,
 ) -> Result<MetaSnapshot, PipelineError> {
@@ -114,17 +44,13 @@ pub async fn refresh_all(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::{HeroMeta, Position, RoleMeta, SortMetric};
+    use crate::model::{HeroMeta, Position, RoleMeta};
     use crate::provider::ProviderError;
 
     struct FakeProvider;
 
     #[async_trait::async_trait]
     impl MetaProvider for FakeProvider {
-        fn id(&self) -> &'static str {
-            "fake"
-        }
-
         async fn fetch(&self, _map: &HeroMap, _top_n: usize) -> Result<MetaSnapshot, ProviderError> {
             let roles = Position::all()
                 .iter()
@@ -167,35 +93,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn run_once_preserves_and_writes() {
-        let dir = tempfile::tempdir().unwrap();
-        let grid_path = dir.path().join("grid_config.json");
-        let seed = r#"{"version":3,"configs":[
-            {"config_name":"Main Layout","categories":[{"category_name":"2pos","x_position":0.0,"y_position":0.0,"width":10.0,"height":10.0,"hero_ids":[1,2]}]}
-        ]}"#;
-        std::fs::write(&grid_path, seed).unwrap();
-
-        let opts = GridOptions {
-            sort: SortMetric::Pickrate,
-            layout_columns: true,
-        };
-
-        let summary = run_once(&FakeProvider, &HeroMap::bundled(), &grid_path, &opts, 10)
-            .await
-            .unwrap();
-
-        let written = std::fs::read_to_string(&grid_path).unwrap();
-        assert!(written.contains("Main Layout"));
-        assert!(written.contains("Carry"));
-        assert_eq!(summary.preserved_configs, vec!["Main Layout".to_string()]);
-        assert_eq!(summary.roles, 5);
-        assert!(summary.wrote_metagrid);
-    }
-
-    #[tokio::test]
     async fn refresh_all_writes_to_each_account() {
-        use crate::steam::SteamLocator;
-
         let tmp = tempfile::tempdir().unwrap();
         let root = tmp.path().to_path_buf();
         std::fs::create_dir_all(root.join("userdata/111/570/remote/cfg")).unwrap();
@@ -203,12 +101,7 @@ mod tests {
 
         let steam = SteamLocator::with_root(root);
 
-        let opts = GridOptions {
-            sort: SortMetric::Pickrate,
-            layout_columns: false,
-        };
-
-        let snap = refresh_all(&FakeProvider, &HeroMap::bundled(), &steam, &opts, 10, None)
+        let snap = refresh_all(&FakeProvider, &HeroMap::bundled(), &steam, 10, None)
             .await
             .unwrap();
 
@@ -222,20 +115,13 @@ mod tests {
 
     #[tokio::test]
     async fn refresh_all_multi_mode_writes_five_named_configs() {
-        use crate::steam::SteamLocator;
-
         let tmp = tempfile::tempdir().unwrap();
         let root = tmp.path().to_path_buf();
         std::fs::create_dir_all(root.join("userdata/111/570/remote/cfg")).unwrap();
 
         let steam = SteamLocator::with_root(root);
 
-        let opts = GridOptions {
-            sort: SortMetric::Pickrate,
-            layout_columns: false,
-        };
-
-        refresh_all(&FakeProvider, &HeroMap::bundled(), &steam, &opts, 10, None)
+        refresh_all(&FakeProvider, &HeroMap::bundled(), &steam, 10, None)
             .await
             .unwrap();
 
@@ -255,7 +141,6 @@ mod tests {
                 "missing {role_name}, got {names:?}"
             );
         }
-        // Single-config "MetaGrid" must NOT be written in multi mode.
         assert!(!names.contains(&"MetaGrid".to_string()));
     }
 
@@ -298,20 +183,15 @@ mod tests {
             })
             .unwrap_or_default();
 
-        let opts = GridOptions {
-            sort: SortMetric::Pickrate,
-            layout_columns: true,
-        };
+        let snap = D2ptProvider::new()
+            .fetch(&HeroMap::bundled(), 12)
+            .await
+            .unwrap();
 
-        let summary = run_once(
-            &D2ptProvider::new(),
-            &HeroMap::bundled(),
-            &copy_path,
-            &opts,
-            12,
-        )
-        .await
-        .unwrap();
+        let grids = build_grid_multi(&snap);
+        for grid in &grids {
+            write_to(&copy_path, grid).unwrap();
+        }
 
         let after_contents = std::fs::read_to_string(&copy_path).unwrap();
         let after_value: serde_json::Value = serde_json::from_str(&after_contents).unwrap();
@@ -331,36 +211,29 @@ mod tests {
                 "original config {name:?} must survive the write"
             );
         }
-        assert!(
-            after_names.iter().any(|n| n == "MetaGrid"),
-            "MetaGrid config must be present after write"
-        );
+        for role_name in ["Carry", "Mid", "Offlane", "Support", "Hard Support"] {
+            assert!(
+                after_names.contains(&role_name.to_string()),
+                "missing config {role_name}"
+            );
+        }
 
         println!("=== LIVE END-TO-END PROOF ===");
         println!("real grid file (untouched):   {}", real_path.display());
         println!("temp copy (written):          {}", copy_path.display());
-        println!("provider source:              {}", summary.source);
-        println!("patch:                        {}", summary.patch);
-        println!("roles:                        {}", summary.roles);
-        println!("total heroes:                 {}", summary.total_heroes);
+        println!("provider source:              {}", snap.source);
+        println!("patch:                        {}", snap.patch);
+        println!("roles:                        {}", snap.roles.len());
         println!();
 
-        let snap = D2ptProvider::new()
-            .fetch(&HeroMap::bundled(), 12)
-            .await
-            .unwrap();
         for role in &snap.roles {
             let top3: Vec<&str> = role.heroes.iter().take(3).map(|h| h.name.as_str()).collect();
             println!(
                 "{:<24} heroes={:<3} top3={:?}",
-                role.position.label("en"),
+                role.position.config_name(),
                 role.heroes.len(),
                 top3
             );
         }
-
-        println!();
-        println!("preserved foreign configs: {:?}", summary.preserved_configs);
-        println!("temp path written:         {}", copy_path.display());
     }
 }

@@ -2,6 +2,7 @@
   import { _ } from "svelte-i18n";
   import { pct2 } from "$lib/format";
   import type { RoleMeta } from "$lib/types";
+  import { getHeroPortraitUrl, getFallbackPortraitUrl } from "$lib/utils";
 
   let { roles }: { roles: RoleMeta[] } = $props();
 
@@ -15,18 +16,10 @@
     return Number(pos.slice(3));
   }
 
-  function d2ptVert(slug: string) {
-    return `https://dota2protracker.com/static/heroes/${slug}_vert.jpg`;
-  }
-
-  function steamVert(slug: string) {
-    return `https://cdn.cloudflare.steamstatic.com/apps/dota2/images/heroes/${slug}_vert.jpg`;
-  }
-
   function handleImgError(e: Event, slug: string) {
     const target = e.currentTarget as HTMLImageElement;
     if (!target.src.includes("steamstatic")) {
-      target.src = steamVert(slug);
+      target.src = getFallbackPortraitUrl(slug);
     }
   }
 </script>
@@ -76,7 +69,7 @@
                 class="relative h-[104px] w-[68px] overflow-hidden rounded-sm border border-[#2b3542] bg-[#10141a] shadow-[0_3px_10px_rgba(0,0,0,0.8)] transition-all group-hover:border-[#60a5fa] group-hover:shadow-[0_0_10px_rgba(96,165,250,0.3)]"
               >
                 <img
-                  src={d2ptVert(h.slug)}
+                  src={getHeroPortraitUrl(h.slug)}
                   alt={h.name}
                   loading="lazy"
                   class="size-full object-cover object-top opacity-95 transition-opacity group-hover:opacity-100"
@@ -113,7 +106,7 @@
                   class="relative h-[104px] w-[68px] overflow-hidden rounded-sm border border-[#2b3542] bg-[#10141a] shadow-[0_3px_10px_rgba(0,0,0,0.8)] transition-all group-hover:border-[#60a5fa] group-hover:shadow-[0_0_10px_rgba(96,165,250,0.3)]"
                 >
                   <img
-                    src={d2ptVert(h.slug)}
+                    src={getHeroPortraitUrl(h.slug)}
                     alt={h.name}
                     loading="lazy"
                     class="size-full object-cover object-top opacity-95 transition-opacity group-hover:opacity-100"

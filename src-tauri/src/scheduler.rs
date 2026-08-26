@@ -13,7 +13,6 @@ use tauri_plugin_notification::NotificationExt;
 use tokio::sync::Notify;
 
 use crate::events;
-use crate::grid::GridOptions;
 use crate::model::MetaSnapshot;
 use crate::pipeline;
 use crate::services::Services;
@@ -33,10 +32,6 @@ pub async fn run_refresh(app: &AppHandle) -> Result<MetaSnapshot, String> {
     let _ = app.emit(events::REFRESH_STARTED, ());
 
     let settings = state.get_settings();
-    let opts = GridOptions {
-        sort: settings.sort,
-        layout_columns: settings.layout_columns,
-    };
 
     let Some(steam) = SteamLocator::detect() else {
         let msg = "could not detect a Steam installation".to_string();
@@ -50,7 +45,6 @@ pub async fn run_refresh(app: &AppHandle) -> Result<MetaSnapshot, String> {
         &*services.provider,
         &services.map,
         &steam,
-        &opts,
         settings.top_n,
         settings.account_id.as_deref(),
     )

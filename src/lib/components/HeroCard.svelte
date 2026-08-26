@@ -2,21 +2,21 @@
   import { hoverLift } from "$lib/motion";
   import type { HeroMeta } from "$lib/types";
   import { pct } from "$lib/format";
+  import { getHeroPortraitUrl, getFallbackPortraitUrl } from "$lib/utils";
 
   let { hero }: { hero: HeroMeta; rank?: number } = $props();
 
   let broken = $state(false);
-
   let currentSrc = $state("");
-  
+
   $effect(() => {
-    currentSrc = `https://dota2protracker.com/static/heroes/${hero.slug}_vert.jpg`;
+    currentSrc = getHeroPortraitUrl(hero.slug);
     broken = false;
   });
 
   function handleError() {
     if (currentSrc.includes("dota2protracker.com")) {
-      currentSrc = `https://cdn.cloudflare.steamstatic.com/apps/dota2/images/heroes/${hero.slug}_vert.jpg`;
+      currentSrc = getFallbackPortraitUrl(hero.slug);
     } else {
       broken = true;
     }

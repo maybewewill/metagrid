@@ -15,7 +15,7 @@ use tauri::{
 use tauri_plugin_notification::NotificationExt;
 
 pub fn build(app: &tauri::App) -> tauri::Result<()> {
-    let refresh = MenuItemBuilder::with_id("refresh", "Refresh config").build(app)?;
+    let refresh = MenuItemBuilder::with_id("refresh", "Fetch & Patch").build(app)?;
     let open = MenuItemBuilder::with_id("open", "Open MetaGrid").build(app)?;
     let quit = MenuItemBuilder::with_id("quit", "Exit").build(app)?;
     let menu = MenuBuilder::new(app)
@@ -31,7 +31,7 @@ pub fn build(app: &tauri::App) -> tauri::Result<()> {
                     .notification()
                     .builder()
                     .title("MetaGrid")
-                    .body("Refreshing meta from Dota2ProTracker...")
+                    .body("Fetching & Patching meta from Dota2ProTracker...")
                     .show();
                 let _ = crate::scheduler::trigger(app);
             }

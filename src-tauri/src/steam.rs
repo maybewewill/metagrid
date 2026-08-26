@@ -44,6 +44,7 @@ impl SteamLocator {
         Some(PathBuf::from(steam_path))
     }
 
+    #[cfg(test)]
     pub fn with_root(root: PathBuf) -> Self {
         SteamLocator { root }
     }

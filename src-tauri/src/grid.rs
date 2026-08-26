@@ -1,4 +1,4 @@
-use crate::model::{MetaSnapshot, Position, RoleMeta, SortMetric};
+use crate::model::MetaSnapshot;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -31,67 +31,6 @@ impl GridConfig {
                 hero_ids: vec![10, 20],
             }],
         }
-    }
-}
-
-pub struct GridOptions {
-    pub sort: SortMetric,
-    pub layout_columns: bool,
-}
-
-/// Builds a single role's `Category`: heroes sorted by `sort`, geometry
-/// pinned at `x_position` (the caller decides column layout, if any).
-/// Shared by both `build_grid` (one category per role, in one config) and
-/// `build_grid_multi` (one category — and one config — per role).
-fn build_category(role: &RoleMeta, sort: SortMetric, x_position: f64) -> Category {
-    let mut heroes = role.heroes.clone();
-    match sort {
-        SortMetric::Winrate => heroes.sort_by(|a, b| b.winrate.partial_cmp(&a.winrate).unwrap()),
-        SortMetric::Pickrate => {
-            heroes.sort_by(|a, b| b.pickrate.partial_cmp(&a.pickrate).unwrap())
-        }
-    }
-    let hero_ids = heroes.into_iter().map(|h| h.hero_id).collect();
-    Category {
-        category_name: format!(
-            "{} (WR {}%)",
-            role.position.label("en"),
-            (role.role_winrate * 100.0).round() as i32
-        ),
-        x_position,
-        y_position: 0.0,
-        width: 200.0,
-        height: 200.0,
-        hero_ids,
-    }
-}
-
-/// Maps a `Position` to its 1-based POS number, used for the
-/// `"MetaGrid POS n"` config names in `build_grid_multi`.
-fn position_number(p: Position) -> u8 {
-    match p {
-        Position::Pos1 => 1,
-        Position::Pos2 => 2,
-        Position::Pos3 => 3,
-        Position::Pos4 => 4,
-        Position::Pos5 => 5,
-    }
-}
-
-pub fn build_grid(snap: &MetaSnapshot, opts: &GridOptions) -> GridConfig {
-    let categories = snap
-        .roles
-        .iter()
-        .enumerate()
-        .map(|(i, role)| {
-            let x_position = if opts.layout_columns { i as f64 * 210.0 } else { 0.0 };
-            build_category(role, opts.sort, x_position)
-        })
-        .collect();
-
-    GridConfig {
-        config_name: "MetaGrid".into(),
-        categories,
     }
 }
 
@@ -231,29 +170,6 @@ mod tests {
                 .collect(),
         }
     }
-    #[test]
-    fn five_columns_and_sort_applies() {
-        let g = build_grid(
-            &sample_snapshot(),
-            &GridOptions {
-                sort: SortMetric::Winrate,
-                layout_columns: true,
-            },
-        );
-        assert_eq!(g.config_name, "MetaGrid");
-        assert_eq!(g.categories.len(), 5);
-        assert!(g.categories[1].x_position > g.categories[0].x_position);
-        assert_eq!(g.categories[0].hero_ids, vec![10, 20]); // winrate desc → A before B
-        let g2 = build_grid(
-            &sample_snapshot(),
-            &GridOptions {
-                sort: SortMetric::Pickrate,
-                layout_columns: true,
-            },
-        );
-        assert_eq!(g2.categories[0].hero_ids, vec![20, 10]); // pickrate desc → B before A
-    }
-
     #[test]
     fn multi_layout_makes_five_named_configs() {
         let cfgs = build_grid_multi(&sample_snapshot());
