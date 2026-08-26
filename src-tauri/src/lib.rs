@@ -5,6 +5,7 @@ mod model;
 mod pipeline;
 mod provider;
 mod settings;
+mod state;
 mod steam;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
