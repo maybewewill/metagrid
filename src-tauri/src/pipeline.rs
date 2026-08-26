@@ -59,15 +59,17 @@ pub async fn run_once(
     provider: &dyn MetaProvider,
     map: &HeroMap,
     grid_path: &Path,
-    opts: &GridOptions,
+    _opts: &GridOptions,
     top_n: usize,
 ) -> Result<RunSummary, PipelineError> {
     let snap: MetaSnapshot = provider.fetch(map, top_n).await?;
 
     let preserved_configs = read_preserved_config_names(grid_path);
 
-    let grid = build_grid(&snap, opts);
-    write_to(grid_path, &grid)?;
+    let grids = build_grid_multi(&snap);
+    for grid in &grids {
+        write_to(grid_path, grid)?;
+    }
 
     Ok(RunSummary {
         source: snap.source.clone(),
@@ -80,33 +82,20 @@ pub async fn run_once(
     })
 }
 
-/// Fetch the current meta from `provider` ONCE, build a MetaGrid layout from
-/// it, and write that same grid into every Steam account's
-/// `hero_grid_config.json` (or only the account matching `account_filter`,
-/// if given) — preserving every other config already in each file.
+/// Fetch the current meta from `provider` ONCE, build the multi-role MetaGrid layout
+/// matching the Grid preview (Carry, Mid, Offlane, Support, Hard Support with TOP HEROES
+/// and OTHER HEROES), and write into every Steam account's `hero_grid_config.json`.
 pub async fn refresh_all(
     provider: &dyn MetaProvider,
     map: &HeroMap,
     steam: &SteamLocator,
-    opts: &GridOptions,
+    _opts: &GridOptions,
     top_n: usize,
     account_filter: Option<&str>,
 ) -> Result<MetaSnapshot, PipelineError> {
     let snap: MetaSnapshot = provider.fetch(map, top_n).await?;
 
-    // `layout_columns == true` keeps the single "MetaGrid" config (5 columns,
-    // one per role). `layout_columns == false` switches to one config per
-    // role ("MetaGrid POS 1".."MetaGrid POS 5") — `write_to` upserts by
-    // `config_name` and preserves every foreign config, so looping it once
-    // per grid, per account is safe. Switching modes back and forth may
-    // leave both the single "MetaGrid" config and the per-role configs
-    // sitting side by side; that's acceptable — we never delete configs we
-    // didn't just write.
-    let grids: Vec<crate::grid::GridConfig> = if opts.layout_columns {
-        vec![build_grid(&snap, opts)]
-    } else {
-        build_grid_multi(&snap)
-    };
+    let grids = build_grid_multi(&snap);
 
     for account in steam.accounts() {
         if let Some(filter_id) = account_filter {
@@ -197,7 +186,7 @@ mod tests {
 
         let written = std::fs::read_to_string(&grid_path).unwrap();
         assert!(written.contains("Main Layout"));
-        assert!(written.contains("MetaGrid"));
+        assert!(written.contains("Carry"));
         assert_eq!(summary.preserved_configs, vec!["Main Layout".to_string()]);
         assert_eq!(summary.roles, 5);
         assert!(summary.wrote_metagrid);
@@ -216,7 +205,7 @@ mod tests {
 
         let opts = GridOptions {
             sort: SortMetric::Pickrate,
-            layout_columns: true,
+            layout_columns: false,
         };
 
         let snap = refresh_all(&FakeProvider, &HeroMap::bundled(), &steam, &opts, 10, None)
@@ -227,7 +216,7 @@ mod tests {
 
         for account in steam.accounts() {
             let written = std::fs::read_to_string(&account.grid_path).unwrap();
-            assert!(written.contains("MetaGrid"));
+            assert!(written.contains("Carry"));
         }
     }
 

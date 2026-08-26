@@ -32,7 +32,7 @@ impl Default for Settings {
             interval_hours: 6,
             account_id: None,
             autostart: true,
-            layout_columns: true,
+            layout_columns: false,
             lang: "en".into(),
             onboarded: false,
             role_labels: default_role_labels(),
