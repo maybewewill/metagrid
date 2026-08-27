@@ -1,7 +1,7 @@
 <script lang="ts">
   import { hoverLift } from "$lib/motion";
   import type { HeroMeta } from "$lib/types";
-  import { pct } from "$lib/format";
+  import { pct, formatWr } from "$lib/format";
   import { getHeroPortraitUrl } from "$lib/utils";
 
   let { hero }: { hero: HeroMeta; rank?: number } = $props();
@@ -87,7 +87,7 @@
       class="font-mono text-[14px] font-black tracking-tight tabular-nums"
       style:color={wrColor}
     >
-      {pct(hero.winrate)}
+      {formatWr(hero.winrate)}
     </span>
   </div>
 </div>

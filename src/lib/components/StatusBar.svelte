@@ -1,9 +1,10 @@
 <script lang="ts">
-  import { _ } from "svelte-i18n";
+  import { _, locale } from "svelte-i18n";
   import { store } from "$lib/store.svelte";
   import { relTime } from "$lib/format";
   import { Button } from "$lib/components/ui/button";
   import { RefreshCw, Settings2, List, LayoutGrid } from "@lucide/svelte";
+  import TournamentSelector from "$lib/components/TournamentSelector.svelte";
 
   const kind = $derived(store.status.kind);
   const refreshing = $derived(kind === "Refreshing" || store.loading);
@@ -26,7 +27,7 @@
 
   const label = $derived.by(() => {
     if (refreshing) {
-      return $_("status.refreshing");
+      return store.fetchingOnly ? $_("status.fetching") : $_("status.refreshing");
     }
     switch (kind) {
       case "Ok":
@@ -57,13 +58,16 @@
       {#if store.snapshot}
         <span class="text-muted-foreground/50">·</span>
         <span class="truncate text-muted-foreground">
-          {$_("status.updated", { values: { time: relTime(store.snapshot.fetched_at) } })}
+          {$_("status.updated", { values: { time: relTime(store.snapshot.fetched_at, new Date(), $locale ?? "en") } })}
         </span>
       {/if}
     {/if}
   </div>
 
   <div class="flex items-center gap-2">
+    {#if store.settings?.meta_source === "tournaments"}
+      <TournamentSelector />
+    {/if}
     <div class="flex items-center rounded-sm border border-border p-0.5">
       <button
         type="button"

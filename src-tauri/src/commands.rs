@@ -55,7 +55,7 @@ pub async fn fetch_only(
     let settings = state.get_settings();
     let snap = services
         .provider
-        .fetch(&services.map, settings.top_n)
+        .fetch(&services.map, settings.top_n, &settings.meta_source, settings.league_id)
         .await
         .map_err(|e| e.to_string())?;
     state.set_snapshot(snap.clone());
@@ -95,6 +95,11 @@ pub fn get_portrait_dir(data: State<DataDir>) -> String {
 }
 
 #[tauri::command]
+pub fn get_app_version() -> String {
+    crate::updater::get_current_version_display()
+}
+
+#[tauri::command]
 pub async fn check_update() -> Result<crate::updater::UpdateInfo, String> {
     crate::updater::check_for_updates().await
 }
@@ -128,4 +133,21 @@ pub fn list_grid_configs(state: State<Shared>) -> Vec<String> {
                 .collect()
         })
         .unwrap_or_default()
+}
+
+#[tauri::command]
+pub fn get_tournaments(state: State<Shared>) -> Vec<crate::model::Tournament> {
+    state.get_tournaments()
+}
+
+#[tauri::command]
+pub async fn fetch_tournaments(
+    state: State<'_, Shared>,
+) -> Result<Vec<crate::model::Tournament>, String> {
+    let d2pt = crate::provider::d2pt::D2ptProvider::new();
+    let list = d2pt.fetch_tournaments_live().await.map_err(|e| e.to_string())?;
+    if !list.is_empty() {
+        state.set_tournaments(list.clone());
+    }
+    Ok(list)
 }

@@ -50,15 +50,7 @@ pub fn spawn(app: AppHandle) {
             sys.refresh_processes(sysinfo::ProcessesToUpdate::All);
             let running = is_dota_running(&sys);
             match watch.observe(running) {
-                DotaEvent::Started => {
-                    let _ = crate::scheduler::trigger(&app);
-                    let _ = app
-                        .notification()
-                        .builder()
-                        .title("MetaGrid")
-                        .body("Meta refreshed for current game")
-                        .show();
-                }
+                DotaEvent::Started => {}
                 DotaEvent::Closed => {
                     tokio::time::sleep(std::time::Duration::from_secs(2)).await;
                     let _ = crate::scheduler::trigger(&app);

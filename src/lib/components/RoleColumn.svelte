@@ -2,7 +2,7 @@
   import { _ } from "svelte-i18n";
   import HeroCard from "$lib/components/HeroCard.svelte";
   import RoleIcon from "$lib/components/RoleIcon.svelte";
-  import { pct, roleLabel } from "$lib/format";
+  import { formatWr, roleLabel } from "$lib/format";
   import { prefersReducedMotion } from "$lib/motion";
   import { animate } from "motion";
   import { store } from "$lib/store.svelte";
@@ -36,7 +36,7 @@
     <RoleIcon position={role.position} class="size-4 text-zinc-300 shrink-0" />
     <span class="min-w-0 flex-1 truncate text-[13px] font-bold tracking-wider uppercase text-zinc-200">{title}</span>
     <span class="shrink-0 font-mono text-[11.5px] font-semibold tabular-nums text-zinc-400">
-      {pct(role.role_winrate)}
+      {formatWr(role.role_winrate)}
     </span>
   </header>
 

@@ -46,8 +46,11 @@ pub fn run() {
             commands::get_autostart,
             commands::set_autostart,
             commands::get_portrait_dir,
+            commands::get_app_version,
             commands::check_update,
-            commands::list_grid_configs
+            commands::list_grid_configs,
+            commands::get_tournaments,
+            commands::fetch_tournaments
         ])
         .setup(|app| {
             let data = app.path().app_data_dir()?;

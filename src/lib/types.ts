@@ -40,10 +40,18 @@ export interface Settings {
   role_labels: RoleLabelStyle;
   grid_mode: "separate" | "merge";
   merge_target: string | null;
+  meta_source: "pubs" | "tournaments";
+  league_id?: number;
 }
 
 export interface Account {
   id: string;
+}
+
+export interface Tournament {
+  id: number;
+  name: string;
+  match_count: number;
 }
 
 export type Status =

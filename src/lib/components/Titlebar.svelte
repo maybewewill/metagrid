@@ -31,7 +31,7 @@
       type="button"
       aria-label="Minimize"
       class="grid h-full w-11 place-items-center text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-      onclick={() => win.minimize()}
+      onclick={() => win.hide()}
     >
       <Minus size={15} />
     </button>

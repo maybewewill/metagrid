@@ -40,6 +40,14 @@ fn default_grid_mode() -> String {
     "separate".into()
 }
 
+fn default_meta_source() -> String {
+    "pubs".into()
+}
+
+fn default_league_id() -> i64 {
+    -1
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Settings {
     #[serde(default = "default_top_n")]
@@ -64,6 +72,10 @@ pub struct Settings {
     pub grid_mode: String,
     #[serde(default)]
     pub merge_target: Option<String>,
+    #[serde(default = "default_meta_source")]
+    pub meta_source: String,
+    #[serde(default = "default_league_id")]
+    pub league_id: i64,
 }
 
 impl Default for Settings {
@@ -80,6 +92,8 @@ impl Default for Settings {
             role_labels: default_role_labels(),
             grid_mode: default_grid_mode(),
             merge_target: None,
+            meta_source: default_meta_source(),
+            league_id: default_league_id(),
         }
     }
 }

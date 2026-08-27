@@ -23,8 +23,10 @@ pub async fn refresh_all(
     role_labels: &str,
     grid_mode: &str,
     merge_target: Option<&str>,
+    meta_source: &str,
+    league_id: i64,
 ) -> Result<MetaSnapshot, PipelineError> {
-    let snap: MetaSnapshot = provider.fetch(map, top_n).await?;
+    let snap: MetaSnapshot = provider.fetch(map, top_n, meta_source, league_id).await?;
 
     let merge = grid_mode == "merge" && merge_target.is_some();
     let grids = if merge { Vec::new() } else { build_grid_multi(&snap, role_labels) };
@@ -56,7 +58,7 @@ mod tests {
 
     #[async_trait::async_trait]
     impl MetaProvider for FakeProvider {
-        async fn fetch(&self, _map: &HeroMap, _top_n: usize) -> Result<MetaSnapshot, ProviderError> {
+        async fn fetch(&self, _map: &HeroMap, _top_n: usize, _s: &str, _l: i64) -> Result<MetaSnapshot, ProviderError> {
             let roles = Position::all()
                 .iter()
                 .enumerate()
@@ -106,7 +108,7 @@ mod tests {
 
         let steam = SteamLocator::with_root(root);
 
-        let snap = refresh_all(&FakeProvider, &HeroMap::bundled(), &steam, 10, None, "named", "separate", None)
+        let snap = refresh_all(&FakeProvider, &HeroMap::bundled(), &steam, 10, None, "named", "separate", None, "pubs", -1)
             .await
             .unwrap();
 
@@ -126,7 +128,7 @@ mod tests {
 
         let steam = SteamLocator::with_root(root);
 
-        refresh_all(&FakeProvider, &HeroMap::bundled(), &steam, 10, None, "named", "separate", None)
+        refresh_all(&FakeProvider, &HeroMap::bundled(), &steam, 10, None, "named", "separate", None, "pubs", -1)
             .await
             .unwrap();
 
@@ -140,13 +142,18 @@ mod tests {
             .filter_map(|c| c["config_name"].as_str().map(|s| s.to_string()))
             .collect();
 
-        for role_name in ["Carry", "Mid", "Offlane", "Support", "Hard Support"] {
+        for role_name in [
+            "MetaGrid - Carry",
+            "MetaGrid - Mid",
+            "MetaGrid - Offlane",
+            "MetaGrid - Support",
+            "MetaGrid - Hard Support",
+        ] {
             assert!(
                 names.contains(&role_name.to_string()),
                 "missing {role_name}, got {names:?}"
             );
         }
-        assert!(!names.contains(&"MetaGrid".to_string()));
     }
 
     #[tokio::test]
@@ -167,7 +174,7 @@ mod tests {
         .unwrap();
 
         let steam = SteamLocator::with_root(root);
-        refresh_all(&FakeProvider, &HeroMap::bundled(), &steam, 10, None, "named", "merge", Some("Main Layout"))
+        refresh_all(&FakeProvider, &HeroMap::bundled(), &steam, 10, None, "named", "merge", Some("Main Layout"), "pubs", -1)
             .await
             .unwrap();
 
@@ -189,7 +196,7 @@ mod tests {
             .iter()
             .find(|c| c["category_name"] == "2pos")
             .unwrap();
-        assert_eq!(user["x_position"].as_f64().unwrap(), 370.0);
+        assert_eq!(user["x_position"].as_f64().unwrap(), 420.0);
     }
 
     #[tokio::test]
@@ -228,7 +235,7 @@ mod tests {
             .unwrap_or_default();
 
         let snap = D2ptProvider::new()
-            .fetch(&HeroMap::bundled(), 12)
+            .fetch(&HeroMap::bundled(), 12, "pubs", -1)
             .await
             .unwrap();
 

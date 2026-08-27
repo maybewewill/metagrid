@@ -23,6 +23,26 @@ pub fn is_metagrid_config(name: &str) -> bool {
         || n.starts_with("MetaGrid")
         || n.starts_with('⚡')
         || n.starts_with("⚡ ")
+        || n.ends_with(" - Carry")
+        || n.ends_with(" - Mid")
+        || n.ends_with(" - Offlane")
+        || n.ends_with(" - Support")
+        || n.ends_with(" - Hard Support")
+        || n.ends_with(" - POS 1")
+        || n.ends_with(" - POS 2")
+        || n.ends_with(" - POS 3")
+        || n.ends_with(" - POS 4")
+        || n.ends_with(" - POS 5")
+        || n.ends_with(" - Керри")
+        || n.ends_with(" - Мид")
+        || n.ends_with(" - Оффлейн")
+        || n.ends_with(" - Саппорт")
+        || n.ends_with(" - Хард Саппорт")
+        || n.ends_with(" - ПОЗ 1")
+        || n.ends_with(" - ПОЗ 2")
+        || n.ends_with(" - ПОЗ 3")
+        || n.ends_with(" - ПОЗ 4")
+        || n.ends_with(" - ПОЗ 5")
         || matches!(
             n.to_ascii_uppercase().as_str(),
             "CARRY"
@@ -56,6 +76,16 @@ pub fn is_metagrid_config(name: &str) -> bool {
         )
 }
 
+fn is_meta_category(name: &str) -> bool {
+    let n = name.trim();
+    n.starts_with("META ")
+        || n.starts_with("— META ")
+        || n.starts_with("- META ")
+        || n.starts_with("• META ")
+        || n.starts_with("TOURNAMENT:")
+        || n.starts_with("Tournament:")
+}
+
 pub fn upsert_configs(existing_json: &str, our_grids: &[GridConfig]) -> Result<String, GridError> {
     let mut root: serde_json::Value = if existing_json.trim().is_empty() {
         serde_json::json!({"version": 3, "configs": []})
@@ -83,7 +113,7 @@ pub fn upsert_configs(existing_json: &str, our_grids: &[GridConfig]) -> Result<S
         if let Some(cats) = config.get_mut("categories").and_then(|v| v.as_array_mut()) {
             cats.retain(|c| {
                 let name = c.get("category_name").and_then(|v| v.as_str()).unwrap_or("");
-                !name.starts_with("META ")
+                !is_meta_category(name)
             });
         }
     }
@@ -99,6 +129,51 @@ pub fn upsert_configs(existing_json: &str, our_grids: &[GridConfig]) -> Result<S
 #[allow(dead_code)]
 pub fn upsert_config(existing_json: &str, our: &GridConfig) -> Result<String, GridError> {
     upsert_configs(existing_json, std::slice::from_ref(our))
+}
+
+use sha1::{Digest, Sha1};
+
+fn compute_sha1_hex(bytes: &[u8]) -> String {
+    let mut hasher = Sha1::new();
+    hasher.update(bytes);
+    format!("{:x}", hasher.finalize())
+}
+
+fn sync_remotecache_for_grid(grid_path: &Path, content: &[u8]) {
+    let Some(remotecache_path) = grid_path.ancestors().nth(3).map(|p| p.join("remotecache.vdf")) else {
+        return;
+    };
+    if !remotecache_path.exists() {
+        return;
+    }
+    let Ok(vdf) = std::fs::read_to_string(&remotecache_path) else {
+        return;
+    };
+
+    let sha = compute_sha1_hex(content);
+    let size = content.len();
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0);
+
+    let new_block = format!(
+        "\"cfg/hero_grid_config.json\"\n\t{{\n\t\t\"root\"\t\t\"0\"\n\t\t\"size\"\t\t\"{size}\"\n\t\t\"localtime\"\t\t\"{now}\"\n\t\t\"time\"\t\t\"{now}\"\n\t\t\"remotetime\"\t\t\"{now}\"\n\t\t\"sha\"\t\t\"{sha}\"\n\t\t\"syncstate\"\t\t\"1\"\n\t\t\"persiststate\"\t\t\"0\"\n\t\t\"platformstosync2\"\t\t\"-1\"\n\t}}"
+    );
+
+    let updated = if vdf.contains("\"cfg/hero_grid_config.json\"") {
+        let re = regex::Regex::new(r#""cfg/hero_grid_config\.json"\s*\{[^}]*\}"#).unwrap();
+        re.replace(&vdf, new_block.as_str()).to_string()
+    } else if let Some(last_brace_idx) = vdf.rfind('}') {
+        let mut s = vdf[..last_brace_idx].to_string();
+        s.push_str(&format!("\t{new_block}\n"));
+        s.push_str("}\n");
+        s
+    } else {
+        vdf
+    };
+
+    let _ = std::fs::write(&remotecache_path, updated);
 }
 
 fn backup_and_write(path: &Path, existing: &str, new_json: &str) -> Result<(), GridError> {
@@ -123,6 +198,7 @@ fn backup_and_write(path: &Path, existing: &str, new_json: &str) -> Result<(), G
     let tmp_path = dir.join(tmp_file_name);
     std::fs::write(&tmp_path, new_json)?;
     std::fs::rename(&tmp_path, path)?;
+    sync_remotecache_for_grid(path, new_json.as_bytes());
     Ok(())
 }
 
@@ -162,7 +238,7 @@ pub fn merge_meta_into(
             if let Some(cats) = config.get_mut("categories").and_then(|v| v.as_array_mut()) {
                 cats.retain(|c| {
                     let cat_name = c.get("category_name").and_then(|v| v.as_str()).unwrap_or("");
-                    !cat_name.starts_with("META ")
+                    !is_meta_category(cat_name)
                 });
             }
         }
@@ -182,69 +258,23 @@ pub fn merge_meta_into(
 
     cats.retain(|c| {
         let name = c.get("category_name").and_then(|v| v.as_str()).unwrap_or("");
-        !name.starts_with("META ")
+        !is_meta_category(name)
     });
 
     let wmeta = meta_cats
         .iter()
         .map(|c| c.x_position + c.width)
         .fold(0.0_f64, f64::max);
-    let user_left_target = wmeta + MERGE_GAP;
+    let user_left_target = (wmeta + MERGE_GAP).max(420.0);
     let user_min_x = cats
         .iter()
         .filter_map(|c| c.get("x_position").and_then(|v| v.as_f64()))
         .fold(f64::INFINITY, f64::min);
     if user_min_x.is_finite() {
-        let user_max_x = cats
-            .iter()
-            .filter_map(|c| {
-                let x = c.get("x_position").and_then(|v| v.as_f64())?;
-                let w = c.get("width").and_then(|v| v.as_f64())?;
-                Some(x + w)
-            })
-            .fold(0.0_f64, f64::max);
-        let user_min_y = cats
-            .iter()
-            .filter_map(|c| c.get("y_position").and_then(|v| v.as_f64()))
-            .fold(0.0_f64, f64::min);
-        let user_max_y = cats
-            .iter()
-            .filter_map(|c| {
-                let y = c.get("y_position").and_then(|v| v.as_f64())?;
-                let h = c.get("height").and_then(|v| v.as_f64())?;
-                Some(y + h)
-            })
-            .fold(0.0_f64, f64::max);
-
-        let user_span_w = (user_max_x - user_min_x).max(1.0);
-        let user_span_h = (user_max_y - user_min_y).max(1.0);
-        let avail_w = 1400.0 - user_left_target;
-        let avail_h = 560.0 - user_min_y.min(20.0);
-
-        let scale = if user_span_w > avail_w || user_span_h > avail_h {
-            let sx = avail_w / user_span_w;
-            let sy = avail_h / user_span_h;
-            sx.min(sy).clamp(0.65, 1.0)
-        } else {
-            1.0
-        };
-
         for c in cats.iter_mut() {
             if let Some(x) = c.get("x_position").and_then(|v| v.as_f64()) {
                 let rel_x = x - user_min_x;
-                c["x_position"] = serde_json::json!(user_left_target + rel_x * scale);
-            }
-            if let Some(y) = c.get("y_position").and_then(|v| v.as_f64()) {
-                let rel_y = y - user_min_y;
-                c["y_position"] = serde_json::json!(user_min_y + rel_y * scale);
-            }
-            if scale < 1.0 {
-                if let Some(w) = c.get("width").and_then(|v| v.as_f64()) {
-                    c["width"] = serde_json::json!(w * scale);
-                }
-                if let Some(h) = c.get("height").and_then(|v| v.as_f64()) {
-                    c["height"] = serde_json::json!(h * scale);
-                }
+                c["x_position"] = serde_json::json!(user_left_target + rel_x);
             }
         }
     }
@@ -445,7 +475,7 @@ mod tests {
             .iter()
             .find(|c| c["category_name"] == "2pos")
             .unwrap();
-        assert_eq!(user["x_position"].as_f64().unwrap(), 370.0);
+        assert_eq!(user["x_position"].as_f64().unwrap(), 420.0);
     }
 
     #[test]
@@ -472,8 +502,8 @@ mod tests {
 
         let user1 = c1.iter().find(|c| c["category_name"] == "2pos").unwrap();
         let user2 = c2.iter().find(|c| c["category_name"] == "2pos").unwrap();
-        assert_eq!(user1["x_position"].as_f64().unwrap(), 370.0);
-        assert_eq!(user2["x_position"].as_f64().unwrap(), 370.0);
+        assert_eq!(user1["x_position"].as_f64().unwrap(), 420.0);
+        assert_eq!(user2["x_position"].as_f64().unwrap(), 420.0);
     }
 
     #[test]
@@ -488,14 +518,14 @@ mod tests {
         let v: serde_json::Value = serde_json::from_str(&out).unwrap();
         let target_cats = v["configs"][0]["categories"].as_array().unwrap();
         let user = target_cats.iter().find(|c| c["category_name"] == "Custom").unwrap();
-        assert_eq!(user["x_position"].as_f64().unwrap(), 370.0);
+        assert_eq!(user["x_position"].as_f64().unwrap(), 420.0);
         assert_eq!(user["y_position"].as_f64().unwrap(), 20.0);
         assert_eq!(user["width"].as_f64().unwrap(), 687.0);
         assert_eq!(user["height"].as_f64().unwrap(), 293.0);
     }
 
     #[test]
-    fn merge_scales_oversized_user_categories_uniformly_preserving_aspect_ratio() {
+    fn merge_preserves_large_user_categories_without_distortion() {
         let existing = r#"{"version":3,"configs":[
             {"config_name":"Main Layout","categories":[
                 {"category_name":"Huge","x_position":0.0,"y_position":0.0,"width":1600.0,"height":800.0,"hero_ids":[1]}
@@ -508,10 +538,8 @@ mod tests {
         let user = target_cats.iter().find(|c| c["category_name"] == "Huge").unwrap();
         let w = user["width"].as_f64().unwrap();
         let h = user["height"].as_f64().unwrap();
-        let aspect_ratio = w / h;
-        assert!((aspect_ratio - 2.0).abs() < 1e-6);
-        assert!(w < 1600.0);
-        assert!(h < 800.0);
+        assert_eq!(w, 1600.0);
+        assert_eq!(h, 800.0);
     }
 
     #[test]

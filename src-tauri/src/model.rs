@@ -89,6 +89,13 @@ pub struct RoleMeta {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct Tournament {
+    pub id: i64,
+    pub name: String,
+    pub match_count: u32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct MetaSnapshot {
     pub patch: String,
     pub fetched_at: String,

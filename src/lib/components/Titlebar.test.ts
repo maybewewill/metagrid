@@ -15,4 +15,10 @@ describe("Titlebar", () => {
     await fireEvent.click(screen.getByLabelText("Close"));
     expect(hide).toHaveBeenCalled();
   });
+
+  it("minimize button hides window to tray", async () => {
+    render(Titlebar, { patch: "7.41e" });
+    await fireEvent.click(screen.getByLabelText("Minimize"));
+    expect(hide).toHaveBeenCalled();
+  });
 });

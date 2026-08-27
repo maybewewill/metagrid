@@ -36,6 +36,7 @@
     role_labels: "named",
     grid_mode: "separate",
     merge_target: null,
+    meta_source: "pubs",
   };
 
   let local = $state<SettingsShape>({ ...DEFAULTS, ...(store.settings ?? {}) });
@@ -46,7 +47,12 @@
 
   onMount(async () => {
     try {
-      gridConfigs = await ipc.listGridConfigs();
+      const [configs, ver] = await Promise.all([
+        ipc.listGridConfigs().catch(() => []),
+        ipc.getAppVersion().catch(() => store.appVersion),
+      ]);
+      gridConfigs = configs;
+      store.appVersion = ver;
       if (local.grid_mode === "merge" && !local.merge_target && gridConfigs.length > 0) {
         local.merge_target = gridConfigs[0];
       }
@@ -67,6 +73,7 @@
   async function save() {
     saving = true;
     try {
+      const sourceChanged = store.settings?.meta_source !== local.meta_source;
       await store.saveSettings(local);
       try {
         await ipc.setAutostart(local.autostart);
@@ -75,6 +82,12 @@
       }
       toast.success($_("settings.saved"));
       store.go("dashboard");
+      if (sourceChanged) {
+        if (local.meta_source === "tournaments") {
+          store.fetchTournaments().catch(() => {});
+        }
+        store.fetchOnly().catch((e) => console.warn("fetchOnly on source change:", e));
+      }
     } catch (e) {
       toast.error(String(e));
     } finally {
@@ -169,6 +182,32 @@
             onclick={() => (local.role_labels = 'pos')}
           >
             {$_("settings.role_pos")}
+          </button>
+        </div>
+      </div>
+      <Separator />
+
+      <div class="flex items-center justify-between gap-4 py-3.5">
+        <div class="flex min-w-0 flex-col">
+          <span class="text-sm font-semibold">{$_("settings.meta_source")}</span>
+          <span class="text-xs text-muted-foreground">
+            {local.meta_source === "tournaments" ? $_("settings.meta_source_tournaments_hint") : $_("settings.meta_source_pubs_hint")}
+          </span>
+        </div>
+        <div class="inline-flex rounded-sm bg-zinc-900 p-0.5 border border-border">
+          <button
+            type="button"
+            class="rounded-sm px-3 py-1.5 text-xs font-semibold transition-all {local.meta_source === 'pubs' ? 'bg-white text-zinc-950 font-bold shadow-sm' : 'text-zinc-400 hover:text-white'}"
+            onclick={() => (local.meta_source = 'pubs')}
+          >
+            {$_("settings.meta_source_pubs")}
+          </button>
+          <button
+            type="button"
+            class="rounded-sm px-3 py-1.5 text-xs font-semibold transition-all {local.meta_source === 'tournaments' ? 'bg-white text-zinc-950 font-bold shadow-sm' : 'text-zinc-400 hover:text-white'}"
+            onclick={() => (local.meta_source = 'tournaments')}
+          >
+            {$_("settings.meta_source_tournaments")}
           </button>
         </div>
       </div>
@@ -294,7 +333,7 @@
           <div class="flex min-w-0 flex-col">
             <span class="text-sm font-semibold">{$_("settings.updates")}</span>
             <span class="text-xs text-muted-foreground">
-              {updateInfo?.current_version ?? "v1.0.1"}
+              {updateInfo?.current_version ?? store.appVersion}
             </span>
           </div>
 

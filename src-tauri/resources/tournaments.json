@@ -1,0 +1,367 @@
+[
+  {
+    "id": -1,
+    "name": "All Tournaments",
+    "match_count": 0
+  },
+  {
+    "id": 19944,
+    "name": "EPL Masters 2026",
+    "match_count": 198
+  },
+  {
+    "id": 16251,
+    "name": "Party To Play league",
+    "match_count": 839
+  },
+  {
+    "id": 19719,
+    "name": "The International 2026",
+    "match_count": 149
+  },
+  {
+    "id": 20026,
+    "name": "Asgard Championship",
+    "match_count": 89
+  },
+  {
+    "id": 20009,
+    "name": "1win Essence II",
+    "match_count": 61
+  },
+  {
+    "id": 19917,
+    "name": "The Games of the Future 2026",
+    "match_count": 73
+  },
+  {
+    "id": 20030,
+    "name": "The Boris Invitational: Streamer Battles 2",
+    "match_count": 54
+  },
+  {
+    "id": 19785,
+    "name": "Esports World Cup 2026",
+    "match_count": 159
+  },
+  {
+    "id": 19892,
+    "name": "The International 2026 - Regional Qualifier Europe",
+    "match_count": 63
+  },
+  {
+    "id": 19894,
+    "name": "The International 2026 - Regional Qualifier Southeast Asia",
+    "match_count": 44
+  },
+  {
+    "id": 19891,
+    "name": "The International 2026 - Regional Qualifier South America",
+    "match_count": 39
+  },
+  {
+    "id": 19893,
+    "name": "The International 2026 - Regional Qualifier China",
+    "match_count": 29
+  },
+  {
+    "id": 19101,
+    "name": "BLAST SLAM VII",
+    "match_count": 104
+  },
+  {
+    "id": 19699,
+    "name": "Road To EWC 2026 Regional Qualifiers",
+    "match_count": 266
+  },
+  {
+    "id": 19696,
+    "name": "DreamLeague Season 29",
+    "match_count": 185
+  },
+  {
+    "id": 19656,
+    "name": "1win Essence I",
+    "match_count": 89
+  },
+  {
+    "id": 19543,
+    "name": "PGL Wallachia 2026 Season 8",
+    "match_count": 119
+  },
+  {
+    "id": 19448,
+    "name": "DreamLeague Season 29 Qualifiers",
+    "match_count": 334
+  },
+  {
+    "id": 19255,
+    "name": "Premier Series",
+    "match_count": 172
+  },
+  {
+    "id": 19539,
+    "name": "RES Unchained - A Blast Dota Slam VII Qualifier EU",
+    "match_count": 15
+  },
+  {
+    "id": 19520,
+    "name": "BLAST Slam VII China Qualifier",
+    "match_count": 32
+  },
+  {
+    "id": 19538,
+    "name": "RES Unchained - A Blast Dota Slam VII Qualifier SEA",
+    "match_count": 17
+  },
+  {
+    "id": 19422,
+    "name": "ESL One Birmingham 2026",
+    "match_count": 142
+  },
+  {
+    "id": 19435,
+    "name": "PGL Wallachia 2026 Season 7",
+    "match_count": 124
+  },
+  {
+    "id": 19269,
+    "name": "DreamLeague Season 28",
+    "match_count": 195
+  },
+  {
+    "id": 19099,
+    "name": "BLAST SLAM VI",
+    "match_count": 102
+  },
+  {
+    "id": 19290,
+    "name": "DreamLeague Division 2 Season 3",
+    "match_count": 89
+  },
+  {
+    "id": 19239,
+    "name": "FISSURE Universe Episode 8",
+    "match_count": 98
+  },
+  {
+    "id": 19130,
+    "name": "ESL challenger China",
+    "match_count": 48
+  },
+  {
+    "id": 19248,
+    "name": "PGL Wallachia Season #7 AMER Closed Qualifiers",
+    "match_count": 32
+  },
+  {
+    "id": 19247,
+    "name": "PGL Wallachia Season #7 EEU Closed Qualifiers",
+    "match_count": 37
+  },
+  {
+    "id": 19246,
+    "name": "PGL Wallachia Season #7 WEU Closed Qualifiers",
+    "match_count": 34
+  },
+  {
+    "id": 19245,
+    "name": "PGL Wallachia Season #7 Asia Closed Qualifiers",
+    "match_count": 39
+  },
+  {
+    "id": 19244,
+    "name": "PGL Wallachia Season #7 Open Qualifiers",
+    "match_count": 283
+  },
+  {
+    "id": 19090,
+    "name": "ESL One Birmingham 2026 Qualifiers",
+    "match_count": 394
+  },
+  {
+    "id": 19089,
+    "name": "DreamLeague Season 28 Qualifiers",
+    "match_count": 386
+  },
+  {
+    "id": 19155,
+    "name": "RES Unchained - A Blast Dota Slam VI Qualifier EU",
+    "match_count": 19
+  },
+  {
+    "id": 19148,
+    "name": "BLAST Slam VI China Qualifier",
+    "match_count": 41
+  },
+  {
+    "id": 19154,
+    "name": "RES Unchained - A Blast Dota Slam VI Qualifier SEA",
+    "match_count": 17
+  },
+  {
+    "id": 18988,
+    "name": "DreamLeague Season 27",
+    "match_count": 206
+  },
+  {
+    "id": 17420,
+    "name": "SLAM V",
+    "match_count": 94
+  },
+  {
+    "id": 18920,
+    "name": "PGL Wallachia 2025 Season 6",
+    "match_count": 118
+  },
+  {
+    "id": 17419,
+    "name": "SLAM IV",
+    "match_count": 98
+  },
+  {
+    "id": 18863,
+    "name": "FISSURE PLAYGROUND 2",
+    "match_count": 125
+  },
+  {
+    "id": 18769,
+    "name": "DreamLeague Division 2 Season 1",
+    "match_count": 170
+  },
+  {
+    "id": 18633,
+    "name": "FISSURE Universe Episode 7",
+    "match_count": 75
+  },
+  {
+    "id": 18747,
+    "name": "PGL Wallachia Season #6 EEU Closed Qualifiers",
+    "match_count": 39
+  },
+  {
+    "id": 18748,
+    "name": "PGL Wallachia Season #6 WEU Closed Qualifiers",
+    "match_count": 33
+  },
+  {
+    "id": 18750,
+    "name": "PGL Wallachia Season #6 SEA Closed Qualifiers",
+    "match_count": 38
+  },
+  {
+    "id": 18324,
+    "name": "The International 2025",
+    "match_count": 144
+  },
+  {
+    "id": 18433,
+    "name": "FISSURE Universe Episode 6",
+    "match_count": 119
+  },
+  {
+    "id": 18359,
+    "name": "Clavision DOTA2 Masters 2025: Snow-Ruyi",
+    "match_count": 85
+  },
+  {
+    "id": 18375,
+    "name": "Esports World Cup 2025",
+    "match_count": 89
+  },
+  {
+    "id": 18107,
+    "name": "FISSURE Universe Episode 5",
+    "match_count": 116
+  },
+  {
+    "id": 18358,
+    "name": "PGL Wallachia 2025 Season 5",
+    "match_count": 117
+  },
+  {
+    "id": 18309,
+    "name": "TI 2025 - RQ Western Europe",
+    "match_count": 39
+  },
+  {
+    "id": 18308,
+    "name": "TI 2025 - RQ SEA",
+    "match_count": 43
+  },
+  {
+    "id": 18210,
+    "name": "Esports World Cup 2025 Qualifiers",
+    "match_count": 283
+  },
+  {
+    "id": 18307,
+    "name": "TI 2025 - RQ North America",
+    "match_count": 24
+  },
+  {
+    "id": 18305,
+    "name": "TI 2025 - RQ South America",
+    "match_count": 46
+  },
+  {
+    "id": 18304,
+    "name": "TI 2025 - RQ Eastern Europe",
+    "match_count": 44
+  },
+  {
+    "id": 18111,
+    "name": "DreamLeague Season 26",
+    "match_count": 188
+  },
+  {
+    "id": 17418,
+    "name": "Blast SLAM III",
+    "match_count": 43
+  },
+  {
+    "id": 18058,
+    "name": "PGL Wallachia 2025 Season 4",
+    "match_count": 116
+  },
+  {
+    "id": 17795,
+    "name": "ESL One Raleigh 2025",
+    "match_count": 90
+  },
+  {
+    "id": 18046,
+    "name": "FISSURE Special",
+    "match_count": 59
+  },
+  {
+    "id": 17874,
+    "name": "DreamLeague Season 26 Qualifiers",
+    "match_count": 363
+  },
+  {
+    "id": 17907,
+    "name": "FISSURE Universe Episode 4",
+    "match_count": 110
+  },
+  {
+    "id": 17891,
+    "name": "PGL Wallachia 2025 Season 3",
+    "match_count": 113
+  },
+  {
+    "id": 17765,
+    "name": "DreamLeague Season 25 powered by Intel",
+    "match_count": 199
+  },
+  {
+    "id": 17417,
+    "name": "SLAM II",
+    "match_count": 43
+  },
+  {
+    "id": 17588,
+    "name": "FISSURE PLAYGROUND 1 - Dota",
+    "match_count": 89
+  }
+]

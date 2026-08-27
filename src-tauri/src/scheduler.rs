@@ -39,6 +39,8 @@ pub async fn run_refresh(app: &AppHandle) -> Result<MetaSnapshot, String> {
         &settings.role_labels,
         &settings.grid_mode,
         settings.merge_target.as_deref(),
+        &settings.meta_source,
+        settings.league_id,
     )
     .await
     {

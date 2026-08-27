@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 
 use serde::{Deserialize, Serialize};
 
-use crate::model::MetaSnapshot;
+use crate::model::{MetaSnapshot, Tournament};
 use crate::settings::Settings;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -20,6 +20,7 @@ pub struct AppState {
     snapshot: Mutex<Option<MetaSnapshot>>,
     status: Mutex<Status>,
     settings: Mutex<Settings>,
+    tournaments: Mutex<Vec<Tournament>>,
     data_dir: PathBuf,
 }
 
@@ -36,10 +37,16 @@ impl AppState {
             (None, Status::Idle)
         };
 
+        let tournaments = {
+            let raw = include_str!("../resources/tournaments.json");
+            serde_json::from_str::<Vec<Tournament>>(raw).unwrap_or_default()
+        };
+
         AppState {
             snapshot: Mutex::new(snap),
             status: Mutex::new(status),
             settings: Mutex::new(settings),
+            tournaments: Mutex::new(tournaments),
             data_dir,
         }
     }
@@ -70,6 +77,14 @@ impl AppState {
 
     pub fn set_settings(&self, s: Settings) {
         *self.settings.lock().unwrap() = s;
+    }
+
+    pub fn get_tournaments(&self) -> Vec<Tournament> {
+        self.tournaments.lock().unwrap().clone()
+    }
+
+    pub fn set_tournaments(&self, t: Vec<Tournament>) {
+        *self.tournaments.lock().unwrap() = t;
     }
 }
 

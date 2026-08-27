@@ -2,7 +2,7 @@ use regex::Regex;
 use tokio::process::Command;
 
 use crate::hero_map::HeroMap;
-use crate::model::{HeroMeta, MetaSnapshot, Position, RoleMeta};
+use crate::model::{HeroMeta, MetaSnapshot, Position, RoleMeta, Tournament};
 use crate::provider::{MetaProvider, ProviderError};
 
 const D2PT_URL: &str = "https://dota2protracker.com/";
@@ -75,18 +75,22 @@ impl D2ptProvider {
         Ok(body)
     }
 
-    pub async fn fetch_pos_raw(&self, pos: u8) -> Result<String, ProviderError> {
-        let url = format!("{D2PT_META_URL}{pos}");
+    pub async fn fetch_pos_raw(&self, pos: u8, meta_source: &str, league_id: i64) -> Result<String, ProviderError> {
+        let url = if meta_source == "tournaments" {
+            format!("https://dota2protracker.com/meta?position=pos%2B{pos}&league_id={league_id}")
+        } else {
+            format!("{D2PT_META_URL}{pos}")
+        };
         self.run_curl(&url).await
     }
 
-    pub async fn fetch_meta_all(&self, map: &HeroMap, top_n: usize) -> Result<MetaSnapshot, ProviderError> {
+    pub async fn fetch_meta_all(&self, map: &HeroMap, top_n: usize, meta_source: &str, league_id: i64) -> Result<MetaSnapshot, ProviderError> {
         let (p1, p2, p3, p4, p5) = tokio::join!(
-            self.fetch_pos_raw(1),
-            self.fetch_pos_raw(2),
-            self.fetch_pos_raw(3),
-            self.fetch_pos_raw(4),
-            self.fetch_pos_raw(5),
+            self.fetch_pos_raw(1, meta_source, league_id),
+            self.fetch_pos_raw(2, meta_source, league_id),
+            self.fetch_pos_raw(3, meta_source, league_id),
+            self.fetch_pos_raw(4, meta_source, league_id),
+            self.fetch_pos_raw(5, meta_source, league_id),
         );
 
         let bodies = [
@@ -100,29 +104,104 @@ impl D2ptProvider {
         let mut roles = Vec::with_capacity(5);
         let mut patch = "unknown".to_string();
 
-        for (pos, body) in bodies {
+        for (pos, body) in &bodies {
             if patch == "unknown" {
-                patch = extract_patch(&body);
+                patch = extract_patch(body);
             }
-            let role_meta = parse_pos_meta(&body, pos, map, top_n)?;
+            let role_meta = parse_pos_meta(body, *pos, map, top_n)?;
             roles.push(role_meta);
         }
+
+        let source = if meta_source == "tournaments" {
+            let live_tourneys = parse_tournaments_from_html(&bodies[0].1);
+            let tname = live_tourneys
+                .iter()
+                .find(|t| t.id == league_id)
+                .map(|t| t.name.clone())
+                .unwrap_or_else(|| tournament_name_for_id(league_id));
+            format!("d2pt (Tournament: {tname})")
+        } else {
+            "d2pt".to_string()
+        };
 
         Ok(MetaSnapshot {
             patch,
             fetched_at: chrono::Utc::now().to_rfc3339(),
-            source: "d2pt".to_string(),
+            source,
             roles,
         })
     }
+
+    pub async fn fetch_tournaments_live(&self) -> Result<Vec<Tournament>, ProviderError> {
+        let body = self.run_curl("https://dota2protracker.com/meta?position=pos%2B1&league_id=-1").await?;
+        let parsed = parse_tournaments_from_html(&body);
+        if parsed.len() <= 1 {
+            let raw = include_str!("../../resources/tournaments.json");
+            if let Ok(fallback) = serde_json::from_str::<Vec<Tournament>>(raw) {
+                return Ok(fallback);
+            }
+        }
+        Ok(parsed)
+    }
+}
+
+pub fn parse_tournaments_from_html(html: &str) -> Vec<Tournament> {
+    let re = regex::Regex::new(r#"leagueid:(\d+),name:"([^"]+)"(?:,tier:"[^"]*")?(?:,match_count:(\d+))?"#).unwrap();
+    let mut list = Vec::new();
+    list.push(Tournament {
+        id: -1,
+        name: "All Tournaments".to_string(),
+        match_count: 0,
+    });
+
+    let mut seen = std::collections::HashSet::new();
+    seen.insert(-1i64);
+
+    for cap in re.captures_iter(html) {
+        if let (Some(id_m), Some(name_m)) = (cap.get(1), cap.get(2)) {
+            if let Ok(id) = id_m.as_str().parse::<i64>() {
+                if !seen.contains(&id) {
+                    seen.insert(id);
+                    let count = cap.get(3).and_then(|m| m.as_str().parse::<u32>().ok()).unwrap_or(0);
+                    list.push(Tournament {
+                        id,
+                        name: name_m.as_str().to_string(),
+                        match_count: count,
+                    });
+                }
+            }
+        }
+    }
+
+    list
+}
+
+fn tournament_name_for_id(league_id: i64) -> String {
+    if league_id == -1 {
+        return "All Tournaments".to_string();
+    }
+    let raw = include_str!("../../resources/tournaments.json");
+    if let Ok(serde_json::Value::Array(arr)) = serde_json::from_str::<serde_json::Value>(raw) {
+        for item in arr {
+            if item.get("id").and_then(|v| v.as_i64()) == Some(league_id) {
+                if let Some(name) = item.get("name").and_then(|v| v.as_str()) {
+                    return name.to_string();
+                }
+            }
+        }
+    }
+    format!("Tournament {league_id}")
 }
 
 #[async_trait::async_trait]
 impl MetaProvider for D2ptProvider {
-    async fn fetch(&self, map: &HeroMap, top_n: usize) -> Result<MetaSnapshot, ProviderError> {
-        match self.fetch_meta_all(map, top_n).await {
+    async fn fetch(&self, map: &HeroMap, top_n: usize, meta_source: &str, league_id: i64) -> Result<MetaSnapshot, ProviderError> {
+        match self.fetch_meta_all(map, top_n, meta_source, league_id).await {
             Ok(snap) => Ok(snap),
             Err(e) => {
+                if meta_source == "tournaments" {
+                    return Err(e);
+                }
                 tracing::warn!(error = %e, "d2pt: /meta multi-fetch failed, falling back to homepage");
                 let raw = self.fetch_raw().await?;
                 parse_meta(&raw, map, top_n)
@@ -135,6 +214,7 @@ struct RawHero {
     hero_id: u32,
     hero_name: String,
     npc: Option<String>,
+    period: String,
     matches: u32,
     win_rate: f32,
     d2pt_rating: u32,
@@ -233,27 +313,65 @@ pub fn parse_pos_meta(
     map: &HeroMap,
     _top_n: usize,
 ) -> Result<RoleMeta, ProviderError> {
-    let mut top_hero_names = Vec::new();
+    let patch = extract_patch(raw);
+
+    let mut top_heroes: Vec<HeroMeta> = Vec::new();
+    let mut seen_hero_names = std::collections::HashSet::new();
+
     if let Some(top_idx) = raw.find("Top Heroes") {
         let slice_len = std::cmp::min(6000, raw.len() - top_idx);
         let top_slice = &raw[top_idx..top_idx + slice_len];
-        if let Ok(card_re) = Regex::new(r#"<a\s+href="/hero/([^"]+)""#) {
+        if let Ok(card_re) = Regex::new(
+            r#"<a\s+href="/hero/([^"]+)"[^>]*>[\s\S]*?<span[^>]*class="[^"]*truncate"[^>]*>([^<]+)</span>[\s\S]*?<span[^>]*class="text-yellow-300[^"]*"[^>]*>(\d+)</span>[\s\S]*?<span[^>]*class="[^"]*"[^>]*>([0-9.]+)%</span>[\s\S]*?<span[^>]*class="d2pt-rating[^"]*"[^>]*>(\d+)</span>"#,
+        ) {
             for cap in card_re.captures_iter(top_slice) {
-                if top_hero_names.len() >= 7 {
-                    break;
+                let hero_slug = urlencoding::decode(&cap[1]).unwrap_or_default().to_string();
+                let hero_name = cap[2].to_string();
+                let matches = cap[3].parse::<u32>().unwrap_or(0);
+                let winrate = cap[4].parse::<f32>().map(|w| w / 100.0).unwrap_or(0.0);
+                let d2pt_rating = cap[5].parse::<u32>().unwrap_or(0);
+
+                let hero_id = map
+                    .id_for(&hero_slug)
+                    .or_else(|| map.id_for(&hero_name))
+                    .unwrap_or(0);
+
+                let display_name = if hero_name.ends_with("...") || hero_name.ends_with('…') {
+                    hero_slug.clone()
+                } else {
+                    hero_name
+                };
+
+                if hero_id != 0 && seen_hero_names.insert(display_name.to_lowercase()) {
+                    let slug = map
+                        .slug_for(hero_id)
+                        .map(|s| s.to_string())
+                        .unwrap_or_else(|| derive_slug(&display_name));
+
+                    top_heroes.push(HeroMeta {
+                        hero_id,
+                        name: display_name,
+                        slug,
+                        winrate,
+                        pickrate: 0.0,
+                        matches,
+                        d2pt_rating,
+                        is_top: true,
+                    });
+                    if top_heroes.len() >= 7 {
+                        break;
+                    }
                 }
-                let decoded = urlencoding::decode(&cap[1]).unwrap_or_default().to_string();
-                top_hero_names.push(decoded);
             }
         }
     }
 
     let hero_re = Regex::new(
-        r#"\{hero_id:(\d+),hero_name:"([^"]+)",npc:"([^"]+)",position:"([^"]+)"[\s\S]*?matches:(\d+),wins:(\d+),win_rate:(\.?\d+(?:\.\d+)?)[\s\S]*?d2pt_rating:(\d+)"#,
+        r#"\{hero_id:(\d+),hero_name:"([^"]+)",npc:"([^"]+)",position:"([^"]+)"[\s\S]*?(?:period:"([^"]+)"[\s\S]*?)?matches:(\d+),wins:(\d+),win_rate:(\.?\d+(?:\.\d+)?)[\s\S]*?d2pt_rating:(\d+)"#,
     )
     .map_err(|e| ProviderError::Parse(format!("bad /meta hero regex: {e}")))?;
 
-    let mut raw_heroes: Vec<RawHero> = Vec::new();
+    let mut by_hero: std::collections::HashMap<u32, RawHero> = std::collections::HashMap::new();
     let expected_pos_str = match target_pos {
         Position::Pos1 => "pos 1",
         Position::Pos2 => "pos 2",
@@ -272,46 +390,76 @@ pub fn parse_pos_meta(
         if hero_id == 0 { continue; }
         let hero_name = cap[2].to_string();
         let npc = Some(cap[3].to_string());
-        let Ok(matches) = cap[5].parse::<u32>() else { continue; };
-        let Some(win_rate) = parse_win_rate(&cap[7]) else { continue; };
-        let d2pt_rating = cap.get(8).and_then(|m| m.as_str().parse::<u32>().ok()).unwrap_or(0);
+        let period = cap.get(5).map(|m| m.as_str().to_string()).unwrap_or_default();
+        let Ok(matches) = cap[6].parse::<u32>() else { continue; };
+        let Some(win_rate) = parse_win_rate(&cap[8]) else { continue; };
+        let d2pt_rating = cap.get(9).and_then(|m| m.as_str().parse::<u32>().ok()).unwrap_or(0);
 
-        raw_heroes.push(RawHero {
+        let candidate = RawHero {
             hero_id,
             hero_name,
             npc,
+            period: period.clone(),
             matches,
             win_rate,
             d2pt_rating,
-        });
+        };
+
+        if let Some(existing) = by_hero.get_mut(&hero_id) {
+            if period == patch || (existing.period != patch && matches > existing.matches) {
+                *existing = candidate;
+            }
+        } else {
+            by_hero.insert(hero_id, candidate);
+        }
     }
 
-    if raw_heroes.is_empty() {
-        return Err(ProviderError::Parse(format!(
-            "no heroes parsed for {expected_pos_str}"
-        )));
+    let mut raw_heroes: Vec<RawHero> = by_hero.into_values().filter(|h| h.matches > 0).collect();
+    raw_heroes.sort_by(|a, b| {
+        if b.d2pt_rating != a.d2pt_rating {
+            b.d2pt_rating.cmp(&a.d2pt_rating)
+        } else if b.matches != a.matches {
+            b.matches.cmp(&a.matches)
+        } else {
+            b.win_rate.partial_cmp(&a.win_rate).unwrap_or(std::cmp::Ordering::Equal)
+        }
+    });
+
+    let top_ids: std::collections::HashSet<u32> = top_heroes.iter().map(|h| h.hero_id).collect();
+
+    while top_heroes.len() < 7 {
+        if let Some(idx) = raw_heroes.iter().position(|h| !top_ids.contains(&h.hero_id) && !seen_hero_names.contains(&h.hero_name.to_lowercase())) {
+            let h = raw_heroes.remove(idx);
+            seen_hero_names.insert(h.hero_name.to_lowercase());
+            let slug = h.npc.or_else(|| map.slug_for(h.hero_id).map(|s| s.to_string())).unwrap_or_else(|| derive_slug(&h.hero_name));
+            top_heroes.push(HeroMeta {
+                hero_id: h.hero_id,
+                name: h.hero_name,
+                slug,
+                winrate: h.win_rate,
+                pickrate: 0.0,
+                matches: h.matches,
+                d2pt_rating: h.d2pt_rating,
+                is_top: true,
+            });
+        } else {
+            break;
+        }
     }
 
-    let total_matches: u64 = raw_heroes.iter().map(|h| h.matches as u64).sum();
+    let top_ids: std::collections::HashSet<u32> = top_heroes.iter().map(|h| h.hero_id).collect();
 
-    let all_heroes: Vec<HeroMeta> = raw_heroes
+    let other_heroes: Vec<HeroMeta> = raw_heroes
         .into_iter()
+        .filter(|h| !top_ids.contains(&h.hero_id))
         .map(|h| {
-            let slug = h
-                .npc
-                .or_else(|| map.slug_for(h.hero_id).map(|s| s.to_string()))
-                .unwrap_or_else(|| derive_slug(&h.hero_name));
-            let pickrate = if total_matches > 0 {
-                h.matches as f32 / total_matches as f32
-            } else {
-                0.0
-            };
+            let slug = h.npc.or_else(|| map.slug_for(h.hero_id).map(|s| s.to_string())).unwrap_or_else(|| derive_slug(&h.hero_name));
             HeroMeta {
                 hero_id: h.hero_id,
                 name: h.hero_name,
                 slug,
                 winrate: h.win_rate,
-                pickrate,
+                pickrate: 0.0,
                 matches: h.matches,
                 d2pt_rating: h.d2pt_rating,
                 is_top: false,
@@ -319,58 +467,27 @@ pub fn parse_pos_meta(
         })
         .collect();
 
-    let mut top_heroes: Vec<HeroMeta> = Vec::new();
-    if !top_hero_names.is_empty() {
-        for top_name in &top_hero_names {
-            if let Some(found) = all_heroes.iter().find(|h| {
-                top_name.eq_ignore_ascii_case(&h.name)
-                    || top_name.eq_ignore_ascii_case(&h.slug)
-                    || derive_slug(top_name).eq_ignore_ascii_case(&h.slug)
-            }) {
-                if !top_heroes.iter().any(|existing| existing.hero_id == found.hero_id) {
-                    let mut th = found.clone();
-                    th.is_top = true;
-                    top_heroes.push(th);
-                }
-            }
-        }
-    }
-
-    if top_heroes.is_empty() {
-        let mut sorted = all_heroes.clone();
-        sorted.sort_by(|a, b| {
-            if b.d2pt_rating != a.d2pt_rating {
-                b.d2pt_rating.cmp(&a.d2pt_rating)
-            } else {
-                let score_b = (b.matches as f32) * b.winrate;
-                let score_a = (a.matches as f32) * a.winrate;
-                score_b.partial_cmp(&score_a).unwrap_or(std::cmp::Ordering::Equal)
-            }
-        });
-        top_heroes = sorted.into_iter().take(7).map(|mut h| { h.is_top = true; h }).collect();
-    }
-
-    let top_ids: std::collections::HashSet<u32> = top_heroes.iter().map(|h| h.hero_id).collect();
-
-    let mut other_heroes: Vec<HeroMeta> = all_heroes
-        .into_iter()
-        .filter(|h| !top_ids.contains(&h.hero_id))
-        .collect();
-    other_heroes.sort_by(|a, b| {
-        if b.d2pt_rating != a.d2pt_rating {
-            b.d2pt_rating.cmp(&a.d2pt_rating)
-        } else {
-            b.winrate.partial_cmp(&a.winrate).unwrap_or(std::cmp::Ordering::Equal)
-        }
-    });
-
     let mut heroes = top_heroes;
     heroes.extend(other_heroes);
 
-    let role_winrate = if heroes.is_empty() {
+    if heroes.is_empty() {
+        return Err(ProviderError::Parse(format!(
+            "no heroes parsed for {expected_pos_str}"
+        )));
+    }
+
+    let total_matches: u64 = heroes.iter().map(|h| h.matches as u64).sum();
+    for h in &mut heroes {
+        if total_matches > 0 {
+            h.pickrate = h.matches as f32 / total_matches as f32;
+        }
+    }
+
+    let sample_count = std::cmp::min(7, heroes.len());
+    let role_winrate = if sample_count == 0 {
         0.0
     } else {
-        heroes.iter().map(|h| h.winrate).sum::<f32>() / heroes.len() as f32
+        heroes.iter().take(sample_count).map(|h| h.winrate).sum::<f32>() / sample_count as f32
     };
 
     Ok(RoleMeta {
@@ -425,6 +542,7 @@ pub fn parse_meta(raw: &str, map: &HeroMap, top_n: usize) -> Result<MetaSnapshot
                 hero_id,
                 hero_name,
                 npc: None,
+                period: String::new(),
                 matches,
                 win_rate,
                 d2pt_rating: 0,
@@ -538,7 +656,7 @@ mod tests {
     #[ignore]
     async fn d2pt_live_fetch() {
         let p = D2ptProvider::new();
-        let snap = p.fetch(&HeroMap::bundled(), 15).await.unwrap();
+        let snap = p.fetch(&HeroMap::bundled(), 15, "pubs", -1).await.unwrap();
         assert_eq!(snap.roles.len(), 5);
         for r in &snap.roles {
             assert_eq!(r.heroes.len(), 15);

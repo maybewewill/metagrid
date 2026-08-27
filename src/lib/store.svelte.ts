@@ -1,5 +1,5 @@
 import * as ipc from "$lib/ipc";
-import type { Account, MetaSnapshot, Settings, Status } from "$lib/types";
+import type { Account, MetaSnapshot, Settings, Status, Tournament } from "$lib/types";
 
 export type View = "onboarding" | "dashboard" | "settings";
 
@@ -8,9 +8,12 @@ class Store {
   status = $state<Status>({ kind: "Idle" });
   settings = $state<Settings | null>(null);
   accounts = $state<Account[]>([]);
+  tournaments = $state<Tournament[]>([]);
+  appVersion = $state<string>("v1.1.0");
   view = $state<View>("onboarding");
   dashMode = $state<"list" | "preview">("list");
   loading = $state(false);
+  fetchingOnly = $state(false);
   portraitDir = $state<string | null>(null);
 
   isFresh = $derived.by(() => {
@@ -23,19 +26,27 @@ class Store {
   async init(): Promise<void> {
     this.loading = true;
     try {
-      const [settings, snapshot, status, accounts, portraitDir] = await Promise.all([
+      const [settings, snapshot, status, accounts, portraitDir, tournaments, appVersion] = await Promise.all([
         ipc.getSettings(),
         ipc.getSnapshot(),
         ipc.getStatus(),
         ipc.listAccounts(),
         ipc.getPortraitDir(),
+        ipc.getTournaments().catch(() => []),
+        ipc.getAppVersion().catch(() => "v1.1.0"),
       ]);
       this.settings = settings;
       this.snapshot = snapshot;
       this.status = status;
       this.accounts = accounts;
       this.portraitDir = portraitDir;
+      this.tournaments = tournaments;
+      this.appVersion = appVersion;
       this.view = settings.onboarded ? "dashboard" : "onboarding";
+
+      if (settings.meta_source === "tournaments") {
+        this.fetchTournaments().catch(() => {});
+      }
 
       await ipc.onRefreshDone((snap) => {
         this.snapshot = snap;
@@ -63,12 +74,30 @@ class Store {
 
   async fetchOnly(): Promise<MetaSnapshot> {
     this.loading = true;
+    this.fetchingOnly = true;
     try {
       const snap = await ipc.fetchOnly();
       this.snapshot = snap;
+      this.status = { kind: "Ok" };
       return snap;
+    } catch (e) {
+      this.status = { kind: "Error", detail: String(e) };
+      throw e;
     } finally {
       this.loading = false;
+      this.fetchingOnly = false;
+    }
+  }
+
+  async fetchTournaments(): Promise<Tournament[]> {
+    try {
+      const list = await ipc.fetchTournaments();
+      if (list && list.length > 0) {
+        this.tournaments = list;
+      }
+      return this.tournaments;
+    } catch {
+      return this.tournaments;
     }
   }
 

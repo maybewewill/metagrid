@@ -1,6 +1,6 @@
 import "@testing-library/jest-dom/vitest";
 import { init, addMessages } from "svelte-i18n";
-import en from "$lib/i18n/messages/en.json";
+import { en } from "$lib/i18n/dict";
 
 addMessages("en", en);
 init({ fallbackLocale: "en", initialLocale: "en" });

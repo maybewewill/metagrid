@@ -6,7 +6,7 @@
   </picture>
 
   <h1>MetaGrid</h1>
-  <p>Automated Dota 2 hero grids synchronized with high-MMR meta statistics.</p>
+  <p>Automated Dota 2 hero grids synchronized with high-MMR meta and live tournament statistics.</p>
 </div>
 
 <div align="center">
@@ -33,11 +33,11 @@
 
 ## Overview
 
-MetaGrid is an automated Windows desktop app and background tray utility for Dota 2. It pulls live high-MMR meta statistics directly from [dota2protracker.com](https://dota2protracker.com) and keeps your in-game hero grids updated for all 5 roles (Carry, Mid, Offlane, Support, Hard Support).
+MetaGrid is an automated Windows desktop application and background tray utility for Dota 2. It pulls live high-MMR meta statistics directly from [dota2protracker.com](https://dota2protracker.com) and keeps your in-game hero selection layouts updated for all 5 roles (Carry, Mid, Offlane, Support, Hard Support).
 
-**Set and forget**: MetaGrid runs silently in the Windows system tray and does all the work for you. It monitors when Dota 2 starts and automatically writes fresh meta grids to your local Steam configuration without requiring manual interaction.
+**Set and forget**: MetaGrid runs silently in the Windows system tray. It automatically syncs hero grids on your preferred interval and immediately updates your Steam configuration with native Steam Cloud validation, so your layouts load instantly on the very first launch.
 
-Grids are written directly to Dota's `hero_grid_config.json`. Existing user-created custom grids are safely preserved, and automatic backups are created on every write.
+Grids are written directly to Dota's `hero_grid_config.json`. Existing user-created custom grids are safely preserved with zero distortion, and automatic `.metagrid.bak` backups are created on every write.
 
 > [!TIP]
 > **100% VAC & Matchmaking Safe — Zero Ban Risk**
@@ -52,7 +52,7 @@ Grids are written directly to Dota's `hero_grid_config.json`. Existing user-crea
 
 <div align="center">
 
-### Meta Dashboard
+### Meta Dashboard & Live Tournament Selector
 <img src="docs/images/dashboard.png" alt="MetaGrid Dashboard List View" width="850" />
 
 <br/><br/>
@@ -62,14 +62,14 @@ Grids are written directly to Dota's `hero_grid_config.json`. Existing user-crea
 <table>
   <tr>
     <th width="50%" align="center"><b>Separate Mode</b><br/><sub>5 Standalone Role Layouts</sub></th>
-    <th width="50%" align="center"><b>Merge Mode</b><br/><sub>Live META Injected into Existing Grid</sub></th>
+    <th width="50%" align="center"><b>Merge Mode</b><br/><sub>Live Compact META Injected into Existing Custom Grid</sub></th>
   </tr>
   <tr>
     <td align="center">
       <img src="docs/images/in-game-grid.png" alt="Separate Mode Grid" width="100%" />
     </td>
     <td align="center">
-      <img src="docs/images/in-game-merge-grid.png" alt="Merge Mode Grid" width="100%" />
+      <img src="docs/images/merged-grid.png" alt="Merge Mode Grid" width="100%" />
     </td>
   </tr>
 </table>
@@ -85,15 +85,17 @@ Grids are written directly to Dota's `hero_grid_config.json`. Existing user-crea
 
 ## Features
 
-- **Automated Background Sync**: Runs silently in the system tray, updating hero grids on your chosen interval.
-- **Process Watcher**: Automatically detects when `dota2.exe` launches and patches the meta before the match starts.
-- **Live Meta Fetching**: Parses current patch meta from Dota2ProTracker with winrate, pickrate, and D2PT ratings.
-- **Dual Grid Modes**: Support for 5 standalone role grids or non-destructive merge into your favorite custom grid layout.
-- **In-Game Grid Sync**: Generates clean, per-role layouts formatted to match Dota 2's picking phase grid geometry.
-- **Multi-Account Discovery**: Detects all local Steam user directories under `Steam/userdata/<id>/570/remote/cfg/`.
-- **Atomic File Operations**: Safe writing mechanism using temporary files with `.metagrid.bak` fallback.
-- **Tray & Startup Integration**: Runs minimized in the background with customizable autostart on system boot.
-- **Localization**: Full interface support for English and Russian.
+- **Automated Background Sync**: Runs silently in the system tray, automatically updating hero grids on your chosen schedule (`15m` to `24h`).
+- **Live Tournament Meta**: Parse tournament leagues dynamically from D2PT (The International, BLAST Slam, ESL One, DreamLeague, etc.) with custom banners and role categories.
+- **Steam Cloud Remotecache Sync**: Synchronizes local `remotecache.vdf` SHA1 hashes so updated grids appear on the first Dota 2 launch without game restarts.
+- **Dual Grid Modes**:
+  - **Separate**: Generates 5 dedicated role grids (`MetaGrid - Carry`, `MetaGrid - Mid`, etc.) with top heroes and remaining heroes sorted by D2PT rating.
+  - **Merge**: Injects a compact 7-hero-per-role meta column (`— META CARRY`, `— META MID`, etc.) directly into your existing custom layout, shifting your custom categories with zero distortion.
+- **Clean In-Game Stats**: Displays exact unrounded winrates (`54.2%`) and pickrates, cleanly formatting perfect `100%` rates.
+- **Multi-Account Discovery**: Automatically detects all local Steam user accounts under `Steam/userdata/<id>/570/remote/cfg/`.
+- **Atomic File Operations**: Safe write mechanism using temporary files with automatic rollback and backups.
+- **System Tray Integration**: Minimize and close buttons tuck the application into the tray for zero taskbar clutter.
+- **Bilingual Interface**: Full interface support for English and Russian.
 
 ---
 
@@ -118,8 +120,10 @@ cargo install --git https://github.com/maybewewill/metagrid
 
 | Setting | Options | Description |
 | :--- | :--- | :--- |
-| **Grid Mode** | `Separate` / `Merge` | Choose between 5 standalone role grids or injecting a live META block into an existing grid. |
-| **Target Grid** | Custom grid name | Select which existing hero layout to inject the META block into (when Merge mode is active). |
+| **Grid Mode** | `Separate` / `Merge` | Choose between 5 standalone role grids or injecting a live META column into an existing grid. |
+| **Target Grid** | Custom grid name | Select which existing hero layout to inject the META column into (when Merge mode is active). |
+| **Meta Source** | `High-MMR Pubs` / `Tournaments` | Toggle between top 8K+ MMR pub matches and professional tournaments. |
+| **Tournament** | Dropdown list | Select specific tournament league to parse (TI, BLAST, ESL, etc.). |
 | **Role Labels** | `Named` / `POS 1-5` | Toggle role naming convention across the UI and in-game grid tabs. |
 | **Refresh Interval** | `15m`, `30m`, `1h`, `3h`, `6h`, `12h`, `24h` | Background scheduler sync interval. |
 | **Steam Account** | `All accounts` or specific Steam ID | Target account selection. |

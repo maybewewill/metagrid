@@ -49,12 +49,24 @@ export function getPortraitDir(): Promise<string> {
   return invoke("get_portrait_dir");
 }
 
+export function getAppVersion(): Promise<string> {
+  return invoke("get_app_version");
+}
+
 export function checkUpdate(): Promise<import("$lib/types").UpdateInfo> {
   return invoke("check_update");
 }
 
 export function listGridConfigs(): Promise<string[]> {
   return invoke("list_grid_configs");
+}
+
+export function getTournaments(): Promise<import("$lib/types").Tournament[]> {
+  return invoke("get_tournaments");
+}
+
+export function fetchTournaments(): Promise<import("$lib/types").Tournament[]> {
+  return invoke("fetch_tournaments");
 }
 
 export function onRefreshDone(cb: (payload: MetaSnapshot) => void): Promise<UnlistenFn> {

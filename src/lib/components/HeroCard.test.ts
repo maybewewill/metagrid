@@ -18,7 +18,7 @@ describe("HeroCard", () => {
       rank: 1,
     });
     expect(screen.getByText("Anti-Mage")).toBeInTheDocument();
-    expect(screen.getByText("53%")).toBeInTheDocument();
+    expect(screen.getByText("53.0%")).toBeInTheDocument();
     expect(screen.getByText("3200")).toBeInTheDocument();
   });
 });
