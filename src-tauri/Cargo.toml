@@ -1,6 +1,6 @@
 [package]
 name = "metagrid"
-version = "1.1.1"
+version = "1.1.2"
 description = "Metagrid Dota 2 Hero Layout Manager"
 authors = ["maybewewill"]
 edition = "2021"
