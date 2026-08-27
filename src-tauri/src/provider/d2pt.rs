@@ -27,6 +27,45 @@ impl Default for D2ptProvider {
 
 impl D2ptProvider {
     async fn fetch_http(&self, url: &str) -> Result<String, ProviderError> {
+        let program = if cfg!(target_os = "windows") { "curl.exe" } else { "curl" };
+        let mut cmd = tokio::process::Command::new(program);
+        cmd.arg("-s")
+            .arg("--connect-timeout")
+            .arg("10")
+            .arg("--max-time")
+            .arg("25")
+            .arg("-H")
+            .arg(format!("User-Agent: {USER_AGENT}"))
+            .arg("-H")
+            .arg(format!("Accept: {ACCEPT}"))
+            .arg("-H")
+            .arg(format!("Accept-Language: {ACCEPT_LANGUAGE}"))
+            .arg("-H")
+            .arg("Sec-Fetch-Dest: document")
+            .arg("-H")
+            .arg("Sec-Fetch-Mode: navigate")
+            .arg("-H")
+            .arg("Sec-Fetch-Site: none")
+            .arg("-H")
+            .arg("Sec-Fetch-User: ?1")
+            .arg("-H")
+            .arg("Upgrade-Insecure-Requests: 1")
+            .arg(url);
+
+        #[cfg(target_os = "windows")]
+        {
+            cmd.creation_flags(0x0800_0000);
+        }
+
+        if let Ok(output) = cmd.output().await {
+            if output.status.success() {
+                let body = String::from_utf8_lossy(&output.stdout).to_string();
+                if !body.is_empty() && !body.contains("Just a moment") {
+                    return Ok(body);
+                }
+            }
+        }
+
         let client = reqwest::Client::builder()
             .timeout(std::time::Duration::from_secs(20))
             .connect_timeout(std::time::Duration::from_secs(10))
@@ -38,6 +77,11 @@ impl D2ptProvider {
             .header("User-Agent", USER_AGENT)
             .header("Accept", ACCEPT)
             .header("Accept-Language", ACCEPT_LANGUAGE)
+            .header("Sec-Fetch-Dest", "document")
+            .header("Sec-Fetch-Mode", "navigate")
+            .header("Sec-Fetch-Site", "none")
+            .header("Sec-Fetch-User", "?1")
+            .header("Upgrade-Insecure-Requests", "1")
             .send()
             .await
             .map_err(|e| {
