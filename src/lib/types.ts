@@ -2,7 +2,7 @@ export type Position = "Pos1" | "Pos2" | "Pos3" | "Pos4" | "Pos5";
 
 export type SortMetric = "Pickrate" | "Winrate";
 
-export type RoleLabelStyle = "named" | "pos";
+export type MetaMode = "matches" | "matches_wr" | "d2ptrating";
 
 export interface HeroMeta {
   hero_id: number;
@@ -21,11 +21,26 @@ export interface RoleMeta {
   heroes: HeroMeta[];
 }
 
+export interface Category {
+  category_name: string;
+  x_position: number;
+  y_position: number;
+  width: number;
+  height: number;
+  hero_ids: number[];
+}
+
+export interface GridConfig {
+  config_name: string;
+  categories: Category[];
+}
+
 export interface MetaSnapshot {
   patch: string;
   fetched_at: string;
   source: string;
   roles: RoleMeta[];
+  configs?: GridConfig[];
 }
 
 export interface Settings {
@@ -37,11 +52,9 @@ export interface Settings {
   layout_columns: boolean;
   lang: "en" | "ru";
   onboarded: boolean;
-  role_labels: RoleLabelStyle;
   grid_mode: "separate" | "merge";
   merge_target: string | null;
-  meta_source: "pubs" | "tournaments";
-  league_id?: number;
+  meta_mode: MetaMode;
 }
 
 export interface Account {

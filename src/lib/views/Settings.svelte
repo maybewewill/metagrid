@@ -32,10 +32,9 @@
     layout_columns: true,
     lang: "en",
     onboarded: true,
-    role_labels: "named",
     grid_mode: "separate",
     merge_target: null,
-    meta_source: "pubs",
+    meta_mode: "matches",
   };
 
   let local = $state<SettingsShape>({ ...DEFAULTS, ...(store.settings ?? {}) });
@@ -72,7 +71,7 @@
   async function save() {
     saving = true;
     try {
-      const sourceChanged = store.settings?.meta_source !== local.meta_source;
+      const sourceChanged = store.settings?.meta_mode !== local.meta_mode;
       await store.saveSettings(local);
       try {
         await ipc.setAutostart(local.autostart);
@@ -82,9 +81,6 @@
       toast.success($_("settings.saved"));
       store.go("dashboard");
       if (sourceChanged) {
-        if (local.meta_source === "tournaments") {
-          store.fetchTournaments().catch(() => {});
-        }
         store.fetchOnly().catch((e) => console.warn("fetchOnly on source change:", e));
       }
     } catch (e) {
@@ -158,51 +154,36 @@
 
       <div class="flex items-center justify-between gap-4 py-3.5">
         <div class="flex min-w-0 flex-col">
-          <span class="text-sm font-semibold">{$_("settings.role_labels")}</span>
+          <span class="text-sm font-semibold">{$_("settings.meta_mode")}</span>
           <span class="text-xs text-muted-foreground">
-            {local.role_labels === "named" ? $_("settings.role_named_subtext") : $_("settings.role_pos_subtext")}
+            {local.meta_mode === "matches_wr"
+              ? $_("settings.meta_mode_matches_wr_hint")
+              : local.meta_mode === "d2ptrating"
+              ? $_("settings.meta_mode_d2ptrating_hint")
+              : $_("settings.meta_mode_matches_hint")}
           </span>
         </div>
         <div class="inline-flex rounded-sm bg-zinc-900 p-0.5 border border-border">
           <button
             type="button"
-            class="rounded-sm px-3 py-1.5 text-xs font-semibold transition-all {local.role_labels === 'named' ? 'bg-white text-zinc-950 font-bold shadow-sm' : 'text-zinc-400 hover:text-white'}"
-            onclick={() => (local.role_labels = 'named')}
+            class="rounded-sm px-2.5 py-1 text-xs font-semibold transition-all {local.meta_mode === 'matches' ? 'bg-white text-zinc-950 font-bold shadow-sm' : 'text-zinc-400 hover:text-white'}"
+            onclick={() => (local.meta_mode = 'matches')}
           >
-            {$_("settings.role_named")}
+            {$_("settings.meta_mode_matches")}
           </button>
           <button
             type="button"
-            class="rounded-sm px-3 py-1.5 text-xs font-semibold transition-all {local.role_labels === 'pos' ? 'bg-white text-zinc-950 font-bold shadow-sm' : 'text-zinc-400 hover:text-white'}"
-            onclick={() => (local.role_labels = 'pos')}
+            class="rounded-sm px-2.5 py-1 text-xs font-semibold transition-all {local.meta_mode === 'matches_wr' ? 'bg-white text-zinc-950 font-bold shadow-sm' : 'text-zinc-400 hover:text-white'}"
+            onclick={() => (local.meta_mode = 'matches_wr')}
           >
-            {$_("settings.role_pos")}
-          </button>
-        </div>
-      </div>
-      <Separator />
-
-      <div class="flex items-center justify-between gap-4 py-3.5">
-        <div class="flex min-w-0 flex-col">
-          <span class="text-sm font-semibold">{$_("settings.meta_source")}</span>
-          <span class="text-xs text-muted-foreground">
-            {local.meta_source === "tournaments" ? $_("settings.meta_source_tournaments_hint") : $_("settings.meta_source_pubs_hint")}
-          </span>
-        </div>
-        <div class="inline-flex rounded-sm bg-zinc-900 p-0.5 border border-border">
-          <button
-            type="button"
-            class="rounded-sm px-3 py-1.5 text-xs font-semibold transition-all {local.meta_source === 'pubs' ? 'bg-white text-zinc-950 font-bold shadow-sm' : 'text-zinc-400 hover:text-white'}"
-            onclick={() => (local.meta_source = 'pubs')}
-          >
-            {$_("settings.meta_source_pubs")}
+            {$_("settings.meta_mode_matches_wr")}
           </button>
           <button
             type="button"
-            class="rounded-sm px-3 py-1.5 text-xs font-semibold transition-all {local.meta_source === 'tournaments' ? 'bg-white text-zinc-950 font-bold shadow-sm' : 'text-zinc-400 hover:text-white'}"
-            onclick={() => (local.meta_source = 'tournaments')}
+            class="rounded-sm px-2.5 py-1 text-xs font-semibold transition-all {local.meta_mode === 'd2ptrating' ? 'bg-white text-zinc-950 font-bold shadow-sm' : 'text-zinc-400 hover:text-white'}"
+            onclick={() => (local.meta_mode = 'd2ptrating')}
           >
-            {$_("settings.meta_source_tournaments")}
+            {$_("settings.meta_mode_d2ptrating")}
           </button>
         </div>
       </div>

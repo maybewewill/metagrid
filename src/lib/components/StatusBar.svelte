@@ -3,8 +3,7 @@
   import { store } from "$lib/store.svelte";
   import { relTime } from "$lib/format";
   import { Button } from "$lib/components/ui/button";
-  import { RefreshCw, Settings2, List, LayoutGrid } from "@lucide/svelte";
-  import TournamentSelector from "$lib/components/TournamentSelector.svelte";
+  import { RefreshCw, Settings2 } from "@lucide/svelte";
 
   const kind = $derived(store.status.kind);
   const refreshing = $derived(kind === "Refreshing" || store.loading);
@@ -65,29 +64,6 @@
   </div>
 
   <div class="flex items-center gap-2">
-    {#if store.settings?.meta_source === "tournaments"}
-      <TournamentSelector />
-    {/if}
-    <div class="flex items-center rounded-sm border border-border p-0.5">
-      <button
-        type="button"
-        aria-label={$_("status.list")}
-        title={$_("status.list")}
-        class={`grid size-7 place-items-center rounded-sm transition-colors ${store.dashMode === "list" ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground"}`}
-        onclick={() => (store.dashMode = "list")}
-      >
-        <List size={16} />
-      </button>
-      <button
-        type="button"
-        aria-label={$_("status.grid")}
-        title={$_("status.grid")}
-        class={`grid size-7 place-items-center rounded-sm transition-colors ${store.dashMode === "preview" ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground"}`}
-        onclick={() => (store.dashMode = "preview")}
-      >
-        <LayoutGrid size={16} />
-      </button>
-    </div>
     <Button
       variant="outline"
       size="sm"

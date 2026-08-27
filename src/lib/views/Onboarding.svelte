@@ -72,7 +72,6 @@
 
     {#if step === "initial"}
       <div class="flex flex-col gap-5">
-        <!-- Language -->
         <div class="flex items-center justify-between gap-4">
           <span class="text-sm font-medium">{$_("settings.language")}</span>
           <Tabs value={lang} onValueChange={pickLanguage}>
@@ -85,7 +84,6 @@
 
         <Separator />
 
-        <!-- Account -->
         <div class="flex flex-col gap-2">
           <span class="text-sm font-medium">{$_("onboarding.pick_account")}</span>
           {#if store.accounts.length === 0}
@@ -122,7 +120,6 @@
       </div>
     {:else}
       <div class="flex flex-col gap-4">
-        <!-- Mode selection cards -->
         <div class="flex flex-col gap-2.5">
           <button
             type="button"
@@ -177,7 +174,6 @@
           </div>
         {/if}
 
-        <!-- Tip -->
         <div class="flex items-start gap-2.5 rounded-sm border border-border/60 bg-muted/40 p-2.5 text-xs text-muted-foreground">
           <Info size={14} class="mt-0.5 shrink-0 text-muted-foreground" />
           <span>{$_("onboarding.tip_settings")}</span>

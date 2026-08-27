@@ -32,20 +32,12 @@ fn default_onboarded() -> bool {
     false
 }
 
-fn default_role_labels() -> String {
-    "named".into()
-}
-
 fn default_grid_mode() -> String {
     "separate".into()
 }
 
-fn default_meta_source() -> String {
-    "pubs".into()
-}
-
-fn default_league_id() -> i64 {
-    -1
+fn default_meta_mode() -> String {
+    "matches".into()
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -66,16 +58,12 @@ pub struct Settings {
     pub lang: String,
     #[serde(default = "default_onboarded")]
     pub onboarded: bool,
-    #[serde(default = "default_role_labels")]
-    pub role_labels: String,
     #[serde(default = "default_grid_mode")]
     pub grid_mode: String,
     #[serde(default)]
     pub merge_target: Option<String>,
-    #[serde(default = "default_meta_source")]
-    pub meta_source: String,
-    #[serde(default = "default_league_id")]
-    pub league_id: i64,
+    #[serde(default = "default_meta_mode", alias = "meta_source")]
+    pub meta_mode: String,
 }
 
 impl Default for Settings {
@@ -89,11 +77,9 @@ impl Default for Settings {
             layout_columns: default_layout_columns(),
             lang: default_lang(),
             onboarded: default_onboarded(),
-            role_labels: default_role_labels(),
             grid_mode: default_grid_mode(),
             merge_target: None,
-            meta_source: default_meta_source(),
-            league_id: default_league_id(),
+            meta_mode: default_meta_mode(),
         }
     }
 }
@@ -144,7 +130,7 @@ mod tests {
         let s = load_from(tmp.path());
         assert_eq!(s.top_n, 5);
         assert_eq!(s.interval_hours, 0.25);
-        assert_eq!(s.role_labels, "named");
+        assert_eq!(s.meta_mode, "matches");
         assert!(s.autostart);
     }
 }

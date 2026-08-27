@@ -1,5 +1,6 @@
 pub mod d2pt;
 
+use crate::grid::GridConfig;
 use crate::hero_map::HeroMap;
 use crate::model::MetaSnapshot;
 
@@ -13,7 +14,7 @@ pub enum ProviderError {
 
 #[async_trait::async_trait]
 pub trait MetaProvider: Send + Sync {
-    async fn fetch(&self, map: &HeroMap, top_n: usize, meta_source: &str, league_id: i64) -> Result<MetaSnapshot, ProviderError>;
+    async fn fetch(&self, map: &HeroMap, meta_mode: &str) -> Result<(MetaSnapshot, Vec<GridConfig>), ProviderError>;
 }
 
 #[cfg(test)]
@@ -23,7 +24,7 @@ mod tests {
     struct Fake;
     #[async_trait::async_trait]
     impl MetaProvider for Fake {
-        async fn fetch(&self, _m: &HeroMap, _n: usize, _s: &str, _l: i64) -> Result<MetaSnapshot, ProviderError> {
+        async fn fetch(&self, _m: &HeroMap, _mode: &str) -> Result<(MetaSnapshot, Vec<GridConfig>), ProviderError> {
             Err(ProviderError::Blocked)
         }
     }
@@ -31,7 +32,7 @@ mod tests {
     async fn trait_is_object_safe() {
         let p: Box<dyn MetaProvider> = Box::new(Fake);
         assert!(matches!(
-            p.fetch(&HeroMap::bundled(), 10, "pubs", -1).await,
+            p.fetch(&HeroMap::bundled(), "matches").await,
             Err(ProviderError::Blocked)
         ));
     }

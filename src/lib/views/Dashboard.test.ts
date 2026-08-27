@@ -29,5 +29,5 @@ import Dashboard from "$lib/views/Dashboard.svelte";
 describe("Dashboard", () =>
   it("renders role columns from snapshot", () => {
     render(Dashboard);
-    expect(screen.getByText("Carry")).toBeInTheDocument();
+    expect(screen.getByText("CARRY")).toBeInTheDocument();
   }));

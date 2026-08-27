@@ -1,4 +1,4 @@
-use crate::grid::{build_grid_multi, build_meta_categories};
+use crate::grid::extract_role_categories_for_merge;
 use crate::grid_writer::{write_configs_to, write_merge_to, GridError};
 use crate::hero_map::HeroMap;
 use crate::model::MetaSnapshot;
@@ -13,24 +13,23 @@ pub enum PipelineError {
     Grid(#[from] GridError),
 }
 
-#[allow(clippy::too_many_arguments)]
 pub async fn refresh_all(
     provider: &dyn MetaProvider,
     map: &HeroMap,
     steam: &SteamLocator,
-    top_n: usize,
     account_filter: Option<&str>,
-    role_labels: &str,
     grid_mode: &str,
     merge_target: Option<&str>,
-    meta_source: &str,
-    league_id: i64,
+    meta_mode: &str,
 ) -> Result<MetaSnapshot, PipelineError> {
-    let snap: MetaSnapshot = provider.fetch(map, top_n, meta_source, league_id).await?;
+    let (snap, d2pt_grids) = provider.fetch(map, meta_mode).await?;
 
     let merge = grid_mode == "merge" && merge_target.is_some();
-    let grids = if merge { Vec::new() } else { build_grid_multi(&snap, role_labels) };
-    let meta_cats = if merge { build_meta_categories(&snap, role_labels, top_n) } else { Vec::new() };
+    let meta_cats = if merge {
+        extract_role_categories_for_merge(&d2pt_grids)
+    } else {
+        Vec::new()
+    };
 
     for account in steam.accounts() {
         if let Some(filter_id) = account_filter {
@@ -41,7 +40,7 @@ pub async fn refresh_all(
         if merge {
             write_merge_to(&account.grid_path, &meta_cats, merge_target.unwrap())?;
         } else {
-            write_configs_to(&account.grid_path, &grids)?;
+            write_configs_to(&account.grid_path, &d2pt_grids)?;
         }
     }
 
@@ -51,6 +50,7 @@ pub async fn refresh_all(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::grid::{Category, GridConfig};
     use crate::model::{HeroMeta, Position, RoleMeta};
     use crate::provider::ProviderError;
 
@@ -58,7 +58,7 @@ mod tests {
 
     #[async_trait::async_trait]
     impl MetaProvider for FakeProvider {
-        async fn fetch(&self, _map: &HeroMap, _top_n: usize, _s: &str, _l: i64) -> Result<MetaSnapshot, ProviderError> {
+        async fn fetch(&self, _map: &HeroMap, _mode: &str) -> Result<(MetaSnapshot, Vec<GridConfig>), ProviderError> {
             let roles = Position::all()
                 .iter()
                 .enumerate()
@@ -90,12 +90,76 @@ mod tests {
                 })
                 .collect();
 
-            Ok(MetaSnapshot {
+            let snap = MetaSnapshot {
                 patch: "7.41e".into(),
                 fetched_at: "2026-08-26T10:00:00Z".into(),
                 source: "fake".into(),
                 roles,
-            })
+                configs: vec![],
+            };
+
+            let configs = vec![
+                GridConfig {
+                    config_name: "Dota2ProTracker 7.41e - All Roles".into(),
+                    categories: vec![
+                        Category {
+                            category_name: "Carry".into(),
+                            x_position: 0.0,
+                            y_position: 0.0,
+                            width: 455.0,
+                            height: 75.0,
+                            hero_ids: vec![1, 2],
+                        },
+                        Category {
+                            category_name: "Mid".into(),
+                            x_position: 0.0,
+                            y_position: 95.0,
+                            width: 455.0,
+                            height: 75.0,
+                            hero_ids: vec![3, 4],
+                        },
+                        Category {
+                            category_name: "Offlane".into(),
+                            x_position: 0.0,
+                            y_position: 190.0,
+                            width: 455.0,
+                            height: 75.0,
+                            hero_ids: vec![5, 6],
+                        },
+                        Category {
+                            category_name: "Support".into(),
+                            x_position: 0.0,
+                            y_position: 285.0,
+                            width: 455.0,
+                            height: 75.0,
+                            hero_ids: vec![7, 8],
+                        },
+                        Category {
+                            category_name: "Hard Support".into(),
+                            x_position: 0.0,
+                            y_position: 380.0,
+                            width: 455.0,
+                            height: 75.0,
+                            hero_ids: vec![9, 10],
+                        },
+                    ],
+                },
+                GridConfig {
+                    config_name: "Dota2ProTracker 7.41e - Carry".into(),
+                    categories: vec![
+                        Category {
+                            category_name: "Top Heroes Pos 1".into(),
+                            x_position: 0.0,
+                            y_position: 0.0,
+                            width: 65.0,
+                            height: 525.0,
+                            hero_ids: vec![1, 2],
+                        },
+                    ],
+                },
+            ];
+
+            Ok((snap, configs))
         }
     }
 
@@ -108,7 +172,7 @@ mod tests {
 
         let steam = SteamLocator::with_root(root);
 
-        let snap = refresh_all(&FakeProvider, &HeroMap::bundled(), &steam, 10, None, "named", "separate", None, "pubs", -1)
+        let snap = refresh_all(&FakeProvider, &HeroMap::bundled(), &steam, None, "separate", None, "matches")
             .await
             .unwrap();
 
@@ -116,19 +180,19 @@ mod tests {
 
         for account in steam.accounts() {
             let written = std::fs::read_to_string(&account.grid_path).unwrap();
-            assert!(written.contains("Carry"));
+            assert!(written.contains("Dota2ProTracker"));
         }
     }
 
     #[tokio::test]
-    async fn refresh_all_multi_mode_writes_five_named_configs() {
+    async fn refresh_all_separate_mode_writes_configs_intact() {
         let tmp = tempfile::tempdir().unwrap();
         let root = tmp.path().to_path_buf();
         std::fs::create_dir_all(root.join("userdata/111/570/remote/cfg")).unwrap();
 
         let steam = SteamLocator::with_root(root);
 
-        refresh_all(&FakeProvider, &HeroMap::bundled(), &steam, 10, None, "named", "separate", None, "pubs", -1)
+        refresh_all(&FakeProvider, &HeroMap::bundled(), &steam, None, "separate", None, "matches")
             .await
             .unwrap();
 
@@ -142,18 +206,8 @@ mod tests {
             .filter_map(|c| c["config_name"].as_str().map(|s| s.to_string()))
             .collect();
 
-        for role_name in [
-            "MetaGrid - Carry",
-            "MetaGrid - Mid",
-            "MetaGrid - Offlane",
-            "MetaGrid - Support",
-            "MetaGrid - Hard Support",
-        ] {
-            assert!(
-                names.contains(&role_name.to_string()),
-                "missing {role_name}, got {names:?}"
-            );
-        }
+        assert!(names.contains(&"Dota2ProTracker 7.41e - All Roles".to_string()));
+        assert!(names.contains(&"Dota2ProTracker 7.41e - Carry".to_string()));
     }
 
     #[tokio::test]
@@ -174,7 +228,7 @@ mod tests {
         .unwrap();
 
         let steam = SteamLocator::with_root(root);
-        refresh_all(&FakeProvider, &HeroMap::bundled(), &steam, 10, None, "named", "merge", Some("Main Layout"), "pubs", -1)
+        refresh_all(&FakeProvider, &HeroMap::bundled(), &steam, None, "merge", Some("Main Layout"), "matches")
             .await
             .unwrap();
 
@@ -196,93 +250,6 @@ mod tests {
             .iter()
             .find(|c| c["category_name"] == "2pos")
             .unwrap();
-        assert_eq!(user["x_position"].as_f64().unwrap(), 420.0);
-    }
-
-    #[tokio::test]
-    #[ignore]
-    async fn live_end_to_end() {
-        use crate::provider::d2pt::D2ptProvider;
-        use crate::steam::SteamLocator;
-
-        let Some(loc) = SteamLocator::detect() else {
-            eprintln!("SKIP: no steam");
-            return;
-        };
-
-        let Some(account) = loc.accounts().into_iter().find(|a| a.grid_path.exists()) else {
-            eprintln!("SKIP: no dota grid on this machine");
-            return;
-        };
-
-        let real_path = account.grid_path.clone();
-
-        let tmp_dir = tempfile::tempdir().unwrap();
-        let copy_path = tmp_dir.path().join("hero_grid_config.json");
-        std::fs::copy(&real_path, &copy_path).unwrap();
-
-        let original_contents = std::fs::read_to_string(&copy_path).unwrap();
-        let original_value: serde_json::Value =
-            serde_json::from_str(&original_contents).unwrap();
-        let original_names: Vec<String> = original_value["configs"]
-            .as_array()
-            .map(|arr| {
-                arr.iter()
-                    .filter_map(|c| c.get("config_name").and_then(|n| n.as_str()))
-                    .map(|s| s.to_string())
-                    .collect()
-            })
-            .unwrap_or_default();
-
-        let snap = D2ptProvider::new()
-            .fetch(&HeroMap::bundled(), 12, "pubs", -1)
-            .await
-            .unwrap();
-
-        let grids = build_grid_multi(&snap, "named");
-        write_configs_to(&copy_path, &grids).unwrap();
-
-        let after_contents = std::fs::read_to_string(&copy_path).unwrap();
-        let after_value: serde_json::Value = serde_json::from_str(&after_contents).unwrap();
-        let after_names: Vec<String> = after_value["configs"]
-            .as_array()
-            .map(|arr| {
-                arr.iter()
-                    .filter_map(|c| c.get("config_name").and_then(|n| n.as_str()))
-                    .map(|s| s.to_string())
-                    .collect()
-            })
-            .unwrap_or_default();
-
-        for name in &original_names {
-            assert!(
-                after_names.contains(name),
-                "original config {name:?} must survive the write"
-            );
-        }
-        for role_name in ["Carry", "Mid", "Offlane", "Support", "Hard Support"] {
-            assert!(
-                after_names.contains(&role_name.to_string()),
-                "missing config {role_name}"
-            );
-        }
-
-        println!("=== LIVE END-TO-END PROOF ===");
-        println!("real grid file (untouched):   {}", real_path.display());
-        println!("temp copy (written):          {}", copy_path.display());
-        println!("provider source:              {}", snap.source);
-        println!("patch:                        {}", snap.patch);
-        println!("roles:                        {}", snap.roles.len());
-        println!();
-
-        for role in &snap.roles {
-            let top3: Vec<&str> = role.heroes.iter().take(3).map(|h| h.name.as_str()).collect();
-            println!(
-                "{:<24} heroes={:<3} top3={:?}",
-                role.position.config_name("named"),
-                role.heroes.len(),
-                top3
-            );
-        }
+        assert_eq!(user["x_position"].as_f64().unwrap(), 475.0);
     }
 }

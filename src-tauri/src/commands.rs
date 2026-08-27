@@ -55,9 +55,9 @@ pub async fn fetch_only(
     services: State<'_, crate::services::Services>,
 ) -> Result<MetaSnapshot, String> {
     let settings = state.get_settings();
-    let snap = services
+    let (snap, _) = services
         .provider
-        .fetch(&services.map, settings.top_n, &settings.meta_source, settings.league_id)
+        .fetch(&services.map, &settings.meta_mode)
         .await
         .map_err(|e| e.to_string())?;
     state.set_snapshot(snap.clone());
@@ -151,10 +151,8 @@ pub fn get_tournaments(state: State<Shared>) -> Vec<crate::model::Tournament> {
 pub async fn fetch_tournaments(
     state: State<'_, Shared>,
 ) -> Result<Vec<crate::model::Tournament>, String> {
-    let d2pt = crate::provider::d2pt::D2ptProvider::new();
-    let list = d2pt.fetch_tournaments_live().await.map_err(|e| e.to_string())?;
-    if !list.is_empty() {
-        state.set_tournaments(list.clone());
-    }
+    let raw = include_str!("../resources/tournaments.json");
+    let list: Vec<crate::model::Tournament> = serde_json::from_str(raw).unwrap_or_default();
+    state.set_tournaments(list.clone());
     Ok(list)
 }

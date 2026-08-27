@@ -9,9 +9,8 @@ class Store {
   settings = $state<Settings | null>(null);
   accounts = $state<Account[]>([]);
   tournaments = $state<Tournament[]>([]);
-  appVersion = $state<string>("v1.3.1");
+  appVersion = $state<string>("v1.4.0");
   view = $state<View>("onboarding");
-  dashMode = $state<"list" | "preview">("list");
   loading = $state(false);
   fetchingOnly = $state(false);
   portraitDir = $state<string | null>(null);
@@ -45,10 +44,6 @@ class Store {
       this.tournaments = tournaments;
       this.appVersion = appVersion;
       this.view = settings.onboarded ? "dashboard" : "onboarding";
-
-      if (settings.meta_source === "tournaments") {
-        this.fetchTournaments().catch(() => {});
-      }
 
       this.checkForUpdates(true).catch(() => {});
 

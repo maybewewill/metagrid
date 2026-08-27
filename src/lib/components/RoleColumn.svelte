@@ -13,9 +13,6 @@
   const n = $derived(Number(role.position.slice(3)));
 
   const title = $derived.by(() => {
-    if (store.settings?.role_labels === "pos") {
-      return `${$_("pos_prefix")} ${n}`;
-    }
     return $_(roleLabel(role.position)).replace(/^POS\s*\d+\s*—\s*|^ПОЗ\s*\d+\s*—\s*/u, "");
   });
 

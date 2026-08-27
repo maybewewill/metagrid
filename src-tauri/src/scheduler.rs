@@ -34,13 +34,10 @@ pub async fn run_refresh(app: &AppHandle) -> Result<MetaSnapshot, String> {
         &*services.provider,
         &services.map,
         &steam,
-        settings.top_n,
         settings.account_id.as_deref(),
-        &settings.role_labels,
         &settings.grid_mode,
         settings.merge_target.as_deref(),
-        &settings.meta_source,
-        settings.league_id,
+        &settings.meta_mode,
     )
     .await
     {

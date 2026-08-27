@@ -10,43 +10,23 @@ pub enum Position {
 }
 
 impl Position {
-    pub fn config_name(&self, role_labels: &str) -> &'static str {
-        if role_labels == "pos" {
-            match self {
-                Position::Pos1 => "POS 1",
-                Position::Pos2 => "POS 2",
-                Position::Pos3 => "POS 3",
-                Position::Pos4 => "POS 4",
-                Position::Pos5 => "POS 5",
-            }
-        } else {
-            match self {
-                Position::Pos1 => "Carry",
-                Position::Pos2 => "Mid",
-                Position::Pos3 => "Offlane",
-                Position::Pos4 => "Support",
-                Position::Pos5 => "Hard Support",
-            }
+    pub fn name(&self) -> &'static str {
+        match self {
+            Position::Pos1 => "Carry",
+            Position::Pos2 => "Mid",
+            Position::Pos3 => "Offlane",
+            Position::Pos4 => "Support",
+            Position::Pos5 => "Hard Support",
         }
     }
 
-    pub fn role_upper(&self, role_labels: &str) -> &'static str {
-        if role_labels == "pos" {
-            match self {
-                Position::Pos1 => "POS 1",
-                Position::Pos2 => "POS 2",
-                Position::Pos3 => "POS 3",
-                Position::Pos4 => "POS 4",
-                Position::Pos5 => "POS 5",
-            }
-        } else {
-            match self {
-                Position::Pos1 => "CARRY",
-                Position::Pos2 => "MID",
-                Position::Pos3 => "OFFLANE",
-                Position::Pos4 => "SUPPORT",
-                Position::Pos5 => "HARD SUPPORT",
-            }
+    pub fn role_upper(&self) -> &'static str {
+        match self {
+            Position::Pos1 => "CARRY",
+            Position::Pos2 => "MID",
+            Position::Pos3 => "OFFLANE",
+            Position::Pos4 => "SUPPORT",
+            Position::Pos5 => "HARD SUPPORT",
         }
     }
 
@@ -101,6 +81,8 @@ pub struct MetaSnapshot {
     pub fetched_at: String,
     pub source: String,
     pub roles: Vec<RoleMeta>,
+    #[serde(default)]
+    pub configs: Vec<crate::grid::GridConfig>,
 }
 
 #[cfg(test)]
@@ -109,13 +91,27 @@ mod tests {
     #[test]
     fn snapshot_serde_roundtrips_and_labels() {
         assert_eq!(Position::all().len(), 5);
-        assert_eq!(Position::Pos1.config_name("named"), "Carry");
-        assert_eq!(Position::Pos1.config_name("pos"), "POS 1");
+        assert_eq!(Position::Pos1.name(), "Carry");
+        assert_eq!(Position::Pos1.role_upper(), "CARRY");
         let snap = MetaSnapshot {
-            patch: "7.41e".into(), fetched_at: "2026-08-26T10:00:00Z".into(),
+            patch: "7.41e".into(),
+            fetched_at: "2026-08-26T10:00:00Z".into(),
             source: "d2pt".into(),
-            roles: vec![RoleMeta { position: Position::Pos1, role_winrate: 0.52,
-                heroes: vec![HeroMeta{hero_id:1,name:"Anti-Mage".into(),slug:"antimage".into(),winrate:0.53,pickrate:0.12,matches:900,d2pt_rating:3000,is_top:false}] }],
+            roles: vec![RoleMeta {
+                position: Position::Pos1,
+                role_winrate: 0.52,
+                heroes: vec![HeroMeta {
+                    hero_id: 1,
+                    name: "Anti-Mage".into(),
+                    slug: "antimage".into(),
+                    winrate: 0.53,
+                    pickrate: 0.12,
+                    matches: 900,
+                    d2pt_rating: 3000,
+                    is_top: false,
+                }],
+            }],
+            configs: vec![],
         };
         let json = serde_json::to_string(&snap).unwrap();
         let back: MetaSnapshot = serde_json::from_str(&json).unwrap();

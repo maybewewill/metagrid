@@ -21,6 +21,8 @@ pub fn is_metagrid_config(name: &str) -> bool {
     let n = name.trim();
     n == "MetaGrid"
         || n.starts_with("MetaGrid")
+        || n.starts_with("Dota2ProTracker")
+        || n.starts_with("Dota 2 Pro Tracker")
         || n.starts_with('⚡')
         || n.starts_with("⚡ ")
         || n.ends_with(" - Carry")
@@ -172,6 +174,10 @@ pub fn merge_meta_into(
     meta_cats: &[Category],
     target_name: &str,
 ) -> Result<Option<String>, GridError> {
+    if meta_cats.is_empty() {
+        return Ok(Some(existing_json.to_string()));
+    }
+
     let mut root: serde_json::Value = if existing_json.trim().is_empty() {
         serde_json::json!({ "version": 3, "configs": [] })
     } else {
@@ -382,34 +388,19 @@ mod tests {
     }
 
     fn meta_cats_fixture() -> Vec<Category> {
-        use crate::model::{HeroMeta, MetaSnapshot, Position, RoleMeta};
-        let roles = Position::all()
-            .iter()
-            .enumerate()
-            .map(|(p_idx, &position)| RoleMeta {
-                position,
-                role_winrate: 0.5,
-                heroes: (0..10)
-                    .map(|i| HeroMeta {
-                        hero_id: (p_idx as u32 + 1) * 100 + i,
-                        name: format!("H{i}"),
-                        slug: format!("h{i}"),
-                        winrate: 0.5,
-                        pickrate: 0.1,
-                        matches: 10,
-                        d2pt_rating: 0,
-                        is_top: i < 3,
-                    })
-                    .collect(),
-            })
-            .collect();
-        let snap = MetaSnapshot {
-            patch: "x".into(),
-            fetched_at: "t".into(),
-            source: "test".into(),
-            roles,
-        };
-        crate::grid::build_meta_categories(&snap, "named", 10)
+        let sample_d2pt = vec![
+            GridConfig {
+                config_name: "Dota2ProTracker 7.41e - All Roles".into(),
+                categories: vec![
+                    Category { category_name: "Carry".into(), x_position: 0.0, y_position: 0.0, width: 455.0, height: 75.0, hero_ids: vec![1, 2] },
+                    Category { category_name: "Mid".into(), x_position: 0.0, y_position: 95.0, width: 455.0, height: 75.0, hero_ids: vec![3, 4] },
+                    Category { category_name: "Offlane".into(), x_position: 0.0, y_position: 190.0, width: 455.0, height: 75.0, hero_ids: vec![5, 6] },
+                    Category { category_name: "Support".into(), x_position: 0.0, y_position: 285.0, width: 455.0, height: 75.0, hero_ids: vec![7, 8] },
+                    Category { category_name: "Hard Support".into(), x_position: 0.0, y_position: 380.0, width: 455.0, height: 75.0, hero_ids: vec![9, 10] },
+                ],
+            }
+        ];
+        crate::grid::extract_role_categories_for_merge(&sample_d2pt)
     }
 
     #[test]
@@ -430,7 +421,7 @@ mod tests {
             .iter()
             .find(|c| c["category_name"] == "2pos")
             .unwrap();
-        assert_eq!(user["x_position"].as_f64().unwrap(), 420.0);
+        assert_eq!(user["x_position"].as_f64().unwrap(), 475.0);
     }
 
     #[test]
@@ -457,8 +448,8 @@ mod tests {
 
         let user1 = c1.iter().find(|c| c["category_name"] == "2pos").unwrap();
         let user2 = c2.iter().find(|c| c["category_name"] == "2pos").unwrap();
-        assert_eq!(user1["x_position"].as_f64().unwrap(), 420.0);
-        assert_eq!(user2["x_position"].as_f64().unwrap(), 420.0);
+        assert_eq!(user1["x_position"].as_f64().unwrap(), 475.0);
+        assert_eq!(user2["x_position"].as_f64().unwrap(), 475.0);
     }
 
     #[test]
@@ -473,7 +464,7 @@ mod tests {
         let v: serde_json::Value = serde_json::from_str(&out).unwrap();
         let target_cats = v["configs"][0]["categories"].as_array().unwrap();
         let user = target_cats.iter().find(|c| c["category_name"] == "Custom").unwrap();
-        assert_eq!(user["x_position"].as_f64().unwrap(), 420.0);
+        assert_eq!(user["x_position"].as_f64().unwrap(), 475.0);
         assert_eq!(user["y_position"].as_f64().unwrap(), 20.0);
         assert_eq!(user["width"].as_f64().unwrap(), 687.0);
         assert_eq!(user["height"].as_f64().unwrap(), 293.0);
