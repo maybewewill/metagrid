@@ -132,15 +132,19 @@ pub async fn download_and_install(app: &AppHandle, download_url: Option<String>)
 
     #[cfg(windows)]
     {
+        use std::os::windows::process::CommandExt;
+        const CREATE_NO_WINDOW: u32 = 0x08000000;
         std::process::Command::new(&temp_file)
+            .arg("/S")
+            .creation_flags(CREATE_NO_WINDOW)
             .spawn()
-            .map_err(|e| format!("Failed to start installer: {e}"))?;
+            .map_err(|e| format!("Failed to start silent update: {e}"))?;
     }
     #[cfg(not(windows))]
     {
         std::process::Command::new(&temp_file)
             .spawn()
-            .map_err(|e| format!("Failed to start installer: {e}"))?;
+            .map_err(|e| format!("Failed to start update: {e}"))?;
     }
 
     app.exit(0);

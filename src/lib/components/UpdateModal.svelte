@@ -65,7 +65,7 @@
     >
       <div class="flex items-start justify-between gap-3">
         <div class="flex items-center gap-3">
-          <div class="flex size-9 shrink-0 items-center justify-center rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.2)]">
+          <div class="flex size-9 shrink-0 items-center justify-center rounded-lg border border-white/20 bg-white/10 text-white shadow-none">
             <Sparkles size={18} />
           </div>
           <div class="flex flex-col">
@@ -92,7 +92,7 @@
 
       <div class="flex items-center justify-between rounded-lg border border-white/5 bg-black/30 px-3.5 py-2 text-xs">
         <span class="text-zinc-400">Version</span>
-        <span class="font-mono font-semibold text-emerald-400">
+        <span class="font-mono font-semibold text-white">
           {$_("update_modal.current_vs_latest", {
             values: {
               current: store.appVersion.replace(/^v/, ''),
@@ -126,11 +126,11 @@
             <span class="text-zinc-300">
               {isLaunching ? $_("update_modal.launching") : $_("update_modal.downloading")}
             </span>
-            <span class="font-mono text-emerald-400">{progress}%</span>
+            <span class="font-mono text-white font-semibold">{progress}%</span>
           </div>
           <div class="h-2 w-full overflow-hidden rounded-full bg-zinc-800/80 border border-white/5">
             <div
-              class="h-full bg-emerald-500 transition-all duration-150 ease-out"
+              class="h-full bg-white transition-all duration-150 ease-out"
               style="width: {progress}%"
             ></div>
           </div>
@@ -150,7 +150,7 @@
 
           <Button
             size="sm"
-            class="gap-1.5 rounded-sm bg-emerald-500 text-zinc-950 font-bold hover:bg-emerald-400 text-xs shadow-sm"
+            class="gap-1.5 rounded-sm bg-white text-zinc-950 font-bold hover:bg-zinc-200 text-xs shadow-sm"
             onclick={startUpdate}
           >
             <Download size={13} />
@@ -160,7 +160,7 @@
           <Button
             size="sm"
             disabled
-            class="gap-1.5 rounded-sm bg-emerald-500/70 text-zinc-950 font-bold text-xs"
+            class="gap-1.5 rounded-sm bg-white/80 text-zinc-950 font-bold text-xs"
           >
             <RefreshCw size={13} class="animate-spin" />
             <span>{isLaunching ? $_("update_modal.launching") : $_("update_modal.downloading")}</span>

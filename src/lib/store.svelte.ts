@@ -9,7 +9,7 @@ class Store {
   settings = $state<Settings | null>(null);
   accounts = $state<Account[]>([]);
   tournaments = $state<Tournament[]>([]);
-  appVersion = $state<string>("v1.2.1");
+  appVersion = $state<string>("v1.2.2");
   view = $state<View>("onboarding");
   dashMode = $state<"list" | "preview">("list");
   loading = $state(false);
@@ -35,7 +35,7 @@ class Store {
         ipc.listAccounts(),
         ipc.getPortraitDir(),
         ipc.getTournaments().catch(() => []),
-        ipc.getAppVersion().catch(() => "v1.2.1"),
+        ipc.getAppVersion().catch(() => "v1.2.2"),
       ]);
       this.settings = settings;
       this.snapshot = snapshot;
