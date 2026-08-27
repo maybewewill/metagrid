@@ -52,8 +52,18 @@ Grids are written directly to Dota's `hero_grid_config.json`. Existing user-crea
 
 <div align="center">
 
-### Meta Dashboard & Live Tournament Selector
-<img src="docs/images/dashboard.png" alt="MetaGrid Dashboard List View" width="850" />
+### Meta Dashboard — Tournament Mode
+<img src="docs/images/dashboard.png" alt="MetaGrid Dashboard with The International 2026 meta" width="850" />
+
+<br/><br/>
+
+### Live Tournament Selector
+<img src="docs/images/tournament-selector.png" alt="Tournament selector dropdown with live D2PT leagues" width="850" />
+
+<br/><br/>
+
+### Grid Preview Mode
+<img src="docs/images/grid-preview.png" alt="Compact 5-role grid preview" width="850" />
 
 <br/><br/>
 
