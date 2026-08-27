@@ -1,5 +1,4 @@
 use regex::Regex;
-use tokio::process::Command;
 
 use crate::hero_map::HeroMap;
 use crate::model::{HeroMeta, MetaSnapshot, Position, RoleMeta, Tournament};
@@ -27,37 +26,35 @@ impl Default for D2ptProvider {
 }
 
 impl D2ptProvider {
-    async fn run_curl(&self, url: &str) -> Result<String, ProviderError> {
-        let mut cmd = Command::new("curl.exe");
-        cmd.arg("-s")
-            .arg("--connect-timeout")
-            .arg("10")
-            .arg("--max-time")
-            .arg("20")
-            .arg("-H")
-            .arg(format!("User-Agent: {USER_AGENT}"))
-            .arg("-H")
-            .arg(format!("Accept: {ACCEPT}"))
-            .arg("-H")
-            .arg(format!("Accept-Language: {ACCEPT_LANGUAGE}"))
-            .arg(url);
+    async fn fetch_http(&self, url: &str) -> Result<String, ProviderError> {
+        let client = reqwest::Client::builder()
+            .timeout(std::time::Duration::from_secs(20))
+            .connect_timeout(std::time::Duration::from_secs(10))
+            .build()
+            .map_err(|_| ProviderError::Blocked)?;
 
-        #[cfg(target_os = "windows")]
-        {
-            cmd.creation_flags(0x0800_0000);
-        }
+        let response = client
+            .get(url)
+            .header("User-Agent", USER_AGENT)
+            .header("Accept", ACCEPT)
+            .header("Accept-Language", ACCEPT_LANGUAGE)
+            .send()
+            .await
+            .map_err(|e| {
+                tracing::warn!(error = %e, "d2pt: http request failed");
+                ProviderError::Blocked
+            })?;
 
-        let output = cmd.output().await.map_err(|e| {
-            tracing::warn!(error = %e, "d2pt: curl execution failed");
-            ProviderError::Blocked
-        })?;
-
-        if !output.status.success() {
-            tracing::warn!(code = ?output.status.code(), "d2pt: curl exited non-zero");
+        if !response.status().is_success() {
+            tracing::warn!(status = %response.status(), "d2pt: http status non-success");
             return Err(ProviderError::Blocked);
         }
 
-        let body = String::from_utf8_lossy(&output.stdout).to_string();
+        let body = response.text().await.map_err(|e| {
+            tracing::warn!(error = %e, "d2pt: failed reading response body");
+            ProviderError::Blocked
+        })?;
+
         if body.is_empty() || body.contains("Just a moment") {
             tracing::warn!("d2pt: response looked blocked (empty or Cloudflare challenge)");
             return Err(ProviderError::Blocked);
@@ -67,7 +64,7 @@ impl D2ptProvider {
     }
 
     pub async fn fetch_raw(&self) -> Result<String, ProviderError> {
-        let body = self.run_curl(D2PT_URL).await?;
+        let body = self.fetch_http(D2PT_URL).await?;
         if !body.contains("roles:[") {
             tracing::warn!("d2pt: homepage response missing 'roles:[' marker");
             return Err(ProviderError::Blocked);
@@ -81,7 +78,7 @@ impl D2ptProvider {
         } else {
             format!("{D2PT_META_URL}{pos}")
         };
-        self.run_curl(&url).await
+        self.fetch_http(&url).await
     }
 
     pub async fn fetch_meta_all(&self, map: &HeroMap, top_n: usize, meta_source: &str, league_id: i64) -> Result<MetaSnapshot, ProviderError> {
@@ -133,7 +130,7 @@ impl D2ptProvider {
     }
 
     pub async fn fetch_tournaments_live(&self) -> Result<Vec<Tournament>, ProviderError> {
-        let body = self.run_curl("https://dota2protracker.com/meta?position=pos%2B1&league_id=-1").await?;
+        let body = self.fetch_http("https://dota2protracker.com/meta?position=pos%2B1&league_id=-1").await?;
         let parsed = parse_tournaments_from_html(&body);
         if parsed.len() <= 1 {
             let raw = include_str!("../../resources/tournaments.json");

@@ -1,4 +1,4 @@
-﻿name: Release
+name: Release
 
 on:
   push:
@@ -108,7 +108,6 @@ jobs:
           depend = webkit2gtk-4.1
           depend = libayatana-appindicator
           depend = openssl
-          depend = curl
           EOF
 
           cd "$PKG_DIR"
