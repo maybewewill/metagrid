@@ -1,4 +1,4 @@
-﻿name: Release
+name: Release
 
 on:
   push:
@@ -18,7 +18,7 @@ jobs:
           - os: windows-latest
             asset_pattern: target/release/bundle/nsis/*.exe
           - os: ubuntu-22.04
-            asset_pattern: target/release/bundle/appimage/*.AppImage,target/release/bundle/deb/*.deb
+            asset_pattern: target/release/bundle/appimage/*.AppImage,target/release/bundle/deb/*.deb,target/release/bundle/rpm/*.rpm
 
     runs-on: ${{ matrix.os }}
 

@@ -105,27 +105,55 @@ Grids are written directly to Dota's `hero_grid_config.json`. Existing user-crea
 
 ## Installation
 
-### Arch Linux (AUR)
-
-```bash
-yay -S metagrid-bin
-# or with paru
-paru -S metagrid-bin
-```
-
-### Linux (AppImage / .deb)
-
-1. Download `MetaGrid_amd64.AppImage` or `MetaGrid_amd64.deb` from [Releases](https://github.com/maybewewill/metagrid/releases).
-2. For AppImage: make executable (`chmod +x MetaGrid_amd64.AppImage`) and run.
-3. For Debian/Ubuntu: `sudo dpkg -i MetaGrid_amd64.deb`.
-
-### Windows Installer / Portable
+### Windows (Recommended)
 
 1. Download `MetaGrid_x.y.z_x64-setup.exe` from [Releases](https://github.com/maybewewill/metagrid/releases).
-2. Run the app, pick your Steam account and language, then click **Fetch & Patch**.
-3. In Dota 2, open **Heroes → Hero Grids** and select your updated layout.
+2. Run the installer and launch MetaGrid.
+3. Select your Steam account and language, then click **Fetch & Patch**.
+4. In Dota 2, open **Heroes → Hero Grids** and select your updated layout.
 
-### Option: Cargo Install
+---
+
+### Linux (AppImage / .deb / .rpm / Arch)
+
+> [!WARNING]
+> **Linux Support (Experimental / Community Testing)**:
+> Native Linux Steam discovery (Native, Flatpak, and Snap Steam) is implemented in code and verified by unit tests, but has **not yet been comprehensively field-tested across all live Linux environments**. Feedback, issue reports, and PRs are warmly welcome!
+
+#### 1. Universal AppImage (Runs on all distributions & Steam Deck / SteamOS)
+```bash
+# Download MetaGrid_amd64.AppImage from Releases, make executable, and run:
+chmod +x MetaGrid_amd64.AppImage
+./MetaGrid_amd64.AppImage
+```
+
+#### 2. Debian / Ubuntu / Linux Mint / Pop!_OS (`.deb`)
+```bash
+sudo dpkg -i MetaGrid_amd64.deb
+# or
+sudo apt install ./MetaGrid_amd64.deb
+```
+
+#### 3. Fedora / RHEL / openSUSE (`.rpm`)
+```bash
+sudo dnf install ./MetaGrid_amd64.rpm
+# or on openSUSE:
+sudo zypper install ./MetaGrid_amd64.rpm
+```
+
+#### 4. Arch Linux / Manjaro / EndeavourOS
+```bash
+# Local build using the repository PKGBUILD:
+cd aur/metagrid-bin
+makepkg -si
+
+# (Once AUR registration re-opens):
+# yay -S metagrid-bin
+```
+
+---
+
+### Build from Source (Cargo)
 
 ```bash
 cargo install --git https://github.com/maybewewill/metagrid
