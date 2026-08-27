@@ -1,6 +1,11 @@
 use std::path::PathBuf;
 
+#[cfg(windows)]
 pub const DEFAULT_STEAM_PATH: &str = r"C:\Program Files (x86)\Steam";
+
+#[cfg(not(windows))]
+pub const DEFAULT_STEAM_PATH: &str = ".local/share/Steam";
+
 const DOTA2_APP_ID: &str = "570";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -21,11 +26,25 @@ impl SteamLocator {
             if let Some(root) = Self::detect_from_registry() {
                 return Some(SteamLocator { root });
             }
+            Some(SteamLocator {
+                root: PathBuf::from(DEFAULT_STEAM_PATH),
+            })
         }
 
-        Some(SteamLocator {
-            root: PathBuf::from(DEFAULT_STEAM_PATH),
-        })
+        #[cfg(not(windows))]
+        {
+            if let Some(root) = Self::detect_linux() {
+                return Some(SteamLocator { root });
+            }
+            let home = std::env::var("HOME")
+                .ok()
+                .map(PathBuf::from)
+                .or_else(|| directories::BaseDirs::new().map(|b| b.home_dir().to_path_buf()))
+                .unwrap_or_else(|| PathBuf::from("."));
+            Some(SteamLocator {
+                root: home.join(DEFAULT_STEAM_PATH),
+            })
+        }
     }
 
     #[cfg(windows)]
@@ -37,6 +56,43 @@ impl SteamLocator {
         let steam_key = hkcu.open_subkey(r"Software\Valve\Steam").ok()?;
         let steam_path: String = steam_key.get_value("SteamPath").ok()?;
         Some(PathBuf::from(steam_path))
+    }
+
+    #[cfg(not(windows))]
+    fn detect_linux() -> Option<PathBuf> {
+        if let Ok(steam_dir) = std::env::var("STEAM_DIR").or_else(|_| std::env::var("STEAM_PATH")) {
+            let p = PathBuf::from(steam_dir);
+            if p.join("userdata").is_dir() {
+                return Some(p);
+            }
+        }
+
+        let home = std::env::var("HOME")
+            .ok()
+            .map(PathBuf::from)
+            .or_else(|| directories::BaseDirs::new().map(|b| b.home_dir().to_path_buf()))?;
+
+        for path in Self::find_linux_candidates(&home) {
+            if path.join("userdata").is_dir() {
+                return Some(path);
+            }
+        }
+
+        None
+    }
+
+    #[allow(dead_code)]
+    pub fn find_linux_candidates(home: &std::path::Path) -> Vec<PathBuf> {
+        vec![
+            home.join(".local/share/Steam"),
+            home.join(".steam/steam"),
+            home.join(".steam/root"),
+            home.join(".steam/debian-installation"),
+            home.join(".var/app/com.valvesoftware.Steam/.local/share/Steam"),
+            home.join(".var/app/com.valvesoftware.Steam/.steam/steam"),
+            home.join("snap/steam/common/.local/share/Steam"),
+            home.join("snap/steam/common/.steam/steam"),
+        ]
     }
 
     #[cfg(test)]
@@ -117,5 +173,14 @@ mod tests {
     fn detect_falls_back_when_no_registry_entry() {
         let loc = SteamLocator::detect();
         assert!(loc.is_some());
+    }
+
+    #[test]
+    fn linux_candidates_include_flatpak_and_native() {
+        let home = PathBuf::from("/home/user");
+        let candidates = SteamLocator::find_linux_candidates(&home);
+        assert!(candidates.iter().any(|p| p.ends_with(".local/share/Steam")));
+        assert!(candidates.iter().any(|p| p.to_string_lossy().contains("com.valvesoftware.Steam")));
+        assert!(candidates.iter().any(|p| p.to_string_lossy().contains("snap/steam")));
     }
 }
