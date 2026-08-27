@@ -97,8 +97,8 @@ pub fn build_grid_multi(snap: &MetaSnapshot, role_labels: &str) -> Vec<GridConfi
 
             let card_w = 68.0;
             let card_h = 104.0;
-            let gap_x = -12.0;
-            let gap_y = 10.0;
+            let gap_x = -8.0;
+            let gap_y = 20.0;
             let heroes_per_row = 14;
 
             let top_heroes: Vec<_> = role.heroes.iter().filter(|h| h.is_top).cloned().collect();
