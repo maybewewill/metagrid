@@ -9,7 +9,7 @@ class Store {
   settings = $state<Settings | null>(null);
   accounts = $state<Account[]>([]);
   tournaments = $state<Tournament[]>([]);
-  appVersion = $state<string>("v1.2.3");
+  appVersion = $state<string>("v1.2.4");
   view = $state<View>("onboarding");
   dashMode = $state<"list" | "preview">("list");
   loading = $state(false);

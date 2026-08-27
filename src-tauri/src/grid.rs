@@ -128,17 +128,18 @@ pub fn build_grid_multi(snap: &MetaSnapshot, role_labels: &str) -> Vec<GridConfi
                 });
             }
 
-            let other_heroes: Vec<_> = role
+            let mut other_heroes: Vec<_> = role
                 .heroes
                 .iter()
                 .filter(|h| !top_ids.contains(&h.hero_id))
-                .take(20)
                 .cloned()
                 .collect();
+            other_heroes.sort_by(|a, b| b.matches.cmp(&a.matches).then_with(|| b.pickrate.total_cmp(&a.pickrate)));
+            other_heroes.truncate(20);
 
             if !other_heroes.is_empty() {
                 let other_header_y = top_heroes_y + card_h + 28.0;
-                let other_header = format!("— OTHER {role_upper} HEROES - ORDERED BY D2PT RATING (AND PICKRATE)");
+                let other_header = format!("— OTHER {role_upper} HEROES - ORDERED BY MATCHES (AND PICKRATE)");
                 categories.push(Category {
                     category_name: other_header,
                     x_position: 0.0,

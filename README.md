@@ -93,7 +93,7 @@ Grids are written directly to Dota's `hero_grid_config.json`. Existing user-crea
 - **Automated Background Sync**: Runs silently in the system tray, automatically updating hero grids on your chosen schedule (`15m` to `24h`).
 - **Live Tournament Meta**: Parse tournament leagues dynamically from D2PT (The International, BLAST Slam, ESL One, DreamLeague, etc.) with custom banners and role categories.
 - **Dual Grid Modes**:
-  - **Separate**: Generates 5 dedicated role grids (`MetaGrid - Carry`, `MetaGrid - Mid`, etc.) with top heroes and remaining heroes sorted by D2PT rating.
+  - **Separate**: Generates 5 dedicated role grids (`MetaGrid - Carry`, `MetaGrid - Mid`, etc.) with top heroes and remaining heroes sorted by matches played.
   - **Merge**: Injects a compact 7-hero-per-role meta column (`— META CARRY`, `— META MID`, etc.) directly into your existing custom layout, shifting your custom categories with zero distortion.
 - **Clean In-Game Stats**: Displays exact unrounded winrates (`54.2%`) and pickrates, cleanly formatting perfect `100%` rates.
 - **Multi-Account Discovery**: Automatically detects all local Steam user accounts under `Steam/userdata/<id>/570/remote/cfg/`.
