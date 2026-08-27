@@ -105,6 +105,11 @@ pub async fn check_update() -> Result<crate::updater::UpdateInfo, String> {
 }
 
 #[tauri::command]
+pub async fn install_update(app: AppHandle, download_url: Option<String>) -> Result<(), String> {
+    crate::updater::download_and_install(&app, download_url).await
+}
+
+#[tauri::command]
 pub fn list_grid_configs(state: State<Shared>) -> Vec<String> {
     let settings = state.get_settings();
     let Some(loc) = SteamLocator::detect() else {

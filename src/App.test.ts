@@ -28,6 +28,9 @@ vi.mock("$lib/store.svelte", () => ({
 vi.mock("$lib/ipc", () => ({
   onRefreshDone: vi.fn(async () => () => {}),
   onRefreshError: vi.fn(async () => () => {}),
+  onUpdateProgress: vi.fn(async () => () => {}),
+  installUpdate: vi.fn(async () => {}),
+  checkUpdate: vi.fn(async () => ({ available: false })),
 }));
 import App from "./App.svelte";
 describe("App", () =>

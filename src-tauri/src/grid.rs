@@ -77,10 +77,10 @@ pub fn build_grid_multi(snap: &MetaSnapshot, role_labels: &str) -> Vec<GridConfi
                     x_position: 0.0,
                     y_position: cursor_y,
                     width: 1100.0,
-                    height: 18.0,
+                    height: 24.0,
                     hero_ids: vec![],
                 });
-                cursor_y += 18.0;
+                cursor_y += 24.0;
             }
 
             let top_header = format!("— TOP {role_upper} HEROES - ORDERED BY D2PT ELO");
@@ -90,16 +90,16 @@ pub fn build_grid_multi(snap: &MetaSnapshot, role_labels: &str) -> Vec<GridConfi
                 x_position: 0.0,
                 y_position: cursor_y,
                 width: 1100.0,
-                height: 18.0,
+                height: 24.0,
                 hero_ids: vec![],
             });
-            cursor_y += 20.0;
+            cursor_y += 24.0;
 
-            let card_w = 52.0;
-            let card_h = 72.0;
-            let gap_x = 4.0;
-            let gap_y = 4.0;
-            let heroes_per_row = 20;
+            let card_w = 68.0;
+            let card_h = 104.0;
+            let gap_x = 12.0;
+            let gap_y = 16.0;
+            let heroes_per_row = 14;
 
             let top_heroes: Vec<_> = role.heroes.iter().filter(|h| h.is_top).cloned().collect();
             let top_count = if top_heroes.is_empty() {
@@ -132,22 +132,23 @@ pub fn build_grid_multi(snap: &MetaSnapshot, role_labels: &str) -> Vec<GridConfi
                 .heroes
                 .iter()
                 .filter(|h| !top_ids.contains(&h.hero_id))
+                .take(10)
                 .cloned()
                 .collect();
 
             if !other_heroes.is_empty() {
-                let other_header_y = top_heroes_y + card_h + 6.0;
+                let other_header_y = top_heroes_y + card_h + 12.0;
                 let other_header = format!("— OTHER {role_upper} HEROES - ORDERED BY D2PT RATING (AND PICKRATE)");
                 categories.push(Category {
                     category_name: other_header,
                     x_position: 0.0,
                     y_position: other_header_y,
                     width: 1100.0,
-                    height: 18.0,
+                    height: 24.0,
                     hero_ids: vec![],
                 });
 
-                let other_heroes_start_y = other_header_y + 20.0;
+                let other_heroes_start_y = other_header_y + 24.0;
                 for (idx, h) in other_heroes.iter().enumerate() {
                     let col = idx % heroes_per_row;
                     let row = idx / heroes_per_row;

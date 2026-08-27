@@ -9,12 +9,14 @@ class Store {
   settings = $state<Settings | null>(null);
   accounts = $state<Account[]>([]);
   tournaments = $state<Tournament[]>([]);
-  appVersion = $state<string>("v1.1.2");
+  appVersion = $state<string>("v1.2.0");
   view = $state<View>("onboarding");
   dashMode = $state<"list" | "preview">("list");
   loading = $state(false);
   fetchingOnly = $state(false);
   portraitDir = $state<string | null>(null);
+  updateInfo = $state<import("$lib/types").UpdateInfo | null>(null);
+  showUpdateModal = $state<boolean>(false);
 
   isFresh = $derived.by(() => {
     if (this.status.kind !== "Ok" || !this.snapshot || !this.settings) return false;
@@ -33,7 +35,7 @@ class Store {
         ipc.listAccounts(),
         ipc.getPortraitDir(),
         ipc.getTournaments().catch(() => []),
-        ipc.getAppVersion().catch(() => "v1.1.2"),
+        ipc.getAppVersion().catch(() => "v1.2.0"),
       ]);
       this.settings = settings;
       this.snapshot = snapshot;
@@ -48,6 +50,8 @@ class Store {
         this.fetchTournaments().catch(() => {});
       }
 
+      this.checkForUpdates(true).catch(() => {});
+
       await ipc.onRefreshDone((snap) => {
         this.snapshot = snap;
         this.status = { kind: "Ok" };
@@ -60,6 +64,20 @@ class Store {
       });
     } finally {
       this.loading = false;
+    }
+  }
+
+  async checkForUpdates(silent: boolean = false): Promise<import("$lib/types").UpdateInfo | null> {
+    try {
+      const info = await ipc.checkUpdate();
+      this.updateInfo = info;
+      if (info.available) {
+        this.showUpdateModal = true;
+      }
+      return info;
+    } catch (e) {
+      if (!silent) throw e;
+      return null;
     }
   }
 

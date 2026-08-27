@@ -8,6 +8,7 @@
   import Dashboard from "$lib/views/Dashboard.svelte";
   import Settings from "$lib/views/Settings.svelte";
   import Onboarding from "$lib/views/Onboarding.svelte";
+  import UpdateModal from "$lib/components/UpdateModal.svelte";
   import { Toaster } from "$lib/components/ui/sonner";
   import { onRefreshDone, onRefreshError } from "$lib/ipc";
   import type { UnlistenFn } from "@tauri-apps/api/event";
@@ -68,4 +69,5 @@
     {/key}
   </main>
   <Toaster position="bottom-right" richColors={false} />
+  <UpdateModal />
 </div>

@@ -1,4 +1,4 @@
-﻿export const en = {
+export const en = {
   app: {
     name: "MetaGrid"
   },
@@ -109,6 +109,18 @@
     all: "All Tournaments",
     matches: "{count} matches",
     no_results: "No tournaments found"
+  },
+  update_modal: {
+    title: "New Update Available",
+    subtitle: "A new version of MetaGrid is ready to install.",
+    current_vs_latest: "v{current} → {latest}",
+    whats_new: "What's New:",
+    update_now: "Update Now",
+    later: "Later",
+    downloading: "Downloading update...",
+    launching: "Launching installer...",
+    failed: "Update failed: {error}",
+    retry: "Retry"
   }
 };
 
@@ -223,5 +235,17 @@ export const ru = {
     all: "Все турниры",
     matches: "{count} матчей",
     no_results: "Турниры не найдены"
+  },
+  update_modal: {
+    title: "Доступно обновление",
+    subtitle: "Новая версия MetaGrid готова к установке.",
+    current_vs_latest: "v{current} → {latest}",
+    whats_new: "Что нового:",
+    update_now: "Обновить сейчас",
+    later: "Позже",
+    downloading: "Скачивание обновления...",
+    launching: "Запуск установщика...",
+    failed: "Ошибка обновления: {error}",
+    retry: "Повторить"
   }
 };

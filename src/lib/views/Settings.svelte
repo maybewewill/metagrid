@@ -11,7 +11,6 @@
   import { Button } from "$lib/components/ui/button";
   import { Separator } from "$lib/components/ui/separator";
   import { ArrowLeft, Check, RefreshCw, Download, Sparkles } from "@lucide/svelte";
-  import { openUrl } from "@tauri-apps/plugin-opener";
   import type { Settings as SettingsShape, UpdateInfo } from "$lib/types";
 
   const intervalOptions = [
@@ -103,12 +102,10 @@
   async function checkUpdates() {
     checkingUpdate = true;
     try {
-      const info = await ipc.checkUpdate();
+      const info = await store.checkForUpdates(false);
       updateInfo = info;
-      if (!info.available) {
+      if (info && !info.available) {
         toast.success($_("settings.up_to_date"));
-      } else {
-        toast.info($_("settings.update_available", { values: { version: info.latest_version } }));
       }
     } catch (err) {
       toast.error(String(err));
@@ -117,10 +114,8 @@
     }
   }
 
-  async function openUpdateLink() {
-    if (updateInfo?.download_url || updateInfo?.release_url) {
-      await openUrl(updateInfo.download_url || updateInfo.release_url);
-    }
+  function openUpdateModal() {
+    store.showUpdateModal = true;
   }
 </script>
 
@@ -358,7 +353,7 @@
             <Button
               size="sm"
               class="gap-1.5 rounded-sm bg-emerald-500 text-zinc-950 font-bold hover:bg-emerald-400 text-xs"
-              onclick={openUpdateLink}
+              onclick={openUpdateModal}
             >
               <Download size={13} />
               <span>{$_("settings.download_update")}</span>

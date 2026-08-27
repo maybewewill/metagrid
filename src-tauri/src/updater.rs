@@ -1,4 +1,6 @@
 use serde::{Deserialize, Serialize};
+use tauri::{AppHandle, Emitter};
+use tokio::io::AsyncWriteExt;
 
 const GITHUB_API_URL: &str = "https://api.github.com/repos/maybewewill/metagrid/releases/latest";
 const CURRENT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -76,6 +78,73 @@ pub async fn check_for_updates() -> Result<UpdateInfo, String> {
         release_notes: release.body,
         download_url,
     })
+}
+
+pub async fn download_and_install(app: &AppHandle, download_url: Option<String>) -> Result<(), String> {
+    let url = match download_url {
+        Some(u) if u.ends_with(".exe") => u,
+        _ => {
+            let info = check_for_updates().await?;
+            info.download_url
+                .filter(|u| u.ends_with(".exe"))
+                .ok_or_else(|| "No executable installer found in release".to_string())?
+        }
+    };
+
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(300))
+        .build()
+        .map_err(|e| e.to_string())?;
+
+    let mut response = client
+        .get(&url)
+        .header("User-Agent", "MetaGrid-App")
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+
+    if !response.status().is_success() {
+        return Err(format!("Download failed with HTTP status: {}", response.status()));
+    }
+
+    let total_size = response.content_length().unwrap_or(0);
+    let mut downloaded: u64 = 0;
+
+    let temp_file = std::env::temp_dir().join("MetaGrid_Update_Setup.exe");
+    let mut file = tokio::fs::File::create(&temp_file)
+        .await
+        .map_err(|e| e.to_string())?;
+
+    while let Some(chunk) = response.chunk().await.map_err(|e| e.to_string())? {
+        downloaded += chunk.len() as u64;
+        file.write_all(&chunk).await.map_err(|e| e.to_string())?;
+        if total_size > 0 {
+            let percent = (downloaded as f64 / total_size as f64) * 100.0;
+            let _ = app.emit("metagrid://update-progress", percent.min(100.0));
+        }
+    }
+
+    file.flush().await.map_err(|e| e.to_string())?;
+    drop(file);
+
+    let _ = app.emit("metagrid://update-progress", 100.0);
+    tokio::time::sleep(std::time::Duration::from_millis(400)).await;
+
+    #[cfg(windows)]
+    {
+        std::process::Command::new(&temp_file)
+            .spawn()
+            .map_err(|e| format!("Failed to start installer: {e}"))?;
+    }
+    #[cfg(not(windows))]
+    {
+        std::process::Command::new(&temp_file)
+            .spawn()
+            .map_err(|e| format!("Failed to start installer: {e}"))?;
+    }
+
+    app.exit(0);
+    Ok(())
 }
 
 fn is_newer_version(latest: &str, current: &str) -> bool {

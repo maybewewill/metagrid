@@ -48,6 +48,7 @@ pub fn run() {
             commands::get_portrait_dir,
             commands::get_app_version,
             commands::check_update,
+            commands::install_update,
             commands::list_grid_configs,
             commands::get_tournaments,
             commands::fetch_tournaments

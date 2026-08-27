@@ -57,6 +57,14 @@ export function checkUpdate(): Promise<import("$lib/types").UpdateInfo> {
   return invoke("check_update");
 }
 
+export function installUpdate(downloadUrl?: string): Promise<void> {
+  return invoke("install_update", { downloadUrl: downloadUrl ?? null });
+}
+
+export function onUpdateProgress(cb: (percent: number) => void): Promise<UnlistenFn> {
+  return listen<number>("metagrid://update-progress", (e) => cb(e.payload));
+}
+
 export function listGridConfigs(): Promise<string[]> {
   return invoke("list_grid_configs");
 }
