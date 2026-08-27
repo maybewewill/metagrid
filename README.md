@@ -105,20 +105,28 @@ Grids are written directly to Dota's `hero_grid_config.json`. Existing user-crea
 
 ## Installation
 
-### Windows (Recommended)
+### Windows (64-bit & 32-bit Installer)
 
-1. Download `MetaGrid_x.y.z_x64-setup.exe` from [Releases](https://github.com/maybewewill/metagrid/releases).
+1. Download `MetaGrid_x64-setup.exe` (or `MetaGrid_x86-setup.exe` for 32-bit systems) from [Releases](https://github.com/maybewewill/metagrid/releases).
 2. Run the installer and launch MetaGrid.
 3. Select your Steam account and language, then click **Fetch & Patch**.
 4. In Dota 2, open **Heroes → Hero Grids** and select your updated layout.
 
 ---
 
+### macOS (Apple Silicon & Intel)
+
+1. Download `MetaGrid.dmg` from [Releases](https://github.com/maybewewill/metagrid/releases).
+2. Open the `.dmg` file and drag **MetaGrid** into your `Applications` folder.
+3. Launch MetaGrid, select your Steam account, and click **Fetch & Patch**.
+
+---
+
 ### Linux (AppImage / .deb / Arch pacman)
 
 > [!WARNING]
-> **Linux Support (Experimental / Community Testing)**:
-> Native Linux Steam discovery (Native, Flatpak, and Snap Steam) is implemented in code and verified by unit tests, but has **not yet been comprehensively field-tested across all live Linux environments**. Feedback, issue reports, and PRs are warmly welcome!
+> **Linux & macOS Support (Experimental / Community Testing)**:
+> Native Steam discovery is implemented in code and verified by unit tests, but has **not yet been comprehensively field-tested across every live environment**. Feedback, issue reports, and PRs are warmly welcome!
 
 #### 1. Arch Linux / Manjaro / EndeavourOS (`pacman`)
 ```bash

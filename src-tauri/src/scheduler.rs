@@ -84,7 +84,7 @@ pub fn trigger(app: &AppHandle) -> tauri::Result<()> {
     Ok(())
 }
 
-const MIN_INTERVAL_SECS: u64 = 60 * 30;
+const MIN_INTERVAL_SECS: u64 = 60 * 15;
 const DEBOUNCE_FLOOR: Duration = Duration::from_secs(30);
 
 pub fn spawn(app: AppHandle) {

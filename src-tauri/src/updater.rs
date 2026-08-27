@@ -64,13 +64,17 @@ pub async fn check_for_updates() -> Result<UpdateInfo, String> {
     let available = is_newer_version(latest_ver, CURRENT_VERSION);
 
     let is_matching_asset = |name: &str| {
-        #[cfg(windows)]
+        #[cfg(target_os = "windows")]
         {
             name.ends_with(".exe") || name.ends_with(".zip")
         }
-        #[cfg(not(windows))]
+        #[cfg(target_os = "macos")]
         {
-            name.ends_with(".AppImage") || name.ends_with(".deb") || name.ends_with(".tar.gz")
+            name.ends_with(".dmg") || name.ends_with(".app.tar.gz") || name.ends_with(".zip")
+        }
+        #[cfg(all(not(target_os = "windows"), not(target_os = "macos")))]
+        {
+            name.ends_with(".AppImage") || name.ends_with(".deb") || name.ends_with(".tar.gz") || name.ends_with(".pkg.tar.zst")
         }
     };
 
@@ -120,15 +124,20 @@ pub async fn download_and_install(app: &AppHandle, download_url: Option<String>)
     let total_size = response.content_length().unwrap_or(0);
     let mut downloaded: u64 = 0;
 
-    #[cfg(windows)]
+    #[cfg(target_os = "windows")]
     let temp_file = std::env::temp_dir().join("MetaGrid_Update_Setup.exe");
 
-    #[cfg(not(windows))]
+    #[cfg(target_os = "macos")]
+    let temp_file = std::env::temp_dir().join("MetaGrid_Update.dmg");
+
+    #[cfg(all(not(target_os = "windows"), not(target_os = "macos")))]
     let temp_file = {
         let ext = if url.ends_with(".AppImage") {
             "AppImage"
         } else if url.ends_with(".deb") {
             "deb"
+        } else if url.ends_with(".pkg.tar.zst") {
+            "pkg.tar.zst"
         } else {
             "bin"
         };
@@ -154,7 +163,7 @@ pub async fn download_and_install(app: &AppHandle, download_url: Option<String>)
     let _ = app.emit("metagrid://update-progress", 100.0);
     tokio::time::sleep(std::time::Duration::from_millis(400)).await;
 
-    #[cfg(windows)]
+    #[cfg(target_os = "windows")]
     {
         use std::os::windows::process::CommandExt;
         const CREATE_NO_WINDOW: u32 = 0x08000000;
@@ -164,7 +173,11 @@ pub async fn download_and_install(app: &AppHandle, download_url: Option<String>)
             .spawn()
             .map_err(|e| format!("Failed to start silent update: {e}"))?;
     }
-    #[cfg(not(windows))]
+    #[cfg(target_os = "macos")]
+    {
+        let _ = tauri_plugin_opener::OpenerExt::opener(app).open_path(temp_file.to_string_lossy(), None::<&str>);
+    }
+    #[cfg(all(not(target_os = "windows"), not(target_os = "macos")))]
     {
         if temp_file.extension().and_then(|e| e.to_str()) == Some("AppImage") {
             #[cfg(unix)]

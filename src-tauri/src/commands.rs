@@ -25,12 +25,14 @@ pub fn get_settings(state: State<Shared>) -> Settings {
 
 #[tauri::command]
 pub fn save_settings(
+    app: AppHandle,
     new: Settings,
     state: State<Shared>,
     data: State<DataDir>,
 ) -> Result<(), String> {
     save_to(&data.0, &new).map_err(|e| e.to_string())?;
     state.set_settings(new);
+    let _ = scheduler::trigger(&app);
     Ok(())
 }
 

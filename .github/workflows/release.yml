@@ -1,4 +1,4 @@
-name: Release
+﻿name: Release
 
 on:
   push:
@@ -16,9 +16,17 @@ jobs:
       matrix:
         include:
           - os: windows-latest
+            target: x86_64-pc-windows-msvc
             asset_pattern: target/release/bundle/nsis/*.exe
+          - os: windows-latest
+            target: i686-pc-windows-msvc
+            asset_pattern: target/i686-pc-windows-msvc/release/bundle/nsis/*.exe
           - os: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
             asset_pattern: target/release/bundle/appimage/*.AppImage,target/release/bundle/deb/*.deb,target/release/bundle/pacman/*.pkg.tar.zst
+          - os: macos-latest
+            target: universal-apple-darwin
+            asset_pattern: target/universal-apple-darwin/release/bundle/dmg/*.dmg,target/release/bundle/dmg/*.dmg
 
     runs-on: ${{ matrix.os }}
 
@@ -34,6 +42,8 @@ jobs:
 
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
 
       - name: Rust cache
         uses: swatinem/rust-cache@v2
@@ -58,13 +68,19 @@ jobs:
         run: npm ci
 
       - name: Build Tauri Application
-        run: npm run tauri build
+        run: |
+          if [ "${{ matrix.target }}" = "x86_64-pc-windows-msvc" ] || [ "${{ matrix.target }}" = "x86_64-unknown-linux-gnu" ]; then
+            npm run tauri build
+          else
+            npm run tauri build -- --target ${{ matrix.target }}
+          fi
+        shell: bash
 
       - name: Build Arch Linux Pacman package (.pkg.tar.zst)
         if: matrix.os == 'ubuntu-22.04'
         run: |
           VERSION=${GITHUB_REF_NAME#v}
-          VERSION=${VERSION:-1.2.4}
+          VERSION=${VERSION:-1.3.1}
           PKG_DIR="target/release/bundle/pacman/pkg"
           mkdir -p "$PKG_DIR/usr/bin" "$PKG_DIR/usr/share/applications" "$PKG_DIR/usr/share/icons/hicolor/128x128/apps" "$PKG_DIR/usr/share/icons/hicolor/32x32/apps"
           

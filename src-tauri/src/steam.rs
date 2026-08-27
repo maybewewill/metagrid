@@ -1,9 +1,12 @@
 use std::path::PathBuf;
 
-#[cfg(windows)]
+#[cfg(target_os = "windows")]
 pub const DEFAULT_STEAM_PATH: &str = r"C:\Program Files (x86)\Steam";
 
-#[cfg(not(windows))]
+#[cfg(target_os = "macos")]
+pub const DEFAULT_STEAM_PATH: &str = "Library/Application Support/Steam";
+
+#[cfg(all(not(target_os = "windows"), not(target_os = "macos")))]
 pub const DEFAULT_STEAM_PATH: &str = ".local/share/Steam";
 
 const DOTA2_APP_ID: &str = "570";
@@ -21,7 +24,7 @@ pub struct SteamLocator {
 
 impl SteamLocator {
     pub fn detect() -> Option<SteamLocator> {
-        #[cfg(windows)]
+        #[cfg(target_os = "windows")]
         {
             if let Some(root) = Self::detect_from_registry() {
                 return Some(SteamLocator { root });
@@ -31,7 +34,22 @@ impl SteamLocator {
             })
         }
 
-        #[cfg(not(windows))]
+        #[cfg(target_os = "macos")]
+        {
+            if let Some(root) = Self::detect_macos() {
+                return Some(SteamLocator { root });
+            }
+            let home = std::env::var("HOME")
+                .ok()
+                .map(PathBuf::from)
+                .or_else(|| directories::BaseDirs::new().map(|b| b.home_dir().to_path_buf()))
+                .unwrap_or_else(|| PathBuf::from("."));
+            Some(SteamLocator {
+                root: home.join(DEFAULT_STEAM_PATH),
+            })
+        }
+
+        #[cfg(all(not(target_os = "windows"), not(target_os = "macos")))]
         {
             if let Some(root) = Self::detect_linux() {
                 return Some(SteamLocator { root });
@@ -47,7 +65,7 @@ impl SteamLocator {
         }
     }
 
-    #[cfg(windows)]
+    #[cfg(target_os = "windows")]
     fn detect_from_registry() -> Option<PathBuf> {
         use winreg::enums::HKEY_CURRENT_USER;
         use winreg::RegKey;
@@ -56,6 +74,20 @@ impl SteamLocator {
         let steam_key = hkcu.open_subkey(r"Software\Valve\Steam").ok()?;
         let steam_path: String = steam_key.get_value("SteamPath").ok()?;
         Some(PathBuf::from(steam_path))
+    }
+
+    #[cfg(target_os = "macos")]
+    fn detect_macos() -> Option<PathBuf> {
+        let home = std::env::var("HOME")
+            .ok()
+            .map(PathBuf::from)
+            .or_else(|| directories::BaseDirs::new().map(|b| b.home_dir().to_path_buf()))?;
+        let steam = home.join(DEFAULT_STEAM_PATH);
+        if steam.join("userdata").is_dir() {
+            Some(steam)
+        } else {
+            None
+        }
     }
 
     #[cfg(not(windows))]
