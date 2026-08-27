@@ -120,35 +120,28 @@ Grids are written directly to Dota's `hero_grid_config.json`. Existing user-crea
 > **Linux Support (Experimental / Community Testing)**:
 > Native Linux Steam discovery (Native, Flatpak, and Snap Steam) is implemented in code and verified by unit tests, but has **not yet been comprehensively field-tested across all live Linux environments**. Feedback, issue reports, and PRs are warmly welcome!
 
-#### 1. Universal AppImage (Runs on all distributions & Steam Deck / SteamOS)
+#### 1. Arch Linux / Manjaro / EndeavourOS (`pacman`)
 ```bash
-# Download MetaGrid_amd64.AppImage from Releases, make executable, and run:
-chmod +x MetaGrid_amd64.AppImage
-./MetaGrid_amd64.AppImage
+sudo pacman -U https://github.com/maybewewill/metagrid/releases/latest/download/metagrid-x86_64.pkg.tar.zst
 ```
 
-#### 2. Debian / Ubuntu / Linux Mint / Pop!_OS (`.deb`)
+#### 2. Fedora / RHEL / openSUSE (`dnf` / `zypper`)
 ```bash
-sudo dpkg -i MetaGrid_amd64.deb
-# or
-sudo apt install ./MetaGrid_amd64.deb
+# Fedora / RHEL:
+sudo dnf install https://github.com/maybewewill/metagrid/releases/latest/download/MetaGrid_amd64.rpm
+
+# openSUSE:
+sudo zypper install https://github.com/maybewewill/metagrid/releases/latest/download/MetaGrid_amd64.rpm
 ```
 
-#### 3. Fedora / RHEL / openSUSE (`.rpm`)
+#### 3. Debian / Ubuntu / Linux Mint / Pop!_OS (`apt` / `dpkg`)
 ```bash
-sudo dnf install ./MetaGrid_amd64.rpm
-# or on openSUSE:
-sudo zypper install ./MetaGrid_amd64.rpm
+curl -sLO https://github.com/maybewewill/metagrid/releases/latest/download/MetaGrid_amd64.deb && sudo apt install -y ./MetaGrid_amd64.deb && rm MetaGrid_amd64.deb
 ```
 
-#### 4. Arch Linux / Manjaro / EndeavourOS
+#### 4. Universal AppImage (Runs on all distributions & Steam Deck / SteamOS)
 ```bash
-# Local build using the repository PKGBUILD:
-cd aur/metagrid-bin
-makepkg -si
-
-# (Once AUR registration re-opens):
-# yay -S metagrid-bin
+curl -sLO https://github.com/maybewewill/metagrid/releases/latest/download/MetaGrid_amd64.AppImage && chmod +x MetaGrid_amd64.AppImage && ./MetaGrid_amd64.AppImage
 ```
 
 ---
