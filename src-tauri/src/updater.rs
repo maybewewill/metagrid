@@ -191,9 +191,21 @@ pub async fn download_and_install(app: &AppHandle, download_url: Option<String>)
                 use std::os::unix::fs::PermissionsExt;
                 let _ = std::fs::set_permissions(&temp_file, std::fs::Permissions::from_mode(0o755));
             }
-            std::process::Command::new(&temp_file)
-                .spawn()
-                .map_err(|e| format!("Failed to start AppImage: {e}"))?;
+            if let Ok(orig_path) = std::env::var("APPIMAGE") {
+                if !orig_path.is_empty() {
+                    let _ = std::fs::copy(&temp_file, &orig_path);
+                    #[cfg(unix)]
+                    {
+                        use std::os::unix::fs::PermissionsExt;
+                        let _ = std::fs::set_permissions(&orig_path, std::fs::Permissions::from_mode(0o755));
+                    }
+                    let _ = std::process::Command::new(&orig_path).spawn();
+                } else {
+                    let _ = std::process::Command::new(&temp_file).spawn();
+                }
+            } else {
+                let _ = std::process::Command::new(&temp_file).spawn();
+            }
         } else {
             let _ = tauri_plugin_opener::OpenerExt::opener(app).open_path(temp_file.to_string_lossy(), None::<&str>);
         }
