@@ -71,7 +71,7 @@ Grids are written directly to Dota's `hero_grid_config.json`. Existing user-crea
   </tr>
   <tr>
     <td align="center">
-      <img src="docs/images/in-game-grid.png" alt="Separate Mode Grid" width="100%" />
+      <img src="docs/images/in-game-grid.png?v=1.2.3" alt="Separate Mode Grid" width="100%" />
     </td>
     <td align="center">
       <img src="docs/images/merged-grid.png" alt="Merge Mode Grid" width="100%" />
