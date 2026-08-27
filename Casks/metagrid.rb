@@ -1,6 +1,6 @@
-﻿cask "metagrid" do
+cask "metagrid" do
   version "1.3.1"
-  sha256 :no_check
+  sha256 "4b773729fe7584dc909fb4e4d143ae274adc9ebdef14b59f93acbceb37005f3c"
 
   url "https://github.com/maybewewill/metagrid/releases/download/v#{version}/MetaGrid_#{version}_universal.dmg",
       verified: "github.com/maybewewill/metagrid/"
