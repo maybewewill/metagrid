@@ -114,7 +114,7 @@ Grids are written directly to Dota's `hero_grid_config.json`. Existing user-crea
 
 ---
 
-### Linux (AppImage / .deb / .rpm / Arch)
+### Linux (AppImage / .deb / Arch pacman)
 
 > [!WARNING]
 > **Linux Support (Experimental / Community Testing)**:
@@ -125,21 +125,12 @@ Grids are written directly to Dota's `hero_grid_config.json`. Existing user-crea
 sudo pacman -U https://github.com/maybewewill/metagrid/releases/latest/download/metagrid-x86_64.pkg.tar.zst
 ```
 
-#### 2. Fedora / RHEL / openSUSE (`dnf` / `zypper`)
-```bash
-# Fedora / RHEL:
-sudo dnf install https://github.com/maybewewill/metagrid/releases/latest/download/MetaGrid_amd64.rpm
-
-# openSUSE:
-sudo zypper install https://github.com/maybewewill/metagrid/releases/latest/download/MetaGrid_amd64.rpm
-```
-
-#### 3. Debian / Ubuntu / Linux Mint / Pop!_OS (`apt` / `dpkg`)
+#### 2. Debian / Ubuntu / Linux Mint / Pop!_OS (`apt`)
 ```bash
 curl -sLO https://github.com/maybewewill/metagrid/releases/latest/download/MetaGrid_amd64.deb && sudo apt install -y ./MetaGrid_amd64.deb && rm MetaGrid_amd64.deb
 ```
 
-#### 4. Universal AppImage (Runs on all distributions & Steam Deck / SteamOS)
+#### 3. Universal AppImage (Runs on all Linux distributions, Fedora, openSUSE & Steam Deck / SteamOS)
 ```bash
 curl -sLO https://github.com/maybewewill/metagrid/releases/latest/download/MetaGrid_amd64.AppImage && chmod +x MetaGrid_amd64.AppImage && ./MetaGrid_amd64.AppImage
 ```
