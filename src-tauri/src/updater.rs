@@ -167,11 +167,17 @@ pub async fn download_and_install(app: &AppHandle, download_url: Option<String>)
     {
         use std::os::windows::process::CommandExt;
         const CREATE_NO_WINDOW: u32 = 0x08000000;
-        std::process::Command::new(&temp_file)
-            .arg("/S")
+        let current_exe = std::env::current_exe().map_err(|e| e.to_string())?;
+        let cmd = format!(
+            "Start-Sleep -Milliseconds 800; Start-Process -FilePath \"{}\" -ArgumentList \"/S\" -Wait; Start-Process -FilePath \"{}\"",
+            temp_file.display(),
+            current_exe.display()
+        );
+        std::process::Command::new("powershell")
+            .args(["-NoProfile", "-WindowStyle", "Hidden", "-Command", &cmd])
             .creation_flags(CREATE_NO_WINDOW)
             .spawn()
-            .map_err(|e| format!("Failed to start silent update: {e}"))?;
+            .map_err(|e| format!("Failed to start update script: {e}"))?;
     }
     #[cfg(target_os = "macos")]
     {

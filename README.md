@@ -87,7 +87,7 @@ To strictly adhere to [Dota2ProTracker's](https://dota2protracker.com) Terms of 
   </tr>
   <tr>
     <td align="center">
-      <img src="docs/images/in-game-grid.png?v=1.4.0" alt="Separate Mode Grid" width="100%" />
+      <img src="docs/images/in-game-grid.png?v=1.4.1" alt="Separate Mode Grid" width="100%" />
     </td>
     <td align="center">
       <img src="docs/images/merged-grid.png" alt="Merge Mode Grid" width="100%" />
@@ -144,7 +144,7 @@ brew install --cask maybewewill/tap/metagrid
 ```
 
 #### 2. Manual DMG Download
-1. Download `MetaGrid_1.4.0_universal.dmg` from [Releases](https://github.com/maybewewill/metagrid/releases).
+1. Download `MetaGrid_1.4.1_universal.dmg` from [Releases](https://github.com/maybewewill/metagrid/releases).
 2. Open the `.dmg` file and drag **MetaGrid** into your `Applications` folder.
 3. Launch MetaGrid, select your Steam account, and click **Fetch & Patch**.
 
