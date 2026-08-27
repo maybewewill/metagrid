@@ -1,0 +1,28 @@
+﻿# Maintainer: maybewewill <maybewewill@users.noreply.github.com>
+pkgname=metagrid
+pkgver=1.2.4
+pkgrel=1
+pkgdesc="Automatic Dota 2 Meta Hero Grid Layout Manager synced with Dota2ProTracker"
+arch=('x86_64')
+url="https://github.com/maybewewill/metagrid"
+license=('MIT')
+depends=('gtk3' 'webkit2gtk-4.1' 'libayatana-appindicator' 'openssl' 'curl')
+makedepends=('cargo' 'npm' 'nodejs' 'git')
+source=("https://github.com/maybewewill/metagrid/archive/refs/tags/v${pkgver}.tar.gz"
+        "metagrid.desktop")
+sha256sums=('SKIP'
+            'SKIP')
+
+build() {
+    cd "${srcdir}/${pkgname}-${pkgver}"
+    npm ci
+    npm run tauri build
+}
+
+package() {
+    cd "${srcdir}/${pkgname}-${pkgver}"
+    install -Dm755 target/release/metagrid "${pkgdir}/usr/bin/metagrid"
+    install -Dm644 src-tauri/icons/128x128.png "${pkgdir}/usr/share/icons/hicolor/128x128/apps/metagrid.png"
+    install -Dm644 src-tauri/icons/32x32.png "${pkgdir}/usr/share/icons/hicolor/32x32/apps/metagrid.png"
+    install -Dm644 "${srcdir}/metagrid.desktop" "${pkgdir}/usr/share/applications/metagrid.desktop"
+}

@@ -105,18 +105,59 @@ Grids are written directly to Dota's `hero_grid_config.json`. Existing user-crea
 
 ## Installation
 
-### Option 1: Cargo Install (One Command)
+### Windows (Recommended)
+
+1. Download `MetaGrid_x.y.z_x64-setup.exe` from [Releases](https://github.com/maybewewill/metagrid/releases).
+2. Run the installer and launch MetaGrid.
+3. Select your Steam account and language, then click **Fetch & Patch**.
+4. In Dota 2, open **Heroes → Hero Grids** and select your updated layout.
+
+---
+
+### Linux (AppImage / .deb / .rpm / Arch)
+
+> [!WARNING]
+> **Linux Support (Experimental / Community Testing)**:
+> Native Linux Steam discovery (Native, Flatpak, and Snap Steam) is implemented in code and verified by unit tests, but has **not yet been comprehensively field-tested across all live Linux environments**. Feedback, issue reports, and PRs are warmly welcome!
+
+#### 1. Universal AppImage (Runs on all distributions & Steam Deck / SteamOS)
+```bash
+# Download MetaGrid_amd64.AppImage from Releases, make executable, and run:
+chmod +x MetaGrid_amd64.AppImage
+./MetaGrid_amd64.AppImage
+```
+
+#### 2. Debian / Ubuntu / Linux Mint / Pop!_OS (`.deb`)
+```bash
+sudo dpkg -i MetaGrid_amd64.deb
+# or
+sudo apt install ./MetaGrid_amd64.deb
+```
+
+#### 3. Fedora / RHEL / openSUSE (`.rpm`)
+```bash
+sudo dnf install ./MetaGrid_amd64.rpm
+# or on openSUSE:
+sudo zypper install ./MetaGrid_amd64.rpm
+```
+
+#### 4. Arch Linux / Manjaro / EndeavourOS
+```bash
+# Local build using the repository PKGBUILD:
+cd aur/metagrid-bin
+makepkg -si
+
+# (Once AUR registration re-opens):
+# yay -S metagrid-bin
+```
+
+---
+
+### Build from Source (Cargo)
 
 ```bash
 cargo install --git https://github.com/maybewewill/metagrid
 ```
-> Installs the standalone `metagrid` executable directly to your system (`~/.cargo/bin`). Run `metagrid` in your terminal to launch.
-
-### Option 2: Windows Installer / Portable
-
-1. Download `MetaGrid_x.y.z_x64-setup.exe` or `MetaGrid_x.y.z_x64_Portable.zip` from [Releases](https://github.com/maybewewill/metagrid/releases).
-2. Run the app, pick your Steam account and language, then click **Fetch & Patch**.
-3. In Dota 2, open **Heroes → Hero Grids** and select your updated layout.
 
 ---
 

@@ -63,10 +63,21 @@ pub async fn check_for_updates() -> Result<UpdateInfo, String> {
 
     let available = is_newer_version(latest_ver, CURRENT_VERSION);
 
+    let is_matching_asset = |name: &str| {
+        #[cfg(windows)]
+        {
+            name.ends_with(".exe") || name.ends_with(".zip")
+        }
+        #[cfg(not(windows))]
+        {
+            name.ends_with(".AppImage") || name.ends_with(".deb") || name.ends_with(".tar.gz")
+        }
+    };
+
     let download_url = release
         .assets
         .iter()
-        .find(|a| a.name.ends_with(".exe") || a.name.ends_with(".zip"))
+        .find(|a| is_matching_asset(&a.name))
         .map(|a| a.browser_download_url.clone())
         .or_else(|| Some(release.html_url.clone()));
 
@@ -82,12 +93,11 @@ pub async fn check_for_updates() -> Result<UpdateInfo, String> {
 
 pub async fn download_and_install(app: &AppHandle, download_url: Option<String>) -> Result<(), String> {
     let url = match download_url {
-        Some(u) if u.ends_with(".exe") => u,
+        Some(u) if !u.is_empty() => u,
         _ => {
             let info = check_for_updates().await?;
             info.download_url
-                .filter(|u| u.ends_with(".exe"))
-                .ok_or_else(|| "No executable installer found in release".to_string())?
+                .ok_or_else(|| "No update installer found in release".to_string())?
         }
     };
 
@@ -110,7 +120,21 @@ pub async fn download_and_install(app: &AppHandle, download_url: Option<String>)
     let total_size = response.content_length().unwrap_or(0);
     let mut downloaded: u64 = 0;
 
+    #[cfg(windows)]
     let temp_file = std::env::temp_dir().join("MetaGrid_Update_Setup.exe");
+
+    #[cfg(not(windows))]
+    let temp_file = {
+        let ext = if url.ends_with(".AppImage") {
+            "AppImage"
+        } else if url.ends_with(".deb") {
+            "deb"
+        } else {
+            "bin"
+        };
+        std::env::temp_dir().join(format!("MetaGrid_Update.{ext}"))
+    };
+
     let mut file = tokio::fs::File::create(&temp_file)
         .await
         .map_err(|e| e.to_string())?;
@@ -142,9 +166,18 @@ pub async fn download_and_install(app: &AppHandle, download_url: Option<String>)
     }
     #[cfg(not(windows))]
     {
-        std::process::Command::new(&temp_file)
-            .spawn()
-            .map_err(|e| format!("Failed to start update: {e}"))?;
+        if temp_file.extension().and_then(|e| e.to_str()) == Some("AppImage") {
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::PermissionsExt;
+                let _ = std::fs::set_permissions(&temp_file, std::fs::Permissions::from_mode(0o755));
+            }
+            std::process::Command::new(&temp_file)
+                .spawn()
+                .map_err(|e| format!("Failed to start AppImage: {e}"))?;
+        } else {
+            let _ = tauri_plugin_opener::OpenerExt::opener(app).open_path(temp_file.to_string_lossy(), None::<&str>);
+        }
     }
 
     app.exit(0);

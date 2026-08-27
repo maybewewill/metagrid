@@ -1,0 +1,27 @@
+﻿# Maintainer: maybewewill <maybewewill@users.noreply.github.com>
+pkgname=metagrid-bin
+_pkgname=metagrid
+pkgver=1.2.4
+pkgrel=1
+pkgdesc="Automatic Dota 2 Meta Hero Grid Layout Manager synced with Dota2ProTracker"
+arch=('x86_64')
+url="https://github.com/maybewewill/metagrid"
+license=('MIT')
+depends=('gtk3' 'webkit2gtk-4.1' 'libayatana-appindicator' 'openssl' 'curl')
+provides=('metagrid')
+conflicts=('metagrid')
+source=("https://github.com/maybewewill/metagrid/releases/download/v${pkgver}/MetaGrid_${pkgver}_amd64.AppImage")
+sha256sums=('SKIP')
+
+prepare() {
+    chmod +x "MetaGrid_${pkgver}_amd64.AppImage"
+    ./MetaGrid_${pkgver}_amd64.AppImage --appimage-extract > /dev/null 2>&1 || true
+}
+
+package() {
+    install -Dm755 squashfs-root/usr/bin/metagrid "${pkgdir}/usr/bin/metagrid"
+    install -Dm644 squashfs-root/usr/share/applications/metagrid.desktop "${pkgdir}/usr/share/applications/metagrid.desktop"
+    if [ -d "squashfs-root/usr/share/icons" ]; then
+        cp -r squashfs-root/usr/share/icons "${pkgdir}/usr/share/"
+    fi
+}
