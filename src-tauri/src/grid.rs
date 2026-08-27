@@ -57,7 +57,6 @@ fn format_rate(rate: f32) -> String {
 
 pub fn build_grid_multi(snap: &MetaSnapshot, role_labels: &str) -> Vec<GridConfig> {
     let tourney_title = extract_tournament_title(&snap.source);
-    let is_tournament = tourney_title.is_some();
     snap.roles
         .iter()
         .map(|role| {
@@ -84,11 +83,7 @@ pub fn build_grid_multi(snap: &MetaSnapshot, role_labels: &str) -> Vec<GridConfi
                 cursor_y += 35.0;
             }
 
-            let top_header = if is_tournament {
-                format!("— TOP {role_upper} HEROES - ORDERED BY D2PT ELO")
-            } else {
-                format!("TOP {role_upper} HEROES - ORDERED BY D2PT ELO")
-            };
+            let top_header = format!("— TOP {role_upper} HEROES - ORDERED BY D2PT ELO");
 
             categories.push(Category {
                 category_name: top_header,
@@ -142,11 +137,7 @@ pub fn build_grid_multi(snap: &MetaSnapshot, role_labels: &str) -> Vec<GridConfi
 
             if !other_heroes.is_empty() {
                 let other_header_y = top_heroes_y + card_h + 35.0;
-                let other_header = if is_tournament {
-                    format!("— OTHER {role_upper} HEROES - ORDERED BY D2PT RATING (AND PICKRATE)")
-                } else {
-                    format!("OTHER {role_upper} HEROES - ORDERED BY D2PT RATING (AND PICKRATE)")
-                };
+                let other_header = format!("— OTHER {role_upper} HEROES - ORDERED BY D2PT RATING (AND PICKRATE)");
                 categories.push(Category {
                     category_name: other_header,
                     x_position: 0.0,

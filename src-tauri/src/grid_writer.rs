@@ -131,50 +131,6 @@ pub fn upsert_config(existing_json: &str, our: &GridConfig) -> Result<String, Gr
     upsert_configs(existing_json, std::slice::from_ref(our))
 }
 
-use sha1::{Digest, Sha1};
-
-fn compute_sha1_hex(bytes: &[u8]) -> String {
-    let mut hasher = Sha1::new();
-    hasher.update(bytes);
-    format!("{:x}", hasher.finalize())
-}
-
-fn sync_remotecache_for_grid(grid_path: &Path, content: &[u8]) {
-    let Some(remotecache_path) = grid_path.ancestors().nth(3).map(|p| p.join("remotecache.vdf")) else {
-        return;
-    };
-    if !remotecache_path.exists() {
-        return;
-    }
-    let Ok(vdf) = std::fs::read_to_string(&remotecache_path) else {
-        return;
-    };
-
-    let sha = compute_sha1_hex(content);
-    let size = content.len();
-    let now = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_secs())
-        .unwrap_or(0);
-
-    let new_block = format!(
-        "\"cfg/hero_grid_config.json\"\n\t{{\n\t\t\"root\"\t\t\"0\"\n\t\t\"size\"\t\t\"{size}\"\n\t\t\"localtime\"\t\t\"{now}\"\n\t\t\"time\"\t\t\"{now}\"\n\t\t\"remotetime\"\t\t\"{now}\"\n\t\t\"sha\"\t\t\"{sha}\"\n\t\t\"syncstate\"\t\t\"1\"\n\t\t\"persiststate\"\t\t\"0\"\n\t\t\"platformstosync2\"\t\t\"-1\"\n\t}}"
-    );
-
-    let updated = if vdf.contains("\"cfg/hero_grid_config.json\"") {
-        let re = regex::Regex::new(r#""cfg/hero_grid_config\.json"\s*\{[^}]*\}"#).unwrap();
-        re.replace(&vdf, new_block.as_str()).to_string()
-    } else if let Some(last_brace_idx) = vdf.rfind('}') {
-        let mut s = vdf[..last_brace_idx].to_string();
-        s.push_str(&format!("\t{new_block}\n"));
-        s.push_str("}\n");
-        s
-    } else {
-        vdf
-    };
-
-    let _ = std::fs::write(&remotecache_path, updated);
-}
 
 fn backup_and_write(path: &Path, existing: &str, new_json: &str) -> Result<(), GridError> {
     let dir = path.parent().unwrap_or_else(|| Path::new("."));
@@ -198,7 +154,6 @@ fn backup_and_write(path: &Path, existing: &str, new_json: &str) -> Result<(), G
     let tmp_path = dir.join(tmp_file_name);
     std::fs::write(&tmp_path, new_json)?;
     std::fs::rename(&tmp_path, path)?;
-    sync_remotecache_for_grid(path, new_json.as_bytes());
     Ok(())
 }
 
