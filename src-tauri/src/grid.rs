@@ -51,7 +51,7 @@ fn format_rate(rate: f32) -> String {
     } else if val.abs() < 1e-4 {
         "0%".to_string()
     } else {
-        format!("{:.2}%", val)
+        format!("{:.1}%", val)
     }
 }
 
@@ -97,8 +97,8 @@ pub fn build_grid_multi(snap: &MetaSnapshot, role_labels: &str) -> Vec<GridConfi
 
             let card_w = 68.0;
             let card_h = 104.0;
-            let gap_x = 12.0;
-            let gap_y = 16.0;
+            let gap_x = 10.0;
+            let gap_y = 10.0;
             let heroes_per_row = 14;
 
             let top_heroes: Vec<_> = role.heroes.iter().filter(|h| h.is_top).cloned().collect();
@@ -119,7 +119,7 @@ pub fn build_grid_multi(snap: &MetaSnapshot, role_labels: &str) -> Vec<GridConfi
             let top_heroes_y = cursor_y;
             for (idx, h) in top_slice.iter().enumerate() {
                 categories.push(Category {
-                    category_name: format!("{}\n{}", format_rate(h.winrate), format_rate(h.pickrate)),
+                    category_name: format_rate(h.winrate),
                     x_position: (idx as f64) * (card_w + gap_x),
                     y_position: top_heroes_y,
                     width: card_w,
@@ -132,12 +132,12 @@ pub fn build_grid_multi(snap: &MetaSnapshot, role_labels: &str) -> Vec<GridConfi
                 .heroes
                 .iter()
                 .filter(|h| !top_ids.contains(&h.hero_id))
-                .take(10)
+                .take(20)
                 .cloned()
                 .collect();
 
             if !other_heroes.is_empty() {
-                let other_header_y = top_heroes_y + card_h + 12.0;
+                let other_header_y = top_heroes_y + card_h + 10.0;
                 let other_header = format!("— OTHER {role_upper} HEROES - ORDERED BY D2PT RATING (AND PICKRATE)");
                 categories.push(Category {
                     category_name: other_header,
@@ -153,7 +153,7 @@ pub fn build_grid_multi(snap: &MetaSnapshot, role_labels: &str) -> Vec<GridConfi
                     let col = idx % heroes_per_row;
                     let row = idx / heroes_per_row;
                     categories.push(Category {
-                        category_name: format!("{}\n{}", format_rate(h.winrate), format_rate(h.pickrate)),
+                        category_name: format_rate(h.winrate),
                         x_position: (col as f64) * (card_w + gap_x),
                         y_position: other_heroes_start_y + (row as f64) * (card_h + gap_y),
                         width: card_w,

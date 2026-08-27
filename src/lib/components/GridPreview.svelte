@@ -1,6 +1,6 @@
 <script lang="ts">
   import { _ } from "svelte-i18n";
-  import { pct2 } from "$lib/format";
+  import { formatWr, pct2 } from "$lib/format";
   import { store } from "$lib/store.svelte";
   import RoleIcon from "$lib/components/RoleIcon.svelte";
   import type { RoleMeta } from "$lib/types";
@@ -55,7 +55,7 @@
     {@const roleUpper = sectionRole(currentRole)}
     {@const topHeroes = currentRole.heroes.filter((h) => h.is_top).length > 0 ? currentRole.heroes.filter((h) => h.is_top) : currentRole.heroes.slice(0, 7)}
     {@const topHeroIds = new Set(topHeroes.map((h) => h.hero_id))}
-    {@const otherHeroes = currentRole.heroes.filter((h) => !topHeroIds.has(h.hero_id)).slice(0, 10)}
+    {@const otherHeroes = currentRole.heroes.filter((h) => !topHeroIds.has(h.hero_id)).slice(0, 20)}
 
     <div class="flex flex-col gap-4">
       <section class="flex flex-col gap-2">
@@ -63,15 +63,12 @@
           {$_("grid.top", { values: { role: roleUpper } })}
         </h3>
 
-        <div class="flex flex-wrap items-start gap-2.5">
+        <div class="flex flex-wrap items-start gap-[10px]">
           {#each topHeroes as h (h.hero_id)}
-            <div class="group flex w-[68px] flex-col items-center select-none" title="{h.name} • {pct2(h.winrate)} WR • {pct2(h.pickrate)} Pick">
+            <div class="group flex w-[68px] flex-col items-center select-none" title="{h.name} • {formatWr(h.winrate)} WR • {pct2(h.pickrate)} Pick">
               <div class="flex w-full flex-col items-center pb-1">
                 <span class="font-sans text-[13px] font-bold tracking-tight text-[#e2e8f0] tabular-nums leading-tight">
-                  {pct2(h.winrate)}
-                </span>
-                <span class="font-sans text-[11.5px] font-medium tracking-tight text-[#8e9aa8] tabular-nums leading-tight">
-                  {pct2(h.pickrate)}
+                  {formatWr(h.winrate)}
                 </span>
               </div>
 
@@ -97,15 +94,12 @@
             {$_("grid.other", { values: { role: roleUpper } })}
           </h3>
 
-          <div class="flex flex-wrap items-start gap-2.5">
+          <div class="flex flex-wrap items-start gap-[10px]">
             {#each otherHeroes as h (h.hero_id)}
-              <div class="group flex w-[68px] flex-col items-center select-none" title="{h.name} • {pct2(h.winrate)} WR • {pct2(h.pickrate)} Pick">
+              <div class="group flex w-[68px] flex-col items-center select-none" title="{h.name} • {formatWr(h.winrate)} WR • {pct2(h.pickrate)} Pick">
                 <div class="flex w-full flex-col items-center pb-1">
                   <span class="font-sans text-[13px] font-bold tracking-tight text-[#e2e8f0] tabular-nums leading-tight">
-                    {pct2(h.winrate)}
-                  </span>
-                  <span class="font-sans text-[11.5px] font-medium tracking-tight text-[#8e9aa8] tabular-nums leading-tight">
-                    {pct2(h.pickrate)}
+                    {formatWr(h.winrate)}
                   </span>
                 </div>
 
