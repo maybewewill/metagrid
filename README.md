@@ -118,7 +118,10 @@ Grids are written directly to Dota's `hero_grid_config.json`. Existing user-crea
 
 #### 1. Homebrew
 ```bash
-brew install --cask https://raw.githubusercontent.com/maybewewill/metagrid/main/Casks/metagrid.rb
+brew install --cask maybewewill/tap/metagrid
+
+# Or:
+# brew tap maybewewill/tap && brew install --cask metagrid
 ```
 
 #### 2. Manual DMG Download
