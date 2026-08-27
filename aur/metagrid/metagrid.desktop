@@ -1,0 +1,9 @@
+﻿[Desktop Entry]
+Name=MetaGrid
+Comment=Automatic Dota 2 Meta Hero Grid Layout Manager
+Exec=metagrid %U
+Icon=metagrid
+Terminal=false
+Type=Application
+Categories=Game;Utility;
+StartupWMClass=metagrid

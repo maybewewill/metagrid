@@ -105,18 +105,31 @@ Grids are written directly to Dota's `hero_grid_config.json`. Existing user-crea
 
 ## Installation
 
-### Option 1: Cargo Install (One Command)
+### Arch Linux (AUR)
+
+```bash
+yay -S metagrid-bin
+# or with paru
+paru -S metagrid-bin
+```
+
+### Linux (AppImage / .deb)
+
+1. Download `MetaGrid_amd64.AppImage` or `MetaGrid_amd64.deb` from [Releases](https://github.com/maybewewill/metagrid/releases).
+2. For AppImage: make executable (`chmod +x MetaGrid_amd64.AppImage`) and run.
+3. For Debian/Ubuntu: `sudo dpkg -i MetaGrid_amd64.deb`.
+
+### Windows Installer / Portable
+
+1. Download `MetaGrid_x.y.z_x64-setup.exe` from [Releases](https://github.com/maybewewill/metagrid/releases).
+2. Run the app, pick your Steam account and language, then click **Fetch & Patch**.
+3. In Dota 2, open **Heroes → Hero Grids** and select your updated layout.
+
+### Option: Cargo Install
 
 ```bash
 cargo install --git https://github.com/maybewewill/metagrid
 ```
-> Installs the standalone `metagrid` executable directly to your system (`~/.cargo/bin`). Run `metagrid` in your terminal to launch.
-
-### Option 2: Windows Installer / Portable
-
-1. Download `MetaGrid_x.y.z_x64-setup.exe` or `MetaGrid_x.y.z_x64_Portable.zip` from [Releases](https://github.com/maybewewill/metagrid/releases).
-2. Run the app, pick your Steam account and language, then click **Fetch & Patch**.
-3. In Dota 2, open **Heroes → Hero Grids** and select your updated layout.
 
 ---
 
