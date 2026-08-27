@@ -95,10 +95,10 @@ pub fn build_grid_multi(snap: &MetaSnapshot, role_labels: &str) -> Vec<GridConfi
             });
             cursor_y += 24.0;
 
-            let card_w = 50.0;
-            let card_h = 75.0;
-            let gap_x = 6.0;
-            let gap_y = 8.0;
+            let card_w = 68.0;
+            let card_h = 104.0;
+            let gap_x = -12.0;
+            let gap_y = 10.0;
             let heroes_per_row = 14;
 
             let top_heroes: Vec<_> = role.heroes.iter().filter(|h| h.is_top).cloned().collect();
@@ -137,7 +137,7 @@ pub fn build_grid_multi(snap: &MetaSnapshot, role_labels: &str) -> Vec<GridConfi
                 .collect();
 
             if !other_heroes.is_empty() {
-                let other_header_y = top_heroes_y + card_h + 57.0;
+                let other_header_y = top_heroes_y + card_h + 28.0;
                 let other_header = format!("— OTHER {role_upper} HEROES - ORDERED BY D2PT RATING (AND PICKRATE)");
                 categories.push(Category {
                     category_name: other_header,
