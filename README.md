@@ -114,9 +114,15 @@ Grids are written directly to Dota's `hero_grid_config.json`. Existing user-crea
 
 ---
 
-### macOS (Apple Silicon & Intel)
+### macOS (Homebrew / Universal DMG)
 
-1. Download `MetaGrid.dmg` from [Releases](https://github.com/maybewewill/metagrid/releases).
+#### 1. Homebrew
+```bash
+brew install --cask https://raw.githubusercontent.com/maybewewill/metagrid/main/Casks/metagrid.rb
+```
+
+#### 2. Manual DMG Download
+1. Download `MetaGrid_1.3.1_universal.dmg` from [Releases](https://github.com/maybewewill/metagrid/releases).
 2. Open the `.dmg` file and drag **MetaGrid** into your `Applications` folder.
 3. Launch MetaGrid, select your Steam account, and click **Fetch & Patch**.
 
